@@ -1,0 +1,20 @@
+// \ingroup DP3
+//
+// \defgroup AOFlagger AOFlagger
+//
+// The AOFlagger is a flagger framework that implements several
+// methods to deal with RFI, amongst which the SumThreshold method,
+// background fitting techniques (smoothing, sliding window, median)
+// filters and dilations.
+//
+// The package contains several programs related to flagging,
+// most important the programs "rficonsole" and "rfigui". The
+// @ref NDPPP package depends on the AOFlagger package, so that
+// it can use the AOFlagger before averaging.
+// 
+// See the <a href="http://www.astron.nl/radio-observatory/lofar/lofar-imaging-cookbook">LOFAR cookbook</a>
+// for general info about running the flagger.
+// 
+// @{
+//   \defgroup AOFlagger AOFlagger
+// @}

@@ -1,0 +1,146 @@
+Version 2.1.0
+2012-08-12  André Offringa <of...nga@astro.rug.nl>
+  * This release adds support for .sdfits files that are used in Parkes data reduction and has various little enhancements. Strategy file format has not changed.
+  * New feature: Parkes' sdfits files can now be opened (with help from J. Delhaize) and the AOFlagger seems to be able to flag such observations well
+  * New feature: Save flags action can store flags to sdfits files
+	* New feature: New spectrum plot options in Rfigui (plot mean or sum of time steps)
+	* New feature: binary 'badstations', will use quality statistics to determine bad stations. Meant to be a fast tool for LOFAR data.
+	* New feature: allow reading non-standard columns in the gui (requested by R. van Weeren)
+	* New feature: new action 'Normalize variance', observations can be normalized by using the quality statistics.
+	* Bug fix: Sinc convolution in time direction can now be accomplished with FFT
+	* Bug fix: Added many improvements to the aoqplot quality plotting tool, i.e., better error msgs, more plots, bandpass/time correction, less crashes.
+	* Bug fix: No longer silently ignoring write errors during reordering -- before this, when writing failed, flag results were wrong without warning.
+	* Enhancement: more options for aoquality tool.
+	* Bug fix: The uvfits reader did not work any more on WSRT files because of architectural changes in the AOFlagger. Fixed.
+	* Bug fix: AOFlagger can now flag data without time stamps (wich allows me to flag data from my personal hobby telescope).
+	* Bug fix: Open button now has key accelerator.
+	* Bug fix: AOFlagger did not compile on gcc 4.7 (reported by J. Swinbank).
+	* Bug fix: Toolbar in the Rfigui will now always show both text and icons
+	* Bug fix: Interface changed to allow NDPPP to read the raw data, NDPPP's problems fixed that concerned quality collecting.
+	* Performance enhancement: Improved speed of horizontal sumthreshold algorithm with SSE instructions, leading to about 10\% improved speed on overal strategy.
+	* Bug fix: fixed bug in previously mentioned new SumThreshold algorithm causing crashes (reported by J. Swinbank), also adding test case to validate result.
+	* Performance enhancement: Improved performance of reading meta data of measurement sets.
+	* Experimental additions: the frequency filters are now optimized and can be applied on huge (LOFAR) observations.
+
+Version 2.0.1
+2012-03-16	André Offringa <of...nga@astro.rug.nl>
+  * This release is a quick fix for a bug that caused a strategy read failure on machines with non-standard locales
+  * Bug fix: fixing bug causing strategy reader to malfunction with different locales (reported by Arpad Miskolczi)
+  * Bug fix: show an error box when a strategy fails to load instead of crashing
+  * Bug fix: complex plane plot was still using gnuplot -- now uses the internal plotter.
+  * Bug fix: fixed a bug that sometimes caused a crash after having resized the time-frequency diagram.
+  * Bug fix: building without gtkmm was not possible, patched by Marcel Loose.
+
+Version 2.0.0
+2012-03-08	André Offringa <of...nga@astro.rug.nl>
+  * Main points of this release: no longer depence on pdfviewer & gnuplot for drawing plots and new tools for quality analysis. Strategy file format did not change, thus .rfis files from 1.5.0 can be opened without a problem in 2.0.0.
+  * New tool: aoqplot, for very quick but superficial analysis of observations (see LOFAR Cookbook for info).
+  * New tool: aoquality, for collecting statistics (also see Cookbook).
+  * New feature: An internal plot renderer was added, which is used for all plots in the plot menu. The plots are therefore much faster and better integrated within rfigui, and no longer require gnuplot and a pdf viewer.
+  * New feature: ticks and text for logarithmic colour scales are visualized in a more esthetically pleasing way.
+  * New feature: Text along x,y,z axes of time-frequency plot can be manually set.
+  * New feature: log-log distribution plot in rfigui, with various analysis possible (slope calculation, rayleigh fitter).
+  * New feature: rfigui will now immediately ask which baseline to load, instead of loading the first baseline (requested by Raymond Oonk).
+  * New feature: you can now specify a MS on the commandline with the rfigui: "rfigui <ms>"
+  * Bug fix: Baseline name disappeared in bottom status bar when moving mouse over time-frequency plot. Baseline name is now reported when mouse is moved outside time-frequency plot (requested by Raymond Oonk).
+  * Bug fix: very large sets were not displayed correctly in the rfigui due to cairo limitations.
+  * Bug fix: clicking on statistics button sometimes crashed the gui.
+  * Bug fix: Times along x-axis in rfigui were not correct when splitting the data (reported by Raymond Oonk).
+  * Performance of dilation algorithm improved (is not used in default strategy).
+  * Slight performance improvement of SSE SumThreshold method.
+  * New library interface: the statistics collector is used by NDPPP to accumulate statistics during averaging (NDPPP and AOFlagger remain independ though).
+
+Version 1.5.0
+2011-10-20	André Offringa <of...nga@astro.rug.nl>
+  * The main points of this release: Better performance, improved visualization and raw file support.
+  * The computational performance has been significantly improved (2x faster) using various optimizations, including rewriting algorithms to use the SSE instruction set.
+  * New feature: The time-frequency plots are customizable in various ways (View->Plot properties), and have been polished somewhat.
+  * New feature: Export visualizations as vector graphics (SVG, PDF) or bitmap (PNG).
+  * New feature: FITS export of image plane.
+  * New feature: Logarithmic colour scale (both in TF diagram and Image plane window).
+  * New feature: Tool tips in some windows.
+  * New feature: Raw files produced for the Transient Key Science project can now be read and written by the tools (format description from P. Zarka).
+  * The performance of the indirect reader has been improved (flags are also reordered during write).
+  * Added a different interpolation algorithm
+  * Menus in the gui have been restructured.
+  * New testset simulating sinusoidal RFI.
+  * Bugfix: Cairo behaved differently on some platforms, and did not show everything.
+  * Change resolution action can now optionally take flags into account.
+  * Fixed some issues with UV projection and simulation runs.
+  * RFI console now returns a status upon finishing, useful for automated pipelines (suggested by C. Coughlan).
+  * Heavy refactoring of visualization code.
+  * Better test coverage.
+
+Version 1.4.0
+2011-07-22	André Offringa <of...nga@astro.rug.nl>
+  * New action: absolute threshold. Useful for experimenting (not to be used otherwise).
+  * Speed increase of about 10% due to using a novel linear performing algorithm for the dilation. Algorithm provided by J. van de Gronde (article coming up).
+  * Several enhancements to fringe filters (see Offringa et al, 2011, in prep.).
+  * Enhanced performance of statistic collecting strategies.
+  * Added / enhanced possibility to experiment with spatial filters, thanks to a lot of input from U.-L. Pen.
+  * Esthetic changes to the gui by regrouping the menus.
+  * msinfo reports somewhat more useful info now.
+  * colormapper can now average fits images together and has some other useful features.
+  * Bugfix: Converging of sets with lots of RFI did not work correctly. Reported by R. van Weeren and D. Rafferty. Won't work for old strategies(!).
+  * Bugfix: Winsorized variance calculation is now more accurate with large amounts of RFI.
+  * Bugfix: Since the new actions screen was getting too large, the edit strategy now shows a menu of possible actions. Reported by A. Miskolczi.
+  * Bugfix: Removed unused parameters of the time selection action. Reported by P. Serra.
+  * Bugfix: Parameter -c removed from rfistrategy, as it did not work. Reported by F. De Gasperin.
+  * Several new unit tests to validate flagger steps.
+  * Some small fixes everywhere around.
+
+Version 1.3.0
+2011-04-26	André Offringa <of...nga@astro.rug.nl>
+
+  * Several esthetic changes to the gui, including rounded values on the axes, a z-axis scale and fixed z-scale
+  * Feature to create a graphical map of the antennas in a set
+  * Various improvements to collection of statistics, such as time-frequency noise plots
+  * Dynamic noise spectra generated by the CollectNoiseAction can be opened and re-flagged in RFI gui.
+  * Added several unit tests to test correctness of the more complicated algorithms
+  * New action that acts like it resamples the data in a specific way, for testing it side effects.
+  * Fringe fitting can be performed on any source now
+  * Bugfix: Fix of 1d convolution out-of-bounds error, reported by R. van Nieuwpoort
+  * Bugfix: fitting of curve when no data is present
+  * Bugfix: Fix of somewhat confusing side effect of the dilation operation when the Equal polarisation setting was removed. Reported by A. Biggs.
+  * Bugfix: Fix for bug reported by P. Serra, flagging on Stokes Q in a 2 polarization (XX,YY) set did not work
+  * Many other small bugfixes
+
+Version 1.2.0
+2011-02-28  André Offringa <of...nga@astro.rug.nl>
+
+  * Dependency on GSL removed
+  * Added RMS plot option
+  * Added option to rficonsole to specify data column used for flagging
+  * Added opening of solution tables
+  * Added some checks and error messages when making common strategy errors
+  * RFI console will now output the total percentages per polarization
+  * Added support for skipping mses that have already been flagged
+  * The edit strategy window works more intuitively now
+  * Goto window will select current baseline when opening
+  * RFI Console now writes an entry in the HISTORY table of the Measurement Set
+  * Logging has been formatted and start time was added.
+  * Added "Set and show image plane" button in plot menu
+  * Added feature to continue with already resorted MS in indirect baseline reader
+  * The AdapterAction has been replaced by the ForEachComplexComponentAction
+  * Strategy XML file is now formatted to make it human readable
+  * Allow indirect reading of an MS
+  * The indirect reading mode can be used in the GUI
+  * Allow reading of raw RCP files
+  * Changing the default threshold for baseline selection suggestor to 8 sigma
+  * Fixed several GUI issues that made the GUI crash when having multiple windows open
+  * Fixed error when opening reference tables, e.g. concattenated tables.
+  * Fixed two race conditions found by Helgrind
+  * Fixed bug in reported coordinates when zooming
+  * Fixed NaN issues while imaging certain sets
+  * Fixed bug that prevented column selection to actually have effect
+  * Allow lower memory machines
+  * Default strategy is about 20% faster and equally accurate
+  * Changed directory structure of source code
+  * Fixed various rare segmentation faults
+  * A lot of bug fixes and feature enhancements related to filtering
+  * A lot of doc fixes
+  * Fixed some bugs that caused NDPPP not to work
+  * Some Mac fixes by Ger van Diepen
+
+Version 1.1.0
+2010-10-22  André Offringa <of...nga@astro.rug.nl>

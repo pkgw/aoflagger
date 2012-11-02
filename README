@@ -1,0 +1,10 @@
+For the latest version and information about installing, go to http://www.astro.rug.nl/rfi-software/ .
+
+You can compile the software by executing from the LOFAR directory:
+
+mkdir build/gnu_opt -p
+cd build/gnu_opt
+cmake ../.. -DCASACORE_ROOT_DIR=/home/anoko/casacore -DLOG4CPLUS_LIBRARY=/home/anoko/lib/liblog4cplus.a -DLOG4CPLUS_INCLUDE_DIR=/home/anoko/include/
+make
+
+Change the casacore and log4cplus directories to the directories where you have installed them.

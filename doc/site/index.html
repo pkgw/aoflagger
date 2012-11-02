@@ -1,0 +1,151 @@
+<html>
+<head><title>Offringa's RFI software</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+<a href="http://www.astro.rug.nl/~offringa/">Offringa</a>-&gt;RFI software
+<h2>RFI software</h2>
+<p>This page describes the software to detect and mitigate radio frequency interference (RFI) in a radio measurement set. The main algorithms are described in the articles
+"<a href="http://adsabs.harvard.edu/doi/10.1111/j.1365-2966.2010.16471.x">Post-correlation radio frequency interference classification methods'</a>" (Offringa et al. 2010, MNRAS, Volume 405, Issue 1, pp. 155-167) and "<a href="http://www.aanda.org/index.php?option=com_article&access=doi&doi=10.1051/0004-6361/201118497&Itemid=129">A morphological algorithm for improving radio-frequency interference detection</a>" (Offringa et al. 2012, A&amp;A, Volume 539, Issue A95). Please acknowledge these papers in publications in which the software is used. The first one introduces the SumThreshold method and tests signal estimation methods, the latter introduces the Scale-invariant rank operator.</p>
+<p>I've made a "<a href="faq.html">Frequently Asked Questions</a>" page for the software, a short <a href="gui-tutorial.html">RFI GUI tutorial</a> and an <a href="strategy-example-a.html">example of how one can optimize the strategy</a>.</p>
+<p>Last release: version 2.1.0, 12 August 2012.</p>
+<p>Contents:</p>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#download">Download</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#usage">Usage instructions</a></li>
+<li><a href="#problems">Problems and solutions</a></li>
+<li><a href="#contact">Contact information</a></li>
+<li><a href="#acknowledgments">Acknowledgments</a></li>
+</ul>
+<a id="introduction"><h4>Introduction</h4></a>
+<p>The RFI software presented here can automatically flag data and can be used to analyze the data in a measurement. The purpose of flagging is to mark samples that are affected by interfering sources such as radio stations, airplanes, electrical fences or other transmitting interferers.</p>
+<p>The tools in the package are meant for offline use. The software package contains a graphical interface ("<tt>rfigui</tt>") that can be used to visualize a measurement set and analyze mitigation techniques. It also contains a console flagger ("<tt>rficonsole</tt>") that can execute a script of mitigation functions without the overhead of a graphical environment. All tools were written in C++.</p>
+<p>The software has been tested extensively on low radio frequencies (150 MHz or lower) produced by the <a href="http://www.astron.nl/radio-observatory/astronomers/wsrt-astronomers">WSRT</a> and <a href="http://www.lofar.org">LOFAR</a> telescopes. For this purpose, I'm reasonably sure that it is both the <em>fastest</em> and <em>most accurate</em> flagger in the world. LOFAR is the Low Frequency Array that is built in and around the Netherlands. Higher frequencies have been tested as well. Some of the methods implemented are the <tt>SumThreshold</tt>, the <tt>VarThreshold</tt>, the <tt>Scale-Invariant Rank Operator</tt> and the singular value decomposition (SVD) method. Included also are several surface fitting algorithms.</p>
+<p>The software is published under the GNU General Public License version 3.</p>
+<a id="download"><h4>Download</h4></a>
+<p>The latest version of the software can be downloaded here:</p>
+<ul><li>Download: <a href="AOFlagger-2.1.0.tar.bz2">AOFlagger-2.1.0.tar.bz2</a> (12 August 2012, <a href="CHANGELOG">changelog</a>)</li></ul>
+<ul><li>Download: <a href="AOFlagger-2.0.1.tar.bz2">AOFlagger-2.0.1.tar.bz2</a> (16 March 2012, <a href="CHANGELOG">changelog</a>)</li></ul>
+<ul><li>Download: <a href="AOFlagger-2.0.0.tar.bz2">AOFlagger-2.0.0.tar.bz2</a> (9 March 2012, <a href="CHANGELOG">changelog</a>)</li></ul>
+<ul><li>Download: <a href="AOFlagger-1.5.0.tar.bz2">AOFlagger-1.5.0.tar.bz2</a> (20 October 2011, <a href="CHANGELOG">changelog</a>)</li></ul>
+<ul><li>Download: <a href="AOFlagger-1.4.0.tar.bz2">AOFlagger-1.4.0.tar.bz2</a> (22 Juli 2011, <a href="CHANGELOG">changelog</a>)</li></ul>
+<ul><li>Download: <a href="AOFlagger-1.3.0.tar.bz2">AOFlagger-1.3.0.tar.bz2</a> (26 April 2011)</li></ul>
+<ul><li>Download: <a href="AOFlagger-1.2.0.tar.bz2">AOFlagger-1.2.0.tar.bz2</a> (28 Februari 2011)</li></ul>
+<ul><li>Download: <a href="AOFlagger-1.1.0.tar.bz2">AOFlagger-1.1.0.tar.bz2</a> (22 October 2010)</li></ul>
+<p>See the compilation instruction below.</p>
+<a id="installation"><h4>Installation</h4></a>
+<p>The packages contain a part of the LOFAR software tree that contain the AOFlagger tools. Most astronomical workstations will have most of the required libraries.</p>
+<h5>Requirements</h5>
+<p>Below is a list of libraries that are required.</p>
+<ul>
+<li><a href="http://casacore.googlecode.com/">Casacore</a>, for opening measurement sets.</li>
+<li><a href="http://www.fftw.org/">FFTW</a>, used to perform Fourier transformations.</a></li>
+<li><a href="http://www.boost.org/">Boost</a>, used for threading, date and time calculations and some other general functionalities.</li>
+<li><a href="http://xmlsoft.org/">libxml</a>, used for saving scripts / configurations.</li>
+<li><a href="http://www.netlib.org/clapack/">CLAPACK</a>, for linear algebra, such as singular value decomposition.</li>
+<li><a href="http://heasarc.nasa.gov/fitsio/">CFITSIO</a>, for reading and writing FITS files.</li>
+<li><a href="http://log4cplus.sourceforge.net/">Log4cplus</a>, for making log files. I was notified by Arpad Miskolczi that AOFlagger is not yet compatible with Log4cplus version 1.1.0, so use version 1.0.4 or earlier. </li>
+<li>(the <a href="http://www.gnu.org/software/gsl/">GNU Science Library</a> is not required for versions between 1.2 and 1.5)</li>
+<li>gtkmm (only for <tt>rfigui</tt> and other graphical programs)</li>
+</ul>
+<p>All the libraries are available as free and open software. The gtkmm libraries and headers are required for the gui but not for the console binary. If they are not present, cmake will warn about it, but will compile the console programs nevertheless.</p>
+<p>I disencourage you to compile gtkmm yourself; it has many dependencies. Rather use your package manager (or ask your system administrator). Debian ships this library as "gtkmm-dev".</p>
+<p>Some other libraries have to be available on the system (but are generally available). The complete list: </p>
+<ul>
+<li>png library</li>
+<li>pthread library</li>
+<li>dl, dynamic linking library</li>
+<li>f2c, fortran-to-c library</li>
+<li>cmake</li>
+</ul>
+<h5>Instructions for compilation</h5>
+<p>The following steps explain the standard compilation procedure. It is probably recommendable that you start on a system where you have full administration rights, so you can easily find out what exact requirements are required.</p>
+<ol>
+<li>If you have not done so, install the required libraries. Most of the requirements can be fetched from Debian(like) repositories, with the exception of <a href="http://casacore.googlecode.com/">Casacore</a>.</li>
+<li>Download and extract the software.</li>
+<li>Enter the directory <tt>./LOFAR</tt> and create and enter a sub-directory called "build/gnu_opt": <tt>mkdir -p build/gnu_opt</tt>; <tt>cd build/gnu_opt</tt>
+<li>Configure the package with cmake. If you installed all the libraries in their default location, you can issue the following command: <tt>cmake ../..</tt><br/>
+CMake will tell you when some of the files can not be found. If you need to specify the location of libraries, e.g. for casacore and log4cpp, you can issue something like:
+<tt>cmake ../.. -DCASACORE_ROOT_DIR=/home/offringa/casacore-install -DLOG4CPLUS_LIBRARY=/home/offringa/lib/liblog4cplus.a -DLOG4CPLUS_INCLUDE_DIR=/home/offringa/include/</tt></li>
+<li>If CMake succeeds, you can start the compilation: <tt>make</tt> (or <tt>make -j 8</tt> for 8 threaded compilation).</li>
+</ol></ol>
+<p>After the last step, the executables will be in the ./LOFAR/build/gnu_opt/CEP/DP3/AOFlagger/src directory, ready for action!</p>
+<h5>Compilation issues</h5>
+<ul>
+<li>In case of errors about global-init.h, disable the logger: add <tt>-DUSE_LOG4CPLUS=OFF -DUSE_LOG4CXX=OFF</tt> to your CMake command.</li>
+<li>Mac's will complain about errors related to malloc. Add <tt>-DUSE_SHMEM=OFF</tt> to your CMake command to fix this.</li>
+</ul>
+<a id="usage"><h4>Usage instructions</h4></a>
+<h5>rficonsole</h5>
+<p>The <tt>rficonsole</tt> program is the simplest way of executing a strategy. To flag RFI in a measurement set, type the following command:</p>
+<pre>./rficonsole &lt;path&#8209;to&#8209;ms&gt; [&lt;another&#8209;path&#8209;to&#8209;ms&gt; ...]</pre>
+<p>This will run the default flagging strategy, which has the best balance between flagging quality and speed. The specified filename should normally be a .MS directory containing an AIPS++/Casa measurement set. You can type <tt>./rficonsole</tt> without parameters to get information about its command. Currently, the following page is returned:</p>
+<pre>./rficonsole
+Usage: ./rficonsole [-v] [-j &lt;threadcount&gt;] [-strategy &lt;file.rfis&gt;] [-indirect-read] [-nolog] [-skip-flagged] &lt;ms1&gt; [&lt;ms2&gt; [..]]
+  -v will produce verbose output
+  -j overrides the number of threads specified in the strategy
+  -strategy specifies a possible customized strategy
+  -indirect-read will reorder the measurement set before starting, which is normally faster
+  -nolog will not use the LOFAR logger to output logging messages
+  -skip-flagged will skip an ms if it has already been processed by RFI console according
+   to its HISTORY table.
+  -uvw reads uvw values (some strategies require them)
+  -column &lt;NAME&gt; specify column to flag
+Execute 'rfistrategy' without parameters for help on creating RFIS strategies.
+</pre>
+<h5>rfistrategy</h5>
+<p>To customize the flagging process, you can run the rficonsole with an alternate strategy with the <tt>-strategy</tt> flag. You can create an <tt>.rfis</tt>-strategy file with the gui or with the rfistrategy command. rfistrategy is a console program. Run the rfistrategy command without parameters to get help:</p>
+<pre>./rfistrategy
+RFI strategy file writer
+This program will write an RFI strategy to a file, to run it with the
+rficonsole or the rfigui.
+
+Author: Andr&eacute; Offringa (e-mail)
+
+Usage: ./rfistrategy &lt;profile&gt; &lt;filename&gt;
+
+Profiles:
+        fast    Fastest strategy that provides a moderate
+                result in quality. Will flag the measurement set using
+                Stokes-I values, and by using a relatively small
+                sliding window.
+        average Best trade-off between speed and quality. Will
+                flag the measurement set using stokes I values using
+                an average sliding window size.
+        best    Highest quality detection. Will flag each
+                polarization individually, using a relatively large
+                sliding window.
+&lt;filename&gt; is the filename to which the strategy is written. This
+file should have the extension ".rfis".
+
+All profiles implement the SumThreshold method. The details of this
+method are described in the article named "Post-correlation radio
+frequency interference classification methods", submitted to MNRAS.</pre>
+<p>The .rfis files are XML files and can be changed by hand or with a script in e.g. a full (offline) processing pipeline.</p>
+<h5>rfigui</h5>
+<p>The rfigui is a complex analyzation and experimentation tool which I use to create and test alternate flagging strategies, quickly visualize data sets and their flags, make graphs and perform all kind of mutations on the data set. Most features are self-explanatory and can be found in the main menu. Some features are still under heavy development and might not work (correctly). Some of its features are:</p>
+<ul>
+<li>Opening AIPS++ measurement sets and UV-FITS files.</li>
+<li>Draw time-frequency graphs of Stokes I, single polarizations, phase or complex components of single baselines.</li>
+<li>Execute, visualize and compare flagging strategies with or without changing a data set.</li>
+<li>Create alternate flagging strategies by combining blocks of operations in a script tree. It works quite intuitively, e.g., by clicking on a block, one can change its parameters.</li>
+<li>Create several plots; amplitude vs. time, frequency spectra, complex plane, time vs. flag count, frequency vs. flag count, antenna vs. flag count, etc.</li>
+</ul>
+<a id="problems"><h4>Problems and solutions</h4></a>
+<ul>
+<li>If you have problems running the executables, and you get an error about loading libraries, a solution might be to explicitly define where the libraries are, i.e., type in:
+<pre>export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:&lt;path&#8209;to&#8209;source&#8209;root&gt;/libs/lib/</pre></li>
+<li>If you have any further problems, don't hesitate to contact me! I will be glad to help out. See the section "contact information".</li>
+</ul>
+<a id="contact"><h4>Contact information</h4></a>
+<p>In case of questions, suggestions or feedback, please mail me. My e-mail address is <tt>&lt;mylastname&gt;@astro.rug.nl</tt>, and my last name is offringa.</p>
+<a id="acknowledgments"><h4>Acknowledgments</h4></a>
+<p>Thanks to all who provided data to me for testing, in special Ger de Bruyn
+and Gianni Bernardi. Also thanks to Andy Biggs and Ger van Diepen for several fixes and hints.
+The RFI tools heavily use Casacore, thus their authors have been instrumental
+in creating the flagger.</p>
+</body>
+</html>
+

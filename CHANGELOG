@@ -1,0 +1,39 @@
+Version 1.2.0
+2011-02-28  André Offringa <of...nga@astro.rug.nl>
+
+  * Dependency on GSL removed
+  * Added RMS plot option
+  * Added option to rficonsole to specify data column used for flagging
+  * Added opening of solution tables
+  * Added some checks and error messages when making common strategy errors
+  * RFI console will now output the total percentages per polarization
+  * Added support for skipping mses that have already been flagged
+  * The edit strategy window works more intuitively now
+  * Goto window will select current baseline when opening
+  * RFI Console now writes an entry in the HISTORY table of the Measurement Set
+  * Logging has been formatted and start time was added.
+  * Added "Set and show image plane" button in plot menu
+  * Added feature to continue with already resorted MS in indirect baseline reader
+  * The AdapterAction has been replaced by the ForEachComplexComponentAction
+  * Strategy XML file is now formatted to make it human readable
+  * Allow indirect reading of an MS
+  * The indirect reading mode can be used in the GUI
+  * Allow reading of raw RCP files
+  * Changing the default threshold for baseline selection suggestor to 8 sigma
+  * Fixed several GUI issues that made the GUI crash when having multiple windows open
+  * Fixed error when opening reference tables, e.g. concattenated tables.
+  * Fixed two race conditions found by Helgrind
+  * Fixed bug in reported coordinates when zooming
+  * Fixed NaN issues while imaging certain sets
+  * Fixed bug that prevented column selection to actually have effect
+  * Allow lower memory machines
+  * Default strategy is about 20% faster and equally accurate
+  * Changed directory structure of source code
+  * Fixed various rare segmentation faults
+  * A lot of bug fixes and feature enhancements related to filtering
+  * A lot of doc fixes
+  * Fixed some bugs that caused NDPPP not to work
+  * Some Mac fixes by Ger van Diepen
+
+Version 1.1.0
+2010-10-22  André Offringa <of...nga@astro.rug.nl>

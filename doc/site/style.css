@@ -1,0 +1,29 @@
+/** Copyright Andre Offringa, 2012 */
+
+h1 {color:#004040;}
+h1.author {font-size: 12pt; }
+h2 {color:#008080;}
+h3 {color:#0080C0;}
+h4 {color:#0080C0;}
+h5 {color:#008080;}
+a {text-decoration: none;}
+a {color:#0000FF;}
+a.article {color:#0000FF;}
+a:hover { background-color:#C0E0FF; }
+table { border-collapse:collapse; }
+table,th, td { border: 1px solid #0080C0; padding:3px 7px 2px 7px; }
+tr.uneven { background-color:#C0E0FF; }
+tr.even { background-color: white; }
+th { background-color:#00C0FF; color: white; }
+hr { border: 1px solid #0080C0; }
+span.journal { font-style: italic; color:#800000; }
+span.article { color:#0040C0; }
+li { padding-bottom: 10px; }
+h4:before { content: "\00a0\00a0\00a0\00a0\00a0\00a0"; 
+     border-top: solid 2px #0080C0;  
+     position:relative;
+     top:12px; margin-right: 4px;}
+h5:after { content: "\00a0\00a0\00a0\00a0\00a0\00a0"; 
+     border-top: solid 2px #008080;  
+     position:relative;
+     top:12px; margin-left: 4px;}
