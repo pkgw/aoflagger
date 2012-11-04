@@ -76,6 +76,14 @@ set(GUI_FILES
   gui/quality/histogrampage.cpp
   ${GUI_PLOT_FILES})
 
+set(IMAGING_FILES
+  imaging/uvimager.cpp
+  imaging/model.cpp
+  imaging/fourproductcorrelatortester.cpp)
+
+set(INTERFACE_FILES
+  interface/aoflagger.cpp)
+  
 set(MSIO_FILES
   msio/baselinematrixloader.cpp
   msio/baselinereader.cpp
@@ -182,11 +190,6 @@ set(STRATEGY_FILES
   ${STRATEGY_IMAGESETS_FILES}
   ${STRATEGY_PLOTS_FILES})
 
-set(IMAGING_FILES
-  imaging/uvimager.cpp
-  imaging/model.cpp
-  imaging/fourproductcorrelatortester.cpp)
-
 set(UTIL_FILES
   util/aologger.cpp
   util/compress.cpp
@@ -209,7 +212,7 @@ else()
 		remote/clusteredobservation.cpp)
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
-add_library(rfiengine ${IMAGING_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
+add_library(rfiengine ${IMAGING_FILES} ${INTERFACE_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
 link_libraries(rfiengine)
 
 if(GTKMM_FOUND)
@@ -271,3 +274,6 @@ endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
 add_custom_target(check COMMAND aotest DEPENDS aotest)
+
+install (TARGETS rficonsole rfigui aoqplot aoquality DESTINATION bin)
+install (FILES interface/aoflagger.h DESTINATION include)

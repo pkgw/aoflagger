@@ -72,6 +72,13 @@ Image2D::~Image2D()
 	free(_dataConsecutive);
 }
 
+Image2D *Image2D::CreateSetImage(size_t width, size_t height, num_t initialValue) 
+{
+	Image2D *image = new Image2D(width, height);
+	image->SetAll(initialValue);
+	return image;
+}
+
 Image2D *Image2D::CreateZeroImage(size_t width, size_t height) 
 {
 	Image2D *image = new Image2D(width, height);

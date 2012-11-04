@@ -65,6 +65,14 @@ class Image2D {
 			return Image2DPtr(CreateUnsetImage(width, height));
 		}
 		
+		static Image2D *CreateSetImage(size_t width, size_t height, num_t initialValue);
+		
+		
+		static Image2DPtr CreateSetImagePtr(size_t width, size_t height, num_t initialValue)
+		{
+			return Image2DPtr(CreateSetImage(width, height, initialValue));
+		}
+
 		/**
 		 * Creates an image containing zeros.
 		 * @param width Width of the new image.
@@ -431,6 +439,16 @@ class Image2D {
 		inline const num_t *ValuePtr(unsigned x, unsigned y) const
 		{
 			return &_dataPtr[y][x];
+		}
+		
+		inline num_t *Data()
+		{
+			return _dataConsecutive;
+		}
+		
+		inline const num_t *Data() const
+		{
+			return _dataConsecutive;
 		}
 		
 		/**

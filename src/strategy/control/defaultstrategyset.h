@@ -3,53 +3,49 @@
 
 #include <string>
 
-#include <AOFlagger/strategy/actions/strategyaction.h>
+#include "../actions/strategyaction.h"
 
-namespace aotools {
+#include "../../interface/aoflagger.h"
+
+namespace rfiStrategy {
 	
-	enum DefaultStrategyIdentifier {
-		GUI_DEFAULT_STRATEGY,
-		LOFAR_DEFAULT_STRATEGY,
-		NDPPP_DEFAULT_STRATEGY,
-		VLA_DEFAULT_STRATEGY,
-		WSRT_DEFAULT_STRATEGY
-	};
-
-	class DefaultStrategySet
+	class DefaultStrategy
 	{
 		public:
-			StrategyAction *CreateStrategy(enum DefaultStrategyIdentifier identifier);
-			
-			const DefaultStrategyGroup RootGroup() const
-			{
+		/**
+		* The contents of this enum needs to be equal to aoflagger::StrategyId
+		* defined in interfaces/aoflagger.h
+		*/
+		enum DefaultStrategyId {
+			DEFAULT_STRATEGY = aoflagger::GENERIC_TELESCOPE,
+			LOFAR_STRATEGY = aoflagger::LOFAR_TELESCOPE,
+			MWA_STRATEGY = aoflagger::MWA_TELESCOPE,
+			WSRT_STRATEGY = aoflagger::WSRT_TELESCOPE
+		};
+
+		/**
+		* These flags need to be equal to aoflagger::StrategyFlags
+		* defined in interfaces/aoflagger.h
+		*/
+		static const unsigned
+			FLAG_NONE,
+			FLAG_LOW_FREQUENCY,
+			FLAG_HIGH_FREQUENCY,
+			FLAG_TRANSIENTS,
+			FLAG_ROBUST,
+			FLAG_FAST,
+			FLAG_OFF_AXIS_SOURCES,
+			FLAG_UNSENSITIVE,
+			FLAG_SENSITIVE,
+			FLAG_GUI_FRIENDLY,
+			FLAG_CLEAR_FLAGS;
 				
-			}
+			static rfiStrategy::Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+			
 		private:
 	};
 
-	class DefaultStrategyGroupItem
-	{
-		public:
-			DefaultStrategyGroupItem(const::string &name, const std::string &identifierString)
-			: _name(name), _identifierString(identifierString)
-			{
-			}
-		private:
-			std::string _name;
-			std::string _identifierString;
-	};
 
-	class DefaultStrategyGroup
-	{
-		public:
-			DefaultStrategyGroup(const std::string &name) : _name(name)
-			{
-			}
-		private:
-			const std::string _name;
-			std::vector<DefaultStrategyGroupItem> _strategies;
-			std::vector<DefaultStrategyGroup> _subGroups;
-	};
 }
 
 #endif
