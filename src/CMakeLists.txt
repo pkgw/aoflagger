@@ -41,9 +41,20 @@ if(GSL_FOUND)
   link_libraries(${GSL_LIBRARIES})
 endif(GSL_FOUND)
 
+add_executable(rficonsole rficonsole.cpp)
+
 add_executable(rfihistory rfihistory.cpp)
 
 add_executable(aorefscript aorefscript.cpp)
+
+set(GUI_QUALITY_FILES
+  gui/quality/aoqplotwindow.cpp
+  gui/quality/baselineplotpage.cpp
+  gui/quality/datawindow.cpp
+  gui/quality/grayscaleplotpage.cpp
+  gui/quality/histogrampage.cpp
+  gui/quality/timefrequencyplotpage.cpp
+  gui/quality/twodimensionalplotpage.cpp)
 
 set(GUI_PLOT_FILES
   gui/plot/colorscale.cpp
@@ -72,9 +83,7 @@ set(GUI_FILES
   gui/progresswindow.cpp
   gui/rawoptionwindow.cpp
   gui/tfstatoptionwindow.cpp
-  gui/quality/datawindow.cpp
-  gui/quality/histogrampage.cpp
-  ${GUI_PLOT_FILES})
+  ${GUI_PLOT_FILES} ${GUI_QUALITY_FILES})
 
 set(IMAGING_FILES
   imaging/uvimager.cpp
@@ -212,68 +221,56 @@ else()
 		remote/clusteredobservation.cpp)
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
-add_library(rfiengine ${IMAGING_FILES} ${INTERFACE_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
-link_libraries(rfiengine)
+add_library(aoflagger ${IMAGING_FILES} ${INTERFACE_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
+link_libraries(aoflagger)
 
 if(GTKMM_FOUND)
   include_directories(${GTKMM_INCLUDE_DIRS})
+
+	add_library(aoflaggergui ${GUI_FILES})
+	add_library(aoflaggerremote ${REMOTE_FILES})
+
   link_directories(${GTKMM_LIBDIR})
   
-  add_executable(rfigui rfigui.cpp ${GUI_FILES})
-  target_link_libraries(rfigui ${GTKMM_LIBRARIES} ${LIBXML2_LIBRARIES})
+  add_executable(rfigui rfigui.cpp)
+  target_link_libraries(rfigui aoflaggergui ${GTKMM_LIBRARIES} ${LIBXML2_LIBRARIES})
   
 	if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
-		add_executable(aoqplot aoqplot.cpp
-		${REMOTE_FILES}
-		gui/plot/colorscale.cpp
-		gui/plot/horizontalplotscale.cpp
-		gui/plot/verticalplotscale.cpp
-		gui/plot/plot2d.cpp
-		gui/plot/plotpropertieswindow.cpp
-		gui/quality/aoqplotwindow.cpp
-		gui/quality/baselineplotpage.cpp
-		gui/quality/datawindow.cpp
-		gui/quality/grayscaleplotpage.cpp
-		gui/quality/histogrampage.cpp
-		gui/quality/timefrequencyplotpage.cpp
-		gui/quality/twodimensionalplotpage.cpp
-		gui/imagewidget.cpp
-		gui/imagepropertieswindow.cpp
-		)
-		target_link_libraries(aoqplot ${GTKMM_LIBRARIES})
-		add_executable(badstations badstations.cpp ${REMOTE_FILES})
-		target_link_libraries(badstations ${GTKMM_LIBRARIES})
-		add_executable(aofrequencyfilter aofrequencyfilter.cpp ${REMOTE_FILES})
-		target_link_libraries(aofrequencyfilter ${GTKMM_LIBRARIES})
+		add_executable(aoqplot aoqplot.cpp ${REMOTE_FILES})
+		target_link_libraries(aoqplot aoflaggergui ${GTKMM_LIBRARIES})
+		add_executable(badstations badstations.cpp)
+		target_link_libraries(badstations aoflaggerremote ${GTKMM_LIBRARIES})
+		add_executable(aofrequencyfilter aofrequencyfilter.cpp)
+		target_link_libraries(aofrequencyfilter aoflaggerremote ${GTKMM_LIBRARIES})
 	endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 else()
   message(WARNING " The graphical user interface library GTKMM was not found; rfigui, aoqplot and aoqplot will not be compiled.")
 endif(GTKMM_FOUND)
 
-add_executable(rficonsole rficonsole.cpp)
-target_link_libraries(rficonsole ${LIBXML2_LIBRARIES})
+add_executable(aoflagger-bin aoflagger.cpp)
+target_link_libraries(aoflagger-bin ${LIBXML2_LIBRARIES})
+set_target_properties(aoflagger-bin
+  PROPERTIES OUTPUT_NAME aoflagger)
+
 add_executable(rfistrategy rfistrategy.cpp)
-add_executable(rfistatcollect rfistatcollect.cpp)
-add_executable(aostats aostats.cpp)
 add_executable(msinfo msinfo.cpp)
-add_executable(ns2bbs ns2bbs.cpp)
 add_executable(colormapper colormapper.cpp)
 target_link_libraries(colormapper png)
-add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
-target_link_libraries(imgzenith png)
+# add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
+# target_link_libraries(imgzenith png)
 
 if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
-  add_executable(aoquality aoquality.cpp ${REMOTE_FILES})
-  target_link_libraries(aoquality ${SIGCXX_LIBRARIES})
+  add_executable(aoquality aoquality.cpp)
+  target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES})
 
-	add_executable(aoremoteclient aoremoteclient.cpp
-  ${REMOTE_FILES} )
-  target_link_libraries(aoremoteclient ${SIGCXX_LIBRARIES})
+	add_executable(aoremoteclient aoremoteclient.cpp)
+  target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES})
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
 add_custom_target(check COMMAND aotest DEPENDS aotest)
 
-install (TARGETS rficonsole rfigui aoqplot aoquality DESTINATION bin)
+install (TARGETS rficonsole aoflagger-bin rfigui aoqplot aoquality aoremoteclient DESTINATION bin)
+install (TARGETS aoflagger DESTINATION lib) 
 install (FILES interface/aoflagger.h DESTINATION include)
