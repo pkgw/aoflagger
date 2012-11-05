@@ -194,36 +194,6 @@ namespace aoflagger {
 			class ImageSetData *_data;
 	};
 
-	/** @brief Holds a flagging strategy.
-	 * 
-	 * Telescope-specific flagging strategies can be created with
-	 * @ref AOFlagger::MakeStrategy(), or
-	 * can be loaded from disc with @ref AOFlagger::LoadStrategy(). Strategies
-	 * can not be changed with this interface. A user can create stored strategies
-	 * with the @c rfigui tool that is part of the aoflagger package.
-	 */
-	class Strategy
-	{
-		public:
-			friend class AOFlagger;
-			
-			/** @brief Create a copy of a strategy. */
-			Strategy(const Strategy& sourceStrategy);
-			
-			/** @brief Destruct strategy. */
-			~Strategy();
-			
-			/** @brief Assign to strategy. */
-			Strategy &operator=(const Strategy& sourceStrategy);
-			
-		private:
-			Strategy(enum TelescopeId telescopeId, unsigned strategyFlags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
-			
-			Strategy(const std::string& filename);
-			
-			class StrategyData *_data;
-	};
-
 	/** @brief A two-dimensional flag mask.
 	 * 
 	 * The flag mask specifies which values in an @ref ImageSet are flagged.
@@ -285,8 +255,40 @@ namespace aoflagger {
 			
 		private:
 			FlagMask();
+			FlagMask(size_t width, size_t height);
+			FlagMask(size_t width, size_t height, bool initialValue);
 			
 			class FlagMaskData *_data;
+	};
+
+	/** @brief Holds a flagging strategy.
+	 * 
+	 * Telescope-specific flagging strategies can be created with
+	 * @ref AOFlagger::MakeStrategy(), or
+	 * can be loaded from disc with @ref AOFlagger::LoadStrategy(). Strategies
+	 * can not be changed with this interface. A user can create stored strategies
+	 * with the @c rfigui tool that is part of the aoflagger package.
+	 */
+	class Strategy
+	{
+		public:
+			friend class AOFlagger;
+			
+			/** @brief Create a copy of a strategy. */
+			Strategy(const Strategy& sourceStrategy);
+			
+			/** @brief Destruct strategy. */
+			~Strategy();
+			
+			/** @brief Assign to strategy. */
+			Strategy &operator=(const Strategy& sourceStrategy);
+			
+		private:
+			Strategy(enum TelescopeId telescopeId, unsigned strategyFlags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+			
+			Strategy(const std::string& filename);
+			
+			class StrategyData *_data;
 	};
 
 	/** @brief Statistics that can be collected online and saved to a measurement set.
@@ -307,7 +309,7 @@ namespace aoflagger {
 	 * is recommended to use multiple threads for collecting as well. This class is however not
 	 * thread save, but it is okay to use different QualityStatistics objects from different
 	 * thread contexts. During finalization, the different objects can be combined with the
-	 * @ref operator+=() method, and then in full written to the measurement set.
+	 * operator+=() method, and then in full written to the measurement set.
 	 */
 	class QualityStatistics
 	{
@@ -329,7 +331,7 @@ namespace aoflagger {
 			 * to combine the results of different threads, as explained in the class description.
 			 * 
 			 * It is okay to combine quality statistics with different meta data (scan time count, channel
-			 * count, etc.). When using this object again during collecting (see @ref CollectStatistics()),
+			 * count, etc.). When using this object again during collecting (see @ref AOFlagger::CollectStatistics()),
 			 * after combining it with another object, it will still use the meta data it was initialized with.
 			 */
 			QualityStatistics &operator+=(const QualityStatistics &rhs);
@@ -365,10 +367,10 @@ namespace aoflagger {
 	{
 		public:
 			/** @brief Create and initialize the flagger main class. */
-			AOFlagger();
+			AOFlagger() { }
 			
 			/** @brief Destructor. */
-			~AOFlagger();
+			~AOFlagger() { }
 			
 			/** @brief Create a new uninitialized @ref ImageSet with specified specs.
 			 * 
@@ -379,7 +381,10 @@ namespace aoflagger {
 			 * of @ref ImageSet for image order).
 			 * @return A new ImageSet.
 			 */
-			ImageSet MakeImageSet(size_t width, size_t height, size_t count);
+			ImageSet MakeImageSet(size_t width, size_t height, size_t count)
+			{
+				return ImageSet(width, height, count);
+			}
 			
 			/** @brief Create a new initialized @ref ImageSet with specified specs.
 			 * @param width Number of time steps in images
@@ -389,7 +394,31 @@ namespace aoflagger {
 			 * @param initialValue Initialize all pixels with this value.
 			 * @return A new ImageSet.
 			 */
-			ImageSet MakeImageSet(size_t width, size_t height, size_t count, float initialValue);
+			ImageSet MakeImageSet(size_t width, size_t height, size_t count, float initialValue)
+			{
+				return ImageSet(width, height, count, initialValue);
+			}
+			
+			/** @brief Create a new uninitialized @ref FlagMask with specified dimensions.
+			 * @param width Width of mask (number of timesteps)
+			 * @param height Height of mask (number of frequency channels)
+			 * @return A new FlagMask.
+			 */
+			FlagMask MakeFlagMask(size_t width, size_t height)
+			{
+				return FlagMask(width, height);
+			}
+			
+			/** @brief Create a new initialized @ref FlagMask with specified dimensions.
+			 * @param width Width of mask (number of timesteps)
+			 * @param height Height of mask (number of frequency channels)
+			 * @param initialValue Value to initialize the mask to.
+			 * @return A new FlagMask.
+			 */
+			FlagMask MakeFlagMask(size_t width, size_t height, bool initialValue)
+			{
+				return FlagMask(width, height, initialValue);
+			}
 			
 			/** @brief Initialize a strategy for a specific telescope.
 			 * 
@@ -410,7 +439,10 @@ namespace aoflagger {
 			 * @param timeRes The time resolution (distance between to consecutive time steps) in s, or zero if unknown.
 			 * @param frequencyRes The frequency resolution (distance between to channels) in Hz, or zero if unknown.
 			 */
-			Strategy MakeStrategy(enum TelescopeId telescopeId=GENERIC_TELESCOPE, unsigned strategyFlags=StrategyFlags::NONE, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+			Strategy MakeStrategy(enum TelescopeId telescopeId=GENERIC_TELESCOPE, unsigned strategyFlags=StrategyFlags::NONE, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0)
+			{
+				return Strategy(telescopeId, strategyFlags, frequency, timeRes, frequencyRes);
+			}
 			
 			/** @brief Load a strategy from disk.
 			 * 
@@ -420,7 +452,10 @@ namespace aoflagger {
 			 * @param filename Full pathname to .rfis strategy file.
 			 * @return The new @ref Strategy.
 			 */
-			Strategy LoadStrategy(const std::string& filename);
+			Strategy LoadStrategy(const std::string& filename)
+			{
+				return Strategy(filename);
+			}
 			
 			/** @brief Run the flagging strategy on the given data.
 			 * 
@@ -440,10 +475,30 @@ namespace aoflagger {
 			 */
 			QualityStatistics MakeQualityStatistics(const double *scanTimes, size_t nScans, const double *channelFrequencies, size_t nChannels, size_t nPolarizations);
 			
-			/** @todo implement */
+			/** @brief Collect statistics from time-frequency images and masks.
+			 * 
+			 * This will update the statistics in the @a destination object so that it
+			 * represents the combination of previous collected data and the newly
+			 * given data.
+			 * 
+			 * This function can be called from different thread context, as long as the
+			 * destination is different. See the @ref QualityStatistics class documentation
+			 * for further multithreading info.
+			 * @param destination Object holding the statistics to which the data will be added
+			 * @param imageSet Data to collect statistics from
+			 * @param rfiFlags Flags set by the automatic RFI detector
+			 * @param correlatorFlags Flags that were set prior to RFI detector, e.g. because of
+			 * a broken antenna or correlator hickup.
+			 * @param antenna1 Index of the first antenna involved in this baseline.
+			 * @param antenna2 Index of the second antenna involved in this baseline.
+			 */
 			void CollectStatistics(QualityStatistics& destination, const ImageSet& imageSet, const FlagMask& rfiFlags, const FlagMask& correlatorFlags, size_t antenna1, size_t antenna2);
 			
-			/** @todo implement */
+			/** @brief Write collected statistics in standard tables to a measurement set.
+			 * @param statistics The collected statistics
+			 * @param measurementSetPath Path to measurement set to which the statistics will
+			 * be written.
+			 */
 			void WriteStatistics(const QualityStatistics& statistics, const std::string& measurementSetPath);
 			
 		private:

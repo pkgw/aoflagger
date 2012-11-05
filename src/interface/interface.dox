@@ -1,0 +1,43 @@
+/** \mainpage AOFlagger public interface API
+*
+* The AOFlagger is a flagger framework that implements several
+* methods to deal with radio-frequency interference or RFI.
+* Some of the implemented algorithms that are part of the flagging
+* strategy, are the SumThreshold method,
+* background fitting techniques (smoothing, sliding window, median)
+* filters and morphological operators.
+*
+* I have spent a lot of time on this package, and I believe it is the
+* best flagger available.
+* If you use this package for scientific work, please acknowledge my work
+* and cite the
+* following to papers that have introduced the new algorithms:
+* - <a href="http://adsabs.harvard.edu/doi/10.1111/j.1365-2966.2010.16471.x">Post-correlation radio frequency interference classification methods</a>,
+* Offringa et al. 2010, MNRAS, Volume 405, Issue 1, pages 155-167. This
+* paper introduces the SumThreshold method and tests several signal estimation
+* methods.
+* - <a href="http://www.aanda.org/index.php?option=com_article&amp;access=doi&amp;doi=10.1051/0004-6361/201118497&amp;Itemid=129">A morphological algorithm for improving radio-frequency interference detection</a>, Offringa et al. 2012, A&A, Volume 539, Issue A95. This paper introduces the scale-invariant rank
+* operator, a morphological operator to find samples with a high chance of
+* RFI contamination.
+*
+* This document describes the API of the public interface. This interface can
+* be used to integrate the flagger into an observatory pipeline in an easy
+* way, without having to know the internals of the flagger. If you want to
+* integrate this flagger in your pipeline, the best place to start is to
+* read the class description of class @ref aoflagger::AOFlagger.
+*
+* The official page of the package is http://aoflagger.sourceforge.net/ .
+* The full package contains this library along with several programs
+* to execute the flagger on measurement sets, tweak it and visualize results.
+* They are:
+* - @c aoflagger for executing a given flagging strategy on a full measurement
+* set.
+* - @c rfigui for analyzing RFI, data and for strategy parameter tweaking.
+* - @c aoqplot for fast visualization of statistics, to assert the generic
+* data quality.
+* 
+* See also the <a href="http:*www.astron.nl/radio-observatory/lofar/lofar-imaging-cookbook">LOFAR cookbook</a>
+* for general info about running the flagger.
+* 
+*/
+

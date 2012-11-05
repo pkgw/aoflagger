@@ -122,6 +122,80 @@ namespace aoflagger {
 	}
 	
 	
+	class FlagMaskData {
+		public:
+			FlagMaskData(Mask2DPtr theMask) : mask(theMask)
+			{
+			}
+			
+			FlagMaskData(const FlagMaskData &source) :
+				mask(source.mask)
+			{
+			}
+			
+			void operator=(const FlagMaskData &source)
+			{
+				mask = source.mask;
+			}
+			
+			Mask2DPtr mask;
+	};
+	
+	FlagMask::FlagMask() : _data(0)
+	{
+	}
+	
+	FlagMask::FlagMask(size_t width, size_t height) : _data(new FlagMaskData(
+		Mask2D::CreateUnsetMaskPtr(width, height)	))
+	{
+	}
+	
+	FlagMask::FlagMask(size_t width, size_t height, bool initialValue) : _data(new FlagMaskData(
+		Mask2D::CreateUnsetMaskPtr(width, height)	))
+	{
+		if(initialValue)
+			_data->mask->SetAll<true>();
+		else
+			_data->mask->SetAll<false>();
+	}
+	
+	FlagMask::FlagMask(const FlagMask& sourceMask) :
+		_data(new FlagMaskData(*sourceMask._data))
+	{
+	}
+			
+	FlagMask::~FlagMask()
+	{
+		// _data might be 0, but it's fine to delete 0; (by standard)
+		delete _data;
+	}
+			
+	size_t FlagMask::Width() const
+	{
+		return _data->mask->Width();
+	}
+			
+	size_t FlagMask::Height() const
+	{
+		return _data->mask->Height();
+	}
+			
+	size_t FlagMask::HorizontalStride() const
+	{
+		return _data->mask->Stride();
+	}
+	
+	bool *FlagMask::Buffer()
+	{
+		return _data->mask->ValuePtr(0, 0);
+	}
+	
+	const bool *FlagMask::Buffer() const
+	{
+		return _data->mask->ValuePtr(0, 0);
+	}
+	
+	
 	class StrategyData {
 		public:
 			StrategyData(rfiStrategy::Strategy *strategy)
@@ -174,66 +248,6 @@ namespace aoflagger {
 		return *this;
 	}
 
-	
-	class FlagMaskData {
-		public:
-			FlagMaskData(Mask2DPtr theMask) : mask(theMask)
-			{
-			}
-			
-			FlagMaskData(const FlagMaskData &source) :
-				mask(source.mask)
-			{
-			}
-			
-			void operator=(const FlagMaskData &source)
-			{
-				mask = source.mask;
-			}
-			
-			Mask2DPtr mask;
-	};
-	
-	FlagMask::FlagMask() : _data(0)
-	{
-	}
-	
-	FlagMask::FlagMask(const FlagMask& sourceMask) :
-		_data(new FlagMaskData(*sourceMask._data))
-	{
-	}
-			
-	FlagMask::~FlagMask()
-	{
-		// _data might be 0, but it's fine to delete 0; (by standard)
-		delete _data;
-	}
-			
-	size_t FlagMask::Width() const
-	{
-		return _data->mask->Width();
-	}
-			
-	size_t FlagMask::Height() const
-	{
-		return _data->mask->Height();
-	}
-			
-	size_t FlagMask::HorizontalStride() const
-	{
-		return _data->mask->Stride();
-	}
-	
-	bool *FlagMask::Buffer()
-	{
-		return _data->mask->ValuePtr(0, 0);
-	}
-	
-	const bool *FlagMask::Buffer() const
-	{
-		return _data->mask->ValuePtr(0, 0);
-	}
-	
 	
 	class QualityStatisticsDataImp
 	{
@@ -289,34 +303,6 @@ namespace aoflagger {
 		return *this;
 	}
 	
-	
-	AOFlagger::AOFlagger()
-	{
-	}
-	
-	AOFlagger::~AOFlagger()
-	{
-	}
-	
-	ImageSet AOFlagger::MakeImageSet(size_t width, size_t height, size_t count)
-	{
-		return ImageSet(width, height, count);
-	}
-	
-	ImageSet AOFlagger::MakeImageSet(size_t width, size_t height, size_t count, float initialValue)
-	{
-		return ImageSet(width, height, count, initialValue);
-	}
-	
-	Strategy AOFlagger::MakeStrategy(enum TelescopeId telescopeId, unsigned strategyFlags, double frequency, double timeRes, double frequencyRes)
-	{
-		return Strategy(telescopeId, strategyFlags, frequency, timeRes, frequencyRes);
-	}
-	
-	Strategy AOFlagger::LoadStrategy(const std::string& filename)
-	{
-		return Strategy(filename);
-	}
 	
 	FlagMask AOFlagger::Run(Strategy& strategy, ImageSet& input)
 	{
