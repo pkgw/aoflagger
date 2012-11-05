@@ -11,6 +11,8 @@
 
 #include "../util/progresslistener.h"
 
+#include "../quality/statisticscollection.h"
+
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
@@ -231,7 +233,62 @@ namespace aoflagger {
 	{
 		return _data->mask->ValuePtr(0, 0);
 	}
+	
+	
+	class QualityStatisticsDataImp
+	{
+		public:
+			QualityStatisticsDataImp(const double* _scanTimes, size_t nScans, size_t nPolarizations) :
+				scanTimes(_scanTimes, _scanTimes+nScans),
+				statistics(nPolarizations)
+			{
+			}
+			std::vector<double> scanTimes;
+			StatisticsCollection statistics;
+	};
+	
+	class QualityStatisticsData
+	{
+		public:
+			QualityStatisticsData(const double* _scanTimes, size_t nScans, size_t nPolarizations) :
+				_implementation(new QualityStatisticsDataImp(_scanTimes, nScans, nPolarizations))
+			{
+			}
+			QualityStatisticsData(boost::shared_ptr<QualityStatisticsDataImp> implementation) :
+				_implementation(implementation)
+			{
+			}
+			boost::shared_ptr<QualityStatisticsDataImp> _implementation;
+	};
 
+	QualityStatistics::QualityStatistics(const double* scanTimes, size_t nScans, const double* channelFrequencies, size_t nChannels, size_t nPolarizations) :
+		_data(new QualityStatisticsData(scanTimes, nScans, nPolarizations))
+	{
+		_data->_implementation->statistics.InitializeBand(0, channelFrequencies, nChannels);
+	}
+	
+	QualityStatistics::QualityStatistics(const QualityStatistics& sourceQS) :
+		_data(new QualityStatisticsData(sourceQS._data->_implementation))
+	{
+	}
+	
+	QualityStatistics::~QualityStatistics()
+	{
+		delete _data;
+	}
+	
+	QualityStatistics& QualityStatistics::operator=(const QualityStatistics& sourceQS)
+	{
+		_data->_implementation = sourceQS._data->_implementation;
+		return *this;
+	}
+	
+	QualityStatistics& QualityStatistics::operator+=(const QualityStatistics& rhs)
+	{
+		_data->_implementation->statistics.Add(rhs._data->_implementation->statistics);
+		return *this;
+	}
+	
 	
 	AOFlagger::AOFlagger()
 	{
@@ -316,6 +373,50 @@ namespace aoflagger {
 		FlagMask flagMask;
 		flagMask._data = new FlagMaskData(Mask2D::CreateCopy(artifacts.ContaminatedData().GetSingleMask()));
 		return flagMask;
+	}
+	
+	QualityStatistics AOFlagger::MakeQualityStatistics(const double *scanTimes, size_t nScans, const double *channelFrequencies, size_t nChannels, size_t nPolarizations)
+	{
+		return QualityStatistics(scanTimes, nScans, channelFrequencies, nChannels, nPolarizations);
+	}
+	
+	void AOFlagger::CollectStatistics(QualityStatistics& destination, const ImageSet& imageSet, const FlagMask& rfiFlags, const FlagMask& correlatorFlags, size_t antenna1, size_t antenna2)
+	{
+		const size_t nChannels = imageSet.Height();
+		const size_t imageStride = imageSet.HorizontalStride();
+		const size_t maskStride = rfiFlags.HorizontalStride();
+		
+		StatisticsCollection &stats(destination._data->_implementation->statistics);
+		const std::vector<double> &times(destination._data->_implementation->scanTimes);
+		
+		if(imageSet.ImageCount() == 1)
+		{
+			for(size_t t=0; t<imageSet.Width(); ++t) {
+				stats.Add(antenna1, antenna2, times[t], 0, 0,
+									imageSet.ImageBuffer(0)+t, imageSet.ImageBuffer(0)+t,
+									rfiFlags.Buffer()+t, correlatorFlags.Buffer()+t,
+									nChannels, imageStride, maskStride, maskStride);
+			}
+		}
+		else {
+			const size_t polarizationCount = imageSet.ImageCount()/2;
+			for(size_t polarization=0; polarization!=polarizationCount; ++polarization)
+			{
+				for(size_t t=0; t<imageSet.Width(); ++t) 
+				{
+					stats.Add(antenna1, antenna2, times[t], 0, polarization,
+										imageSet.ImageBuffer(polarization*2)+t, imageSet.ImageBuffer(polarization*2+1)+t,
+										rfiFlags.Buffer()+t, correlatorFlags.Buffer()+t,
+										nChannels, imageStride, maskStride, maskStride);
+				}
+			}
+		}
+	}
+	
+	void AOFlagger::WriteStatistics(const QualityStatistics& statistics, const std::string& measurementSetPath)
+	{
+		QualityTablesFormatter formatter(measurementSetPath);
+		statistics._data->_implementation->statistics.Save(formatter);
 	}
 	
 } // end of namespace aoflagger

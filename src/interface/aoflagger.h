@@ -37,7 +37,7 @@ namespace aoflagger {
 	 * These flags can have different effects
 	 * on strategies for different telescopes. Some might only
 	 * have effect for specific telescopes, i.e., specific values
-	 * of @ref StrategyId. Flags can be combined with the arithmetic
+	 * of @ref TelescopeId. Flags can be combined with the arithmetic
 	 * 'OR' ('|') operator.
 	 * @sa AOFlagger::MakeStrategy()
 	 */
@@ -289,11 +289,58 @@ namespace aoflagger {
 			class FlagMaskData *_data;
 	};
 
+	/** @brief Statistics that can be collected online and saved to a measurement set.
+	 * 
+	 * It is useful to collect some statistics during flagging, because all data goes through
+	 * memory at highest resolution. This class contains the collected statistics and
+	 * some meta data required for collecting. It can be created with
+	 * @ref AOFlagger::MakeQualityStatistics(). Statistics can be added to it with
+	 * @ref AOFlagger::CollectStatistics(), and saved to disk with
+	 * @ref AOFlagger::WriteStatistics().
+	 * 
+	 * This class does not allow viewing or modifying statistics, it only contains the most
+	 * basic form to collect statistics during flagging and writing them in the (well-defined)
+	 * quality statistic tables format. These statistics can be viewed interactively with
+	 * the @c aoqplot tool.
+	 * 
+	 * Collecting statistics is not as expensive as flagging, but still takes some time, so it
+	 * is recommended to use multiple threads for collecting as well. This class is however not
+	 * thread save, but it is okay to use different QualityStatistics objects from different
+	 * thread contexts. During finalization, the different objects can be combined with the
+	 * @ref operator+=() method, and then in full written to the measurement set.
+	 */
 	class QualityStatistics
 	{
+		public:
+			friend class AOFlagger;
+			
+			/** @brief Copy the object. This is fast; only references are copied. */
+			QualityStatistics(const QualityStatistics &sourceQS);
+			
+			/** @brief Destruct the object. Data is destroyed if no more references exist. */
+			~QualityStatistics();
+			
+			/** @brief Assign to this object. This is fast; only references are copied. */
+			QualityStatistics &operator=(const QualityStatistics &sourceQS);
+			
+			/** @brief Combine the statistics from the given object with the statistics in this object.
+			 *
+			 * This is a relative expensive operation, so should only be used scarsely. It can be used
+			 * to combine the results of different threads, as explained in the class description.
+			 * 
+			 * It is okay to combine quality statistics with different meta data (scan time count, channel
+			 * count, etc.). When using this object again during collecting (see @ref CollectStatistics()),
+			 * after combining it with another object, it will still use the meta data it was initialized with.
+			 */
+			QualityStatistics &operator+=(const QualityStatistics &rhs);
+			
+		private:
+			QualityStatistics(const double *scanTimes, size_t nScans, const double *channelFrequencies, size_t nChannels, size_t nPolarizations);
+			
+			class QualityStatisticsData *_data;
 	};
 	
-	/** @brief Main class to access the AOFlagger functionality.
+	/** @brief Main class for access to the flagger functionality.
 	 * 
 	 * Software using the flagger should first create an instance of the @ref AOFlagger
 	 * class, which initializes the flagger, allows making data buffers that are suitable
@@ -385,24 +432,26 @@ namespace aoflagger {
 			 */
 			FlagMask Run(Strategy& strategy, ImageSet& input);
 			
-			/** @todo implement */
-			QualityStatistics MakeQualityStatistics();
+			/** @brief Create a new object for collecting statistics.
+			 * 
+			 * See the QualityStatistics class description for info on multithreading and/or combining statistics
+			 * with different meta data. The meta data that is passed to this method will be used for all
+			 * calls to CollectStatistics() if this class is specified.
+			 */
+			QualityStatistics MakeQualityStatistics(const double *scanTimes, size_t nScans, const double *channelFrequencies, size_t nChannels, size_t nPolarizations);
 			
 			/** @todo implement */
-			void CollectStatistics(QualityStatistics& destination, ImageSet& imageSet /*etc*/ );
-			
-			/** @todo implement */
-			void CollectStatistics(QualityStatistics& destination, double frequency /*etc*/ );
+			void CollectStatistics(QualityStatistics& destination, const ImageSet& imageSet, const FlagMask& rfiFlags, const FlagMask& correlatorFlags, size_t antenna1, size_t antenna2);
 			
 			/** @todo implement */
 			void WriteStatistics(const QualityStatistics& statistics, const std::string& measurementSetPath);
 			
 		private:
-			/** @brief It is not allowed to copy this main class
+			/** @brief It is not allowed to copy this class
 			 */
 			AOFlagger(const AOFlagger &source) { }
 			
-			/** @brief It is not allowed to assign to this main class
+			/** @brief It is not allowed to assign to this class
 			 */
 			void operator=(const AOFlagger &source) { }
 	};
