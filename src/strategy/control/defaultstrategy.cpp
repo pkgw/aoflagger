@@ -23,6 +23,13 @@
 
 namespace rfiStrategy {
 
+	Strategy *DefaultStrategy::CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency, double timeRes, double frequencyRes)
+	{
+		Strategy *strategy = new Strategy();
+		LoadDefaultSingleStrategy(*strategy);
+		return strategy;
+	}
+	
 	void DefaultStrategy::LoadDefaultSingleStrategy(ActionBlock &block, bool pedantic, bool pulsar)
 	{
 		ActionBlock *current;
