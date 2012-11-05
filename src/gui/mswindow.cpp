@@ -37,6 +37,7 @@
 #include "../strategy/actions/strategyaction.h"
 
 #include "../strategy/control/artifactset.h"
+#include "../strategy/control/defaultstrategy.h"
 
 #include "../strategy/imagesets/msimageset.h"
 #include "../strategy/imagesets/noisestatimageset.h"
@@ -111,7 +112,8 @@ MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(
 
 	set_default_size(800,600);
 
-	_strategy = rfiStrategy::Strategy::CreateDefaultSingleStrategy();
+	_strategy = new rfiStrategy::Strategy();
+	rfiStrategy::DefaultStrategy::LoadDefaultSingleStrategy(*_strategy);
 	_imagePlaneWindow = new ImagePlaneWindow();
 }
 
@@ -403,7 +405,6 @@ void MSWindow::onExecuteStrategyPressed()
 		artifacts.SetImageSet(_imageSet);
 		artifacts.SetImageSetIndex(_imageSetIndex);
 	}
-	rfiStrategy::Strategy::DisableOptimizations(*_strategy);
 	_strategy->InitializeAll();
 	try {
 		_strategy->StartPerformThread(artifacts, *window);

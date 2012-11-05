@@ -65,10 +65,7 @@ class EditStrategyWindow : public Gtk::Window
 
 		void onLoadEmptyClicked();
 		void onLoadDefaultClicked();
-		void onLoadOldClicked();
-		void onLoad1ButtonClicked();
-		void onLoad2ButtonClicked();
-		void onLoad3ButtonClicked();
+		void onLoadFullButtonClicked();
 
 		void clearRightFrame();
 		void selectAction(rfiStrategy::Action *action);
@@ -103,7 +100,7 @@ class EditStrategyWindow : public Gtk::Window
 		Gtk::MenuToolButton _addActionButton;
 		Gtk::Button _removeActionButton, _moveUpButton, _moveDownButton;
 		Gtk::Button _addFOBButton, _addFOMSButton;
-		Gtk::Button _loadEmptyButton, _loadDefaultButton, _load1Button, _load2Button, _load3Button, _saveButton, _openButton;
+		Gtk::Button _loadEmptyButton, _loadDefaultButton, _loadFullButton, _saveButton, _openButton;
 		ModelColumns _columns;
 		Gtk::ScrolledWindow _viewScrollWindow;
 		Gtk::TreeView _view;

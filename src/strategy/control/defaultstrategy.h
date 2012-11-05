@@ -3,11 +3,12 @@
 
 #include <string>
 
-#include "../actions/strategyaction.h"
-
 #include "../../interface/aoflagger.h"
 
 namespace rfiStrategy {
+	
+	class Strategy;
+	class ActionBlock;
 	
 	class DefaultStrategy
 	{
@@ -40,8 +41,11 @@ namespace rfiStrategy {
 			FLAG_GUI_FRIENDLY,
 			FLAG_CLEAR_FLAGS;
 				
-			static rfiStrategy::Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
-			
+		static rfiStrategy::Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+		
+		static void LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false);
+		static void LoadDefaultSingleStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false);
+
 		private:
 	};
 

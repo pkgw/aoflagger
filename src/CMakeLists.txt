@@ -183,6 +183,7 @@ endif(GTKMM_FOUND)
 set(STRATEGY_CONTROL_FILES
   strategy/control/actionblock.cpp
   strategy/control/actionfactory.cpp
+  strategy/control/defaultstrategy.cpp
   strategy/control/strategyreader.cpp
   strategy/control/strategywriter.cpp)
 

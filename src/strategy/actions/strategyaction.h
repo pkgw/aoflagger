@@ -45,32 +45,11 @@ namespace rfiStrategy {
 
 			virtual std::string Description() { return "Strategy"; }
 
-			static Strategy *CreateDefaultSingleStrategy();
-
 			static void SetThreadCount(Strategy &strategy, size_t threadCount);
 			static void SetDataColumnName(Strategy &strategy, const std::string &dataColumnName);
-			static void SetPolarisations(Strategy &strategy, enum PolarisationType type);
-			static void SetBaselines(Strategy &strategy, enum BaselineSelection baselineSelection);
-			static void SetTransientCompatibility(Strategy &strategy);
-			static void SetMultiplySensitivity(Strategy &strategy, num_t factor);
-			static void SetFittingWindowSize(Strategy &strategy, size_t windowWidth, size_t windowHeight);
-			static void SetFittingKernelSize(Strategy &strategy, num_t kernelWidth, num_t kernelHeight);
-			static void SetFlagStokes(Strategy &strategy, bool newValue);
-			static void DisableOptimizations(Strategy &strategy);
-			//static void SetIndirectReader(Strategy &strategy, bool newValue);
 			
 			void StartPerformThread(const class ArtifactSet &artifacts, class ProgressListener &progress);
 			ArtifactSet *JoinThread();
-
-			static void LoadDefaultSingleStrategy(ActionBlock &block, bool pedantic, bool pulsar);
-
-			void LoadDefaultSingleStrategy(bool pedantic = false, bool pulsar = false);
-			void LoadOldDefaultSingleStrategy();
-			void LoadDefaultStrategy();
-
-			void LoadFastStrategy(bool pedantic = false, bool pulsar = false);
-			void LoadAverageStrategy(bool pedantic = false, bool pulsar = false);
-			void LoadBestStrategy(bool pedantic = false, bool pulsar = false);
 
 			static void SyncAll(ActionContainer &root);
 

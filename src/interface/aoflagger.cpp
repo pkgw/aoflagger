@@ -6,7 +6,7 @@
 #include "../strategy/actions/strategyaction.h"
 
 #include "../strategy/control/artifactset.h"
-#include "../strategy/control/defaultstrategyset.h"
+#include "../strategy/control/defaultstrategy.h"
 #include "../strategy/control/strategyreader.h"
 
 #include "../util/progresslistener.h"

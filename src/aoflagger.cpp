@@ -33,6 +33,7 @@
 #include "strategy/plots/timeflagcountplot.h"
 
 #include "strategy/control/artifactset.h"
+#include "strategy/control/defaultstrategy.h"
 #include "strategy/control/strategyreader.h"
 
 #include "util/aologger.h"
@@ -215,7 +216,7 @@ int main(int argc, char **argv)
 		if(!strategyFile.IsSet())
 		{
 			subStrategy = new rfiStrategy::Strategy();
-			subStrategy->LoadDefaultStrategy();
+			rfiStrategy::DefaultStrategy::LoadDefaultFullStrategy(*subStrategy);
 		} else {
 			rfiStrategy::StrategyReader reader;
 			try {

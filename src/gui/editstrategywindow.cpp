@@ -27,6 +27,7 @@
 
 #include "../strategy/control/strategyreader.h"
 #include "../strategy/control/strategywriter.h"
+#include "../strategy/control/defaultstrategy.h"
 
 #include "editstrategywindow.h"
 #include "mswindow.h"
@@ -66,9 +67,7 @@ EditStrategyWindow::EditStrategyWindow(class MSWindow &msWindow)
 	_moveUpButton(Gtk::Stock::GO_UP), _moveDownButton(Gtk::Stock::GO_DOWN),
 	_addFOBButton("FOB"), _addFOMSButton("FOMS"),
 	_loadEmptyButton(Gtk::Stock::NEW), _loadDefaultButton("Default"),
-	_load1Button("1"),
-	_load2Button("2"),
-	_load3Button("3"),
+	_loadFullButton("Full"),
 	_saveButton(Gtk::Stock::SAVE), _openButton(Gtk::Stock::OPEN),
 	_rightFrame(0)
 {
@@ -148,17 +147,9 @@ void EditStrategyWindow::initLoadDefaultsButtons()
 	_loadDefaultButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadDefaultClicked));
 	_loadDefaultButton.show();
 
-	_strategyLoadDefaultsButtonBox.pack_start(_load1Button);
-	_load1Button.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoad1ButtonClicked));
-	_load1Button.show();
-
-	_strategyLoadDefaultsButtonBox.pack_start(_load2Button);
-	_load2Button.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoad2ButtonClicked));
-	_load2Button.show();
-
-	_strategyLoadDefaultsButtonBox.pack_start(_load3Button);
-	_load3Button.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoad3ButtonClicked));
-	_load3Button.show();
+	_strategyLoadDefaultsButtonBox.pack_start(_loadFullButton);
+	_loadFullButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadFullButtonClicked));
+	_loadFullButton.show();
 
 	_strategyBox.pack_start(_strategyLoadDefaultsButtonBox, Gtk::PACK_SHRINK, 0);
 	_strategyLoadDefaultsButtonBox.show();
@@ -441,39 +432,15 @@ void EditStrategyWindow::onLoadEmptyClicked()
 void EditStrategyWindow::onLoadDefaultClicked()
 {
 	_strategy->RemoveAll();
-	_strategy->LoadDefaultSingleStrategy();
+	DefaultStrategy::LoadDefaultSingleStrategy(*_strategy);
 	_store->clear();
 	fillStore();
 }
 
-void EditStrategyWindow::onLoadOldClicked()
+void EditStrategyWindow::onLoadFullButtonClicked()
 {
 	_strategy->RemoveAll();
-	_strategy->LoadOldDefaultSingleStrategy();
-	_store->clear();
-	fillStore();
-}
-
-void EditStrategyWindow::onLoad1ButtonClicked()
-{
-	_strategy->RemoveAll();
-	_strategy->LoadFastStrategy();
-	_store->clear();
-	fillStore();
-}
-
-void EditStrategyWindow::onLoad2ButtonClicked()
-{
-	_strategy->RemoveAll();
-	_strategy->LoadDefaultStrategy();
-	_store->clear();
-	fillStore();
-}
-
-void EditStrategyWindow::onLoad3ButtonClicked()
-{
-	_strategy->RemoveAll();
-	_strategy->LoadBestStrategy();
+	DefaultStrategy::LoadDefaultFullStrategy(*_strategy);
 	_store->clear();
 	fillStore();
 }
