@@ -161,7 +161,7 @@ struct AntennaInfo MeasurementSet::GetAntennaInfo(unsigned antennaId)
 	casa::Table antennaTable = ms.antenna();
 	unsigned count = antennaTable.nrow();
 	if(antennaId >= count) {
-		throw;
+		throw std::runtime_error("Antenna id not found in GetAntennaInfo()");
 	}
 	casa::ROArrayColumn<double> positionCol(antennaTable, "POSITION"); 
 	casa::ROScalarColumn<casa::String> nameCol(antennaTable, "NAME");
