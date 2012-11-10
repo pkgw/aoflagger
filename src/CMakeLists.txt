@@ -254,6 +254,8 @@ set_target_properties(aoflagger-bin
   PROPERTIES OUTPUT_NAME aoflagger)
 
 add_executable(rfistrategy rfistrategy.cpp)
+target_link_libraries(rfistrategy ${LIBXML2_LIBRARIES})
+
 add_executable(msinfo msinfo.cpp)
 add_executable(colormapper colormapper.cpp)
 target_link_libraries(colormapper png)
