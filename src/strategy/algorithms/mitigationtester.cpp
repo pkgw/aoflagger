@@ -29,7 +29,6 @@
 
 #include "../../util/aologger.h"
 #include "../../util/ffttools.h"
-#include "../../util/statwriter.h"
 #include "../../util/stopwatch.h"
 
 #include "../../imaging/model.h"
