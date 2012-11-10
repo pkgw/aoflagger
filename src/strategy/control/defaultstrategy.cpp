@@ -23,6 +23,22 @@
 
 namespace rfiStrategy {
 
+	const unsigned
+		DefaultStrategy::FLAG_NONE             = aoflagger::StrategyFlags::NONE,
+		DefaultStrategy::FLAG_LOW_FREQUENCY    = aoflagger::StrategyFlags::LOW_FREQUENCY,
+		DefaultStrategy::FLAG_HIGH_FREQUENCY   = aoflagger::StrategyFlags::HIGH_FREQUENCY,
+		DefaultStrategy::FLAG_LARGE_BANDWIDTH  = aoflagger::StrategyFlags::LARGE_BANDWIDTH,
+		DefaultStrategy::FLAG_SMALL_BANDWIDTH  = aoflagger::StrategyFlags::SMALL_BANDWIDTH,
+		DefaultStrategy::FLAG_TRANSIENTS       = aoflagger::StrategyFlags::TRANSIENTS,
+		DefaultStrategy::FLAG_ROBUST           = aoflagger::StrategyFlags::ROBUST,
+		DefaultStrategy::FLAG_FAST             = aoflagger::StrategyFlags::FAST,
+		DefaultStrategy::FLAG_OFF_AXIS_SOURCES = aoflagger::StrategyFlags::OFF_AXIS_SOURCES,
+		DefaultStrategy::FLAG_UNSENSITIVE      = aoflagger::StrategyFlags::UNSENSITIVE,
+		DefaultStrategy::FLAG_SENSITIVE        = aoflagger::StrategyFlags::SENSITIVE,
+		DefaultStrategy::FLAG_GUI_FRIENDLY     = aoflagger::StrategyFlags::GUI_FRIENDLY,
+		DefaultStrategy::FLAG_CLEAR_FLAGS      = aoflagger::StrategyFlags::CLEAR_FLAGS,
+		DefaultStrategy::FLAG_AUTO_CORRELATION = aoflagger::StrategyFlags::AUTO_CORRELATION;
+			
 	Strategy *DefaultStrategy::CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
 		Strategy *strategy = new Strategy();

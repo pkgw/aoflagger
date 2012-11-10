@@ -21,17 +21,20 @@
 
 namespace aoflagger {
 	
-	const unsigned StrategyFlags::NONE             =  0x00;
-	const unsigned StrategyFlags::LOW_FREQUENCY    =  0x01;
-	const unsigned StrategyFlags::HIGH_FREQUENCY   =  0x02;
-	const unsigned StrategyFlags::TRANSIENTS       =  0x04;
-	const unsigned StrategyFlags::ROBUST           =  0x08;
-	const unsigned StrategyFlags::FAST             =  0x10;
-	const unsigned StrategyFlags::OFF_AXIS_SOURCES =  0x20;
-	const unsigned StrategyFlags::UNSENSITIVE      =  0x40;
-	const unsigned StrategyFlags::SENSITIVE        =  0x80;
-	const unsigned StrategyFlags::GUI_FRIENDLY     = 0x100;
-	const unsigned StrategyFlags::CLEAR_FLAGS      = 0x200;
+	const unsigned StrategyFlags::NONE             =   0x00;
+	const unsigned StrategyFlags::LOW_FREQUENCY    =   0x01;
+	const unsigned StrategyFlags::HIGH_FREQUENCY   =   0x02;
+	const unsigned StrategyFlags::LARGE_BANDWIDTH  =   0x04;
+	const unsigned StrategyFlags::SMALL_BANDWIDTH  =   0x08;
+	const unsigned StrategyFlags::TRANSIENTS       =   0x10;
+	const unsigned StrategyFlags::ROBUST           =   0x20;
+	const unsigned StrategyFlags::FAST             =   0x40;
+	const unsigned StrategyFlags::OFF_AXIS_SOURCES =   0x80;
+	const unsigned StrategyFlags::UNSENSITIVE      =  0x100;
+	const unsigned StrategyFlags::SENSITIVE        =  0x200;
+	const unsigned StrategyFlags::GUI_FRIENDLY     =  0x400;
+	const unsigned StrategyFlags::CLEAR_FLAGS      =  0x800;
+	const unsigned StrategyFlags::AUTO_CORRELATION = 0x1000;
 
 	
 	class ImageSetData {

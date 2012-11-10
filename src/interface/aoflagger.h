@@ -52,6 +52,15 @@ namespace aoflagger {
 			
 			/** @brief Optimize for telescope's higher frequencies. */
 			static const unsigned HIGH_FREQUENCY;
+
+			/** @brief Observation was made at larger bandwidth than common.
+			 * 
+			 * Depending on the telescope, this might e.g. try to divide frequency
+			 * dependent power out before flagging. */
+			static const unsigned LARGE_BANDWIDTH;
+			
+			/** @brief Observation was made at smaller bandwidth than common. */
+			static const unsigned SMALL_BANDWIDTH;
 			
 			/** @brief Make strategy insensitive for transient effect.
 			 * 
@@ -111,6 +120,8 @@ namespace aoflagger {
 			 */
 			static const unsigned CLEAR_FLAGS;
 			
+			/** @brief Optimize for auto-correlations. */
+			static const unsigned AUTO_CORRELATION;
 		private:
 			StrategyFlags();
 	};

@@ -32,6 +32,8 @@ namespace rfiStrategy {
 			FLAG_NONE,
 			FLAG_LOW_FREQUENCY,
 			FLAG_HIGH_FREQUENCY,
+			FLAG_LARGE_BANDWIDTH,
+			FLAG_SMALL_BANDWIDTH,
 			FLAG_TRANSIENTS,
 			FLAG_ROBUST,
 			FLAG_FAST,
@@ -39,7 +41,8 @@ namespace rfiStrategy {
 			FLAG_UNSENSITIVE,
 			FLAG_SENSITIVE,
 			FLAG_GUI_FRIENDLY,
-			FLAG_CLEAR_FLAGS;
+			FLAG_CLEAR_FLAGS,
+			FLAG_AUTO_CORRELATION;
 				
 		/** @TODO Always returns the same strategy for now. */
 		static Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
