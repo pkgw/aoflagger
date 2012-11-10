@@ -1,5 +1,8 @@
 For the latest version and information about installing, go to http://aoflagger.sourceforge.net/ .
 
+These sources are published under the rules of the GNU general public license version 3.0 and
+come without any warranty.
+
 You can compile the software by executing from the AOFlagger directory:
 
 mkdir build
