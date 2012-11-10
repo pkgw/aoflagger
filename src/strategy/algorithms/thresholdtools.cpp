@@ -108,7 +108,7 @@ void ThresholdTools::WinsorizedMeanAndStdDev(Image2DCPtr image, num_t &mean, num
 }
 
 template<typename T>
-void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<T> input, T &mean, T &stddev)
+void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev)
 {
 	if(input.size() == 1)
 		{
@@ -158,11 +158,11 @@ void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<T> input, T &mean, T
 		stddev = 0.0;
 }
 
-template void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<num_t> input, num_t &mean, num_t &stddev);
-template void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<double> input, double &mean, double &stddev);
+template void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<num_t> &input, num_t &mean, num_t &stddev);
+template void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<double> &input, double &mean, double &stddev);
 
 template<typename T>
-void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<T> input, T &mean, T &stddev)
+void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev)
 {
 	std::vector<T> data(input);
 	std::sort(data.begin(), data.end(), numLessThanOperator);
@@ -208,8 +208,8 @@ void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<T> input, T &mean
 		stddev = 0.0;
 }
 
-template void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<num_t> input, num_t &mean, num_t &stddev);
-template void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<double> input, double &mean, double &stddev);
+template void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<num_t> &input, num_t &mean, num_t &stddev);
+template void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<double> &input, double &mean, double &stddev);
 
 void ThresholdTools::WinsorizedMeanAndStdDev(Image2DCPtr image, Mask2DCPtr mask, num_t &mean, num_t &stddev)
 {

@@ -24,6 +24,7 @@
 #include "../actions/adapter.h"
 #include "../actions/addstatisticsaction.h"
 #include "../actions/baselineselectionaction.h"
+#include "../actions/calibratepassbandaction.h"
 #include "../actions/changeresolutionaction.h"
 #include "../actions/collectnoisestatisticsaction.h"
 #include "../actions/combineflagresultsaction.h"
@@ -69,6 +70,7 @@ const std::vector<std::string> ActionFactory::GetActionList()
 	list.push_back("Absolute threshold");
 	list.push_back("Add to statistics");
 	list.push_back("Baseline selection");
+	list.push_back("Calibrate passband");
 	list.push_back("Change resolution");
 	list.push_back("Collect noise statistics");
 	list.push_back("Combine flag results");
@@ -117,6 +119,8 @@ Action *ActionFactory::CreateAction(const std::string &action)
 		return new AddStatisticsAction();
 	else if(action == "Baseline selection")
 		return new BaselineSelectionAction();
+	else if(action == "Calibrate passband")
+		return new CalibratePassbandAction();
 	else if(action == "Change resolution")
 		return new ChangeResolutionAction();
 	else if(action == "Collect noise statistics")

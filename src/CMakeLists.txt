@@ -125,6 +125,7 @@ set(REMOTEAO_FILES
 
 set(STRATEGY_ACTION_FILES
   strategy/actions/baselineselectionaction.cpp
+  strategy/actions/calibratepassbandaction.cpp
   strategy/actions/changeresolutionaction.cpp
   strategy/actions/foreachbaselineaction.cpp
   strategy/actions/foreachmsaction.cpp

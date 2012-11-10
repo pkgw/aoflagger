@@ -2,6 +2,7 @@
 
 #include "../actions/adapter.h"
 #include "../actions/baselineselectionaction.h"
+#include "../actions/calibratepassbandaction.h"
 #include "../actions/changeresolutionaction.h"
 #include "../actions/combineflagresultsaction.h"
 #include "../actions/foreachbaselineaction.h"
@@ -41,12 +42,18 @@ namespace rfiStrategy {
 			
 	Strategy *DefaultStrategy::CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
+		bool calPassband =
+			// Default MWA observations have strong frequency dependence
+			(strategyId==MWA_STRATEGY && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
+			// Other cases with large bandwidth
+			((flags&FLAG_LARGE_BANDWIDTH) != 0);
+		
 		Strategy *strategy = new Strategy();
-		LoadDefaultSingleStrategy(*strategy);
+		LoadDefaultSingleStrategy(*strategy, false, false, calPassband);
 		return strategy;
 	}
 	
-	void DefaultStrategy::LoadDefaultSingleStrategy(ActionBlock &block, bool pedantic, bool pulsar)
+	void DefaultStrategy::LoadDefaultSingleStrategy(ActionBlock &block, bool pedantic, bool pulsar, bool calPassband)
 	{
 		ActionBlock *current;
 
@@ -124,6 +131,11 @@ namespace rfiStrategy {
 		current->Add(changeResAction);
 
 		current = focAction;
+		if(calPassband)
+		{
+			current->Add(new CalibratePassbandAction());
+		}
+		
 		SumThresholdAction *t2 = new SumThresholdAction();
 		if(pulsar)
 			t2->SetFrequencyDirectionFlagging(false);
@@ -160,7 +172,7 @@ namespace rfiStrategy {
 		block.Add(orWithOriginals);
 	}
 
-	void DefaultStrategy::LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic, bool pulsar)
+	void DefaultStrategy::LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic, bool pulsar, bool calPassband)
 	{
 		ForEachBaselineAction *feBaseBlock = new ForEachBaselineAction();
 		destination.Add(feBaseBlock);

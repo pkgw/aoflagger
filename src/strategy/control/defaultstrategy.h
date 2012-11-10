@@ -47,8 +47,8 @@ namespace rfiStrategy {
 		/** @TODO Always returns the same strategy for now. */
 		static Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
 		
-		static void LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false);
-		static void LoadDefaultSingleStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false);
+		static void LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false, bool calPassband = false);
+		static void LoadDefaultSingleStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false, bool calPassband = false);
 
 		private:
 	};

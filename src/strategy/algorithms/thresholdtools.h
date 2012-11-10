@@ -38,9 +38,9 @@ class ThresholdTools {
 		static num_t WinsorizedMode(Image2DCPtr image, Mask2DCPtr mask);
 		static num_t WinsorizedMode(Image2DCPtr image);
 		template<typename T>
-		static void TrimmedMeanAndStdDev(const std::vector<T> input, T &mean, T &stddev);
+		static void TrimmedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev);
 		template<typename T>
-		static void WinsorizedMeanAndStdDev(const std::vector<T> input, T &mean, T &stddev);
+		static void WinsorizedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev);
 		static void WinsorizedMeanAndStdDev(Image2DCPtr image, Mask2DCPtr mask, num_t &mean, num_t &variance);
 		static void WinsorizedMeanAndStdDev(Image2DCPtr image, num_t &mean, num_t &variance);
 		static num_t MinValue(Image2DCPtr image, Mask2DCPtr mask);

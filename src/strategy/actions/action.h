@@ -34,6 +34,7 @@ namespace rfiStrategy {
 		AdapterType,
 		AddStatisticsActionType,
 		BaselineSelectionActionType,
+		CalibratePassbandActionType,
 		ChangeResolutionActionType,
 		CollectNoiseStatisticsActionType,
 		CombineFlagResultsType,

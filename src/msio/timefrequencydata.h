@@ -710,11 +710,11 @@ class TimeFrequencyData
 		size_t ImageCount() const { return _images.size(); }
 		size_t MaskCount() const { return _flagging.size(); }
 
-		Image2DCPtr GetImage(size_t imageIndex) const
+		const Image2DCPtr &GetImage(size_t imageIndex) const
 		{
 			return _images[imageIndex];
 		}
-		Mask2DCPtr GetMask(size_t maskIndex) const
+		const Mask2DCPtr &GetMask(size_t maskIndex) const
 		{
 			return _flagging[maskIndex];
 		}
