@@ -10,11 +10,17 @@ Many thanks to the LOFAR developers for hosting my project for so long in the LO
 
 * Official site is now http://aoflagger.sourceforge.net/.
 
+* The "rficonsole" executable has been renamed to "aoflagger". For the time being, a placeholder will warn you about the new name.
+
 * The software is no longer depending on the log4cpp library (this used to be required for the LOFAR infrastructure).
 
 * Faster high-pass filtering algorithm using SSE instructions, which has replaced the sliding window algorithm in the default algorithm (3 x filtering, 10% benefit in full strategy).
 
 * New reading mode that reads a full set in memory. It is 25% faster compared to indirect when every thing fits in memory (on a 1gb set: Direct: 2m53, Indirect: 1m55, Memory: 1m27). This is now the default reading mode when enough memory is available.
+
+* New public API. This API exposes a few simple & documented interface classes in a single header, that can be used to integrate the flagger and/or quality collector in an observatory's pipeline. It is used by the Cotter MWA preprocessing pipeline and will hopefully be used by LOFAR's preprocessing pipeline (NDPPP) some time in the future. Latest API docs can be found here: http://aoflagger.sourceforge.net/doc/api
+
+* New feature: action that can preliminary calibrate the passband (used in default MWA strategy)
 
 * Bug fix: conversion from XX,YY to Stokes U did not work when no XY,YX polarization were available, as well as some other uncommon conversions.
 
@@ -31,6 +37,8 @@ Many thanks to the LOFAR developers for hosting my project for so long in the LO
 * Bug fix: cmake will now fail when gtkmm version < 2.18.
 
 * Bug fix: fixing problem reported by K. Buckley, which caused compilation errors with older (2.10) gtkmms.
+
+* Bug fix: clarified some error messages in rfigui.
 
 Version 2.1.0
 2012-08-12  André Offringa <of...nga@astro.rug.nl>
