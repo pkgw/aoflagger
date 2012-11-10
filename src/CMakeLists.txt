@@ -3,7 +3,10 @@ link_libraries(${FFTW3_LIB})
 link_libraries(${CASA_LIBS} ${CASA_MEASURES_LIB})
 link_libraries(${LAPACK_lapack_LIBRARY})
 link_libraries(${FITSIO_LIB})
-set(CMAKE_CXX_FLAGS "-Wall -DNDEBUG -funroll-loops")
+
+# We add -msse2 because it needs the sse2 instruction set to compile some files, and
+# this will force its inclusion in case the below -march=natve is not set.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DNDEBUG -funroll-loops -msse2 -O3")
 
 include(CheckCXXCompilerFlag)
 
@@ -17,8 +20,6 @@ else()
   message(STATUS " CXX compiler does not support -march=native : your code will not be optimized with -march=native.")
   message(STATUS " This probably means your gcc is old ( < 4.2).")
 endif(COMPILER_SUPPORTS_MARCH_NATIVE)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -ggdb")
 
 include(CheckIncludeFileCXX)
 
@@ -152,7 +153,6 @@ set(STRATEGY_ALGORITHMS_FILES
   strategy/algorithms/fringetestcreater.cpp
 	strategy/algorithms/highpassfilter.cpp
   strategy/algorithms/localfitmethod.cpp
-  strategy/algorithms/methoditerator.cpp
   strategy/algorithms/mitigationtester.cpp
   strategy/algorithms/morphology.cpp
   strategy/algorithms/rfistatistics.cpp
@@ -208,7 +208,6 @@ set(UTIL_FILES
   util/integerdomain.cpp
   util/plot.cpp
   util/rng.cpp
-  util/statwriter.cpp
   util/stopwatch.cpp)
 
 if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
