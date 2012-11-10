@@ -1,4 +1,4 @@
-/** @file aoflagger.h @brief Main AOFlagger include file.
+/** @file aoflagger.h @brief Main AOFlagger header file.
  * @author André Offringa offringa@gmail.com
  */
 
@@ -356,7 +356,7 @@ namespace aoflagger {
 	/** @brief Main class for access to the flagger functionality.
 	 * 
 	 * Software using the flagger should first create an instance of the @ref AOFlagger
-	 * class, which initializes the flagger, allows making data buffers that are suitable
+	 * class. This initializes the flagger and allows making data buffers that are suitable
 	 * to pass to the flagger and allows to specify the strategy.
 	 * 
 	 * To flag a data set:
@@ -470,8 +470,8 @@ namespace aoflagger {
 			
 			/** @brief Run the flagging strategy on the given data.
 			 * 
-			 * Ok to call from multiple threads as long as it is called
-			 * with a different @a input parameter.
+			 * Ok to call from multiple threads as long as they call Run
+			 * with different @a input parameters.
 			 * @param strategy The flagging strategy that will be used.
 			 * @param input The data to run the flagger on.
 			 * @return The flags identifying bad (RFI contaminated) data.
