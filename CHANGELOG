@@ -1,3 +1,37 @@
+Version 2.2.0
+2012-11-10	André Offringa <of...nga@mso.anu.edu.au>
+
+Summary: The AOFlagger was moved to a new repository, an API + docs were added, performance was (again :-)) improvement.
+
+Full list of changes:
+
+* Major repository restructing and moved to SourceForge!
+Many thanks to the LOFAR developers for hosting my project for so long in the LOFAR daily build, but it was time to separate the AOFlagger sources from LOFAR. This means the source structure is now much simpler, the project compiles faster and it is easier for me to package. Moreover, anyone can now enjoy the latest fixes by using the public SourceForge git repository. Sources are still published under the GPL version 3 license.
+
+* Official site is now http://aoflagger.sourceforge.net/.
+
+* The software is no longer depending on the log4cpp library (this used to be required for the LOFAR infrastructure).
+
+* Faster high-pass filtering algorithm using SSE instructions, which has replaced the sliding window algorithm in the default algorithm (3 x filtering, 10% benefit in full strategy).
+
+* New reading mode that reads a full set in memory. It is 25% faster compared to indirect when every thing fits in memory (on a 1gb set: Direct: 2m53, Indirect: 1m55, Memory: 1m27). This is now the default reading mode when enough memory is available.
+
+* Bug fix: conversion from XX,YY to Stokes U did not work when no XY,YX polarization were available, as well as some other uncommon conversions.
+
+* Bug fix: allow inverted vertical axes in plots, as well as some other plotting fixes.
+
+* Bug fix: sdfits reader did not read polarizations properly.
+
+* Bug fix: uvfits reader could not open MWA fits files properly.
+
+* Bug fix: various uncommon crashes in rfigui.
+
+* Bug fix: on opening measurement sets, option window now always opens on top.
+
+* Bug fix: cmake will now fail when gtkmm version < 2.18.
+
+* Bug fix: fixing problem reported by K. Buckley, which caused compilation errors with older (2.10) gtkmms.
+
 Version 2.1.0
 2012-08-12  André Offringa <of...nga@astro.rug.nl>
   * This release adds support for .sdfits files that are used in Parkes data reduction and has various little enhancements. Strategy file format has not changed.
