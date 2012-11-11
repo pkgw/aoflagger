@@ -356,23 +356,67 @@ namespace aoflagger {
 	/** @brief Main class for access to the flagger functionality.
 	 * 
 	 * Software using the flagger should first create an instance of the @ref AOFlagger
-	 * class. This initializes the flagger and allows making data buffers that are suitable
-	 * to pass to the flagger and allows to specify the strategy.
+	 * class, from which other actions can be initiated.
+	 * 
+	 * ### Overview
 	 * 
 	 * To flag a data set:
-	 * - Create an AOFlagger
+	 * - Create the AOFlagger instance
 	 * - Specify a strategy with MakeStrategy() or LoadStrategy()
 	 * - Make a data buffer with MakeImageSet()
-	 * - Fill the images with your data
-	 * - Call Run() with the created Strategy and ImageSet
-	 * - Process the data that was returned in the FlagMask.
+	 * - For each correlated baseline or dish:
+	 * - - Fill the images with data from this correlated baseline or dish
+	 * - - Call Run() with the created Strategy and ImageSet
+	 * - - Process the data that was returned in the FlagMask.
+	 *
+	 * Optionally, it is possible to assemble quality statistics, that can be written to
+	 * the measurement set in the standard format that e.g. the @c aoqplot tool can read.
+	 * To do this:
+	 * - Create (once) a quality statistics object with MakeQualityStatistics().
+	 * - After flagging a baseline, add it to the statistics object with CollectStatistics().
+	 * A "correlator mask" can be specified that describes which flags are not due
+	 * to RFI but caused by different things. 
+	 * - When a full set is processed, store the statistics with WriteStatistics().
 	 * 
-	 * To flag multiple baselines, the Strategy can be stored and the same buffer can be used.
-	 * The Run() function is thread-safe, as long as different ImageSet instances are specified.
+	 * To flag multiple baselines, the Strategy can be stored and the same instance can be used
+	 * again.
+	 * 
+	 * ### Thread safety
+	 * 
+	 * The Run() method is thread-safe, as long as different ImageSet instances are specified.
 	 * It is okay to call Run() from different threads with the same Strategy, and it is
-	 * recommended to do so for multi threaded implementations.
+	 * recommended to do so for multi-threaded implementations.
+	 * CollectStatistics() is also thread safe, as long as different QualityStatistics
+	 * instances are passed. For multi-threading, each thread should collect into
+	 * its own QualityStatistics object. When finished, these can be combined with
+	 * QualityStatistics::operator+=().
 	 * 
 	 * It is okay to create multiple AOFlagger instances, but not recommended.
+	 * 
+	 * ### Data order
+	 * 
+	 * A common problem for integrating the flagger, is that data are stored in a
+	 * different order: the time dimension
+	 * is often the direction with the slowest increasing indices. Because the flagger
+	 * needs one baseline at a time, this requires reordering the data. As long as the
+	 * data fits in memory, this reordering is quite straightforward. When this is not the
+	 * case, the data could be split into sub-bands and/or time windows.
+	 * Next, these parts can be passed to the flagger and recombined later (if desired).
+	 * 
+	 * To decide how to split, keep in mind that the flagger
+	 * works best when both a lot of channels and a lot of
+	 * timesteps are available. As an example: LOFAR splits into subbands of 256 channels, and
+	 * the default processing with NDPPP loads as much as possible
+	 * timesteps in memory for flagging with this flagger. Typically, this means at least a
+	 * few hundred of timesteps are processed at a time (with 1-3s per timestep), and
+	 * this seems to work fine.
+	 * 
+	 * The 'aoflagger' executable always flags on the full measurement set, which is the
+	 * most accurate way. For sets that are larger than memory, a mode is used in
+	 * which the data is reordered to disk before the actual flagging starts. It turns
+	 * out that this is much faster than reading each baseline directly from the set, so
+	 * if enough processing power is available to do so, that should be the preferred
+	 * way.
 	 */
 	class AOFlagger
 	{
