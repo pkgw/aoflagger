@@ -164,48 +164,54 @@ template void ThresholdTools::TrimmedMeanAndStdDev(const std::vector<double> &in
 template<typename T>
 void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev)
 {
-	std::vector<T> data(input);
-	std::sort(data.begin(), data.end(), numLessThanOperator);
-	size_t lowIndex = (size_t) floor(0.1 * data.size());
-	size_t highIndex = (size_t) ceil(0.9 * data.size())-1;
-	T lowValue = data[lowIndex];
-	T highValue = data[highIndex];
-
-	// Calculate mean
-	mean = 0.0;
-	size_t count = 0;
-	for(typename std::vector<T>::const_iterator i=data.begin();
-		i!=data.end();++i) {
-		if(std::isfinite(*i)) {
-			if(*i < lowValue)
-				mean += lowValue;
-			else if(*i > highValue)
-				mean += highValue;
-			else
-				mean += *i;
-			count++; 
-		}
-	}
-	if(count > 0)
-		mean /= (T) count;
-	// Calculate variance
-	stddev = 0.0;
-	count = 0;
-	for(typename std::vector<T>::const_iterator i=data.begin();i!=data.end();++i) {
-		if(std::isfinite(*i)) {
-			if(*i < lowValue)
-				stddev += (lowValue-mean)*(lowValue-mean);
-			else if(*i > highValue)
-				stddev += (highValue-mean)*(highValue-mean);
-			else
-				stddev += (*i-mean)*(*i-mean);
-			count++; 
-		}
-	}
-	if(count > 0)
-		stddev = sqrt(1.54 * stddev / (T) count);
-	else
+	if(input.empty())
+	{
+		mean = 0.0;
 		stddev = 0.0;
+	} else {
+		std::vector<T> data(input);
+		std::sort(data.begin(), data.end(), numLessThanOperator);
+		size_t lowIndex = (size_t) floor(0.1 * data.size());
+		size_t highIndex = (size_t) ceil(0.9 * data.size())-1;
+		T lowValue = data[lowIndex];
+		T highValue = data[highIndex];
+
+		// Calculate mean
+		mean = 0.0;
+		size_t count = 0;
+		for(typename std::vector<T>::const_iterator i=data.begin();
+			i!=data.end();++i) {
+			if(std::isfinite(*i)) {
+				if(*i < lowValue)
+					mean += lowValue;
+				else if(*i > highValue)
+					mean += highValue;
+				else
+					mean += *i;
+				count++; 
+			}
+		}
+		if(count > 0)
+			mean /= (T) count;
+		// Calculate variance
+		stddev = 0.0;
+		count = 0;
+		for(typename std::vector<T>::const_iterator i=data.begin();i!=data.end();++i) {
+			if(std::isfinite(*i)) {
+				if(*i < lowValue)
+					stddev += (lowValue-mean)*(lowValue-mean);
+				else if(*i > highValue)
+					stddev += (highValue-mean)*(highValue-mean);
+				else
+					stddev += (*i-mean)*(*i-mean);
+				count++; 
+			}
+		}
+		if(count > 0)
+			stddev = sqrt(1.54 * stddev / (T) count);
+		else
+			stddev = 0.0;
+	}
 }
 
 template void ThresholdTools::WinsorizedMeanAndStdDev(const std::vector<num_t> &input, num_t &mean, num_t &stddev);
