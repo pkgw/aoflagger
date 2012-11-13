@@ -28,7 +28,7 @@
 * integrate this flagger in your pipeline, the best place to start is to
 * read the class description of class @ref aoflagger::AOFlagger.
 *
-* To use libaoflagger, Add an "#include <aoflagger.h>" to your C++
+* To use libaoflagger, add an "#include <aoflagger.h>" to your C++
 * program and link with "-laoflagger". For installation instructions, check
 * the website.
 *
