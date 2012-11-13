@@ -1,5 +1,6 @@
 /** \mainpage AOFlagger public interface API
 *
+* ### Introduction
 * The AOFlagger is a flagger framework that implements several
 * methods to deal with radio-frequency interference or RFI.
 * Some of the implemented algorithms that are part of the flagging
@@ -19,13 +20,19 @@
 * operator, a morphological operator to find samples with a high chance of
 * RFI contamination.
 *
+* ### About the API
+*
 * This document describes the API of the public interface. This interface can
 * be used to integrate the flagger into an observatory pipeline in an easy
 * way, without having to know the internals of the flagger. If you want to
 * integrate this flagger in your pipeline, the best place to start is to
 * read the class description of class @ref aoflagger::AOFlagger.
 *
-* The official page of the package is http://aoflagger.sourceforge.net/ .
+* To use libaoflagger, Add an "#include <aoflagger.h>" to your C++
+* program and link with "-laoflagger". For installation instructions, check
+* the website.
+*
+* The official webpage of the package is http://aoflagger.sourceforge.net/ .
 * The full package contains this library along with several programs
 * to execute the flagger on measurement sets, tweak it and visualize results.
 * The package contains the following executables:
