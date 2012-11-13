@@ -177,7 +177,7 @@ namespace rfiStrategy {
 		ForEachBaselineAction *feBaseBlock = new ForEachBaselineAction();
 		destination.Add(feBaseBlock);
 		
-		LoadDefaultSingleStrategy(*feBaseBlock, pedantic, pulsar);
+		LoadDefaultSingleStrategy(*feBaseBlock, pedantic, pulsar, calPassband);
 
 		feBaseBlock->Add(new WriteFlagsAction());
 
