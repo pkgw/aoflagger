@@ -21,8 +21,6 @@
 
 #include "histogramtablesformatter.h"
 
-#include "../gui/plot/plot2d.h"
-
 void HistogramCollection::Save(HistogramTablesFormatter &histogramTables)
 {
 	histogramTables.InitializeEmptyTables();
@@ -79,42 +77,3 @@ void HistogramCollection::Add(const unsigned antenna1, const unsigned antenna2, 
 		}
 	}
 }
-
-void HistogramCollection::Plot(class Plot2D &plot, unsigned polarization)
-{
-	LogHistogram totalHistogram, rfiHistogram;
-	GetTotalHistogramForCrossCorrelations(polarization, totalHistogram);
-	GetRFIHistogramForCrossCorrelations(polarization, rfiHistogram);
-	
-	plot.StartLine("Total");
-	for(LogHistogram::iterator i=totalHistogram.begin();i!=totalHistogram.end();++i)
-	{
-		const double x = i.value();
-		const double logx = log10(x);
-		const double logc = log10(i.normalizedCount());
-		if(std::isfinite(logx) && std::isfinite(logc))
-			plot.PushDataPoint(logx, logc);
-	}
-
-	plot.StartLine("RFI");
-	for(LogHistogram::iterator i=rfiHistogram.begin();i!=rfiHistogram.end();++i)
-	{
-		const double x = i.value();
-		const double logx = log10(x);
-		const double logc = log10(i.normalizedCount());
-		if(std::isfinite(logx) && std::isfinite(logc))
-			plot.PushDataPoint(logx, logc);
-	}
-	
-	plot.StartLine("Non RFI");
-	for(LogHistogram::iterator i=totalHistogram.begin();i!=totalHistogram.end();++i)
-	{
-		const double x = i.value();
-		const double logx = log10(x);
-		const double logc = log10(i.normalizedCount() - rfiHistogram.NormalizedCount(x));
-		if(std::isfinite(logx) && std::isfinite(logc))
-			plot.PushDataPoint(logx, logc);
-	}
-}
-
-

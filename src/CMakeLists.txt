@@ -117,6 +117,7 @@ set(MSIO_FILES
   msio/timestepaccessor.cpp)
   
 set(QUALITY_FILES
+  quality/histogramcollection.cpp
   quality/histogramtablesformatter.cpp
 	quality/rayleighfitter.cpp
   quality/qualitytablesformatter.cpp)
@@ -174,9 +175,6 @@ set(STRATEGY_PLOTS_FILES
   strategy/plots/rfiplots.cpp
   strategy/plots/timeflagcountplot.cpp
   util/multiplot.cpp)
-set(QUALITY_FILES 
-  ${QUALITY_FILES} 
-  quality/histogramcollection.cpp)
 else()
  set(STRATEGY_PLOTS_FILES)
 endif(GTKMM_FOUND)

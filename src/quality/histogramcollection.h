@@ -145,8 +145,6 @@ class HistogramCollection : public Serializable
 		
 		void Load(class HistogramTablesFormatter &histogramTables);
 		
-		void Plot(class Plot2D &plot, unsigned polarization);
-		
 		unsigned PolarizationCount() const { return _polarizationCount; }
 		
 		virtual void Serialize(std::ostream &stream) const
