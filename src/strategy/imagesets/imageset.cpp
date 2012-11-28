@@ -25,6 +25,7 @@
 #include "msimageset.h"
 #include "noisestatimageset.h"
 #include "parmimageset.h"
+#include "pngreader.h"
 #include "rawimageset.h"
 #include "rawdescimageset.h"
 #include "rspimageset.h"
@@ -49,6 +50,8 @@ namespace rfiStrategy {
 			return new NoiseStatImageSet(file);
 		else if(IsHarishFile(file))
 			return new HarishReader(file);
+		else if(IsPngFile(file))
+			return new PngReader(file);
 		else {
 			MSImageSet *set = new MSImageSet(file, ioMode);
 			set->SetReadUVW(readUVW);
@@ -106,8 +109,13 @@ namespace rfiStrategy {
 		return file.substr(file.size()-4) == ".har";
 	}
 	
+	bool ImageSet::IsPngFile(const std::string &file)
+	{
+		return file.size()>=4 && file.substr(file.size()-4) == ".png";
+	}
+	
 	bool ImageSet::IsMSFile(const std::string &file)
 	{
-		return (!IsFitsFile(file)) && (!IsRCPRawFile(file)) && (!IsTKPRawFile(file)) && (!IsRawDescFile(file)) && (!IsParmFile(file)) && (!IsTimeFrequencyStatFile(file)) && (!IsNoiseStatFile(file));
+		return (!IsFitsFile(file)) && (!IsRCPRawFile(file)) && (!IsTKPRawFile(file)) && (!IsRawDescFile(file)) && (!IsParmFile(file)) && (!IsTimeFrequencyStatFile(file)) && (!IsNoiseStatFile(file)) && (!IsPngFile(file));
 	}
 }

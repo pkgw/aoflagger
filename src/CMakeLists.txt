@@ -190,7 +190,8 @@ set(STRATEGY_IMAGESETS_FILES
   strategy/imagesets/fitsimageset.cpp
   strategy/imagesets/imageset.cpp
   strategy/imagesets/msimageset.cpp
-  strategy/imagesets/parmimageset.cpp)
+  strategy/imagesets/parmimageset.cpp
+	strategy/imagesets/pngreader.cpp)
 
 set(STRATEGY_FILES
   ${STRATEGY_ACTION_FILES}
@@ -247,14 +248,16 @@ else()
 endif(GTKMM_FOUND)
 
 add_executable(aoflagger-bin aoflagger.cpp)
-target_link_libraries(aoflagger-bin ${LIBXML2_LIBRARIES})
+target_link_libraries(aoflagger-bin ${LIBXML2_LIBRARIES} png)
 set_target_properties(aoflagger-bin
   PROPERTIES OUTPUT_NAME aoflagger)
 
 add_executable(rfistrategy rfistrategy.cpp)
-target_link_libraries(rfistrategy ${LIBXML2_LIBRARIES})
+target_link_libraries(rfistrategy ${LIBXML2_LIBRARIES} png)
 
 add_executable(msinfo msinfo.cpp)
+target_link_libraries(msinfo png)
+
 add_executable(colormapper colormapper.cpp)
 target_link_libraries(colormapper png)
 # add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
@@ -262,10 +265,10 @@ target_link_libraries(colormapper png)
 
 if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
   add_executable(aoquality aoquality.cpp)
-  target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES})
+  target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES} png)
 
 	add_executable(aoremoteclient aoremoteclient.cpp)
-  target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES})
+  target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES} png)
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
