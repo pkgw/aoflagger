@@ -20,6 +20,7 @@
 #ifndef MSIO_QUALITY_DATA_H
 #define MSIO_QUALITY_DATA_H
 
+#include <tables/Tables/TableRecord.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 
 /**

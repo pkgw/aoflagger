@@ -162,7 +162,8 @@ uint64_t BaselineReader::MeasurementSetDataSize(const string& filename)
 	casa::MSSpectralWindow spwTable = ms.spectralWindow();
 	
 	casa::ROScalarColumn<int> numChanCol(spwTable, casa::MSSpectralWindow::columnName(casa::MSSpectralWindowEnums::NUM_CHAN));
-	size_t channelCount = numChanCol.get(0);
+	int channelCount;
+	numChanCol.get(0, channelCount);
 	if(channelCount == 0) throw std::runtime_error("No channels in set");
 	if(ms.nrow() == 0) throw std::runtime_error("Table has no rows (no data)");
 	

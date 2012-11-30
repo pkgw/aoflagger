@@ -184,10 +184,11 @@ void MemoryBaselineReader::readSet()
 				baselineCube[spwFieldIndex][ant1][ant2] = result;
 			}
 			
-			dataArray = dataColumn.get(rowIndex);
-			flagArray = flagColumn.get(rowIndex);
+			dataColumn.get(rowIndex, dataArray);
+			flagColumn.get(rowIndex, flagArray);
 			
-			Array<double> uvwArray = uvwColumn.get(rowIndex);
+			Array<double> uvwArray;
+			uvwColumn.get(rowIndex, uvwArray);
 			Array<double>::const_iterator uvwPtr = uvwArray.begin();
 			UVW uvw;
 			uvw.u = *uvwPtr; ++uvwPtr;

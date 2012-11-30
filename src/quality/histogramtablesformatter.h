@@ -20,6 +20,7 @@
 #ifndef HISTOGRAM_TABLES_FORMATTER_H
 #define HISTOGRAM_TABLES_FORMATTER_H
 
+#include <tables/Tables/TableRecord.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
 
 #include <vector>
