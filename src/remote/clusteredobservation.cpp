@@ -24,7 +24,7 @@
 
 #include <memory> // for auto_ptr
 
-//#include "vds/VdsDesc.h"
+#include "vdsfile.h"
 
 #include "../ref/reffile.h"
 
@@ -37,7 +37,15 @@ ClusteredObservation::ClusteredObservation()
 
 ClusteredObservation *ClusteredObservation::LoadFromVds(const std::string &vdsFilename)
 {
-	throwIfNotEnabled();
+	VdsFile vdsFile(vdsFilename);
+	std::auto_ptr<ClusteredObservation> cObs(new ClusteredObservation());
+	const size_t nParts = vdsFile.NParts();
+	for(size_t i=0;i!=nParts;++i)
+	{
+		cObs->AddItem(ClusteredObservationItem(cObs->Size(), vdsFile.Filename(i), vdsFile.Host(i)));
+	}
+	return cObs.release();
+	
 	
 	/*LOFAR::CEP::VdsDesc vdsDesc(vdsFilename);
 	const std::vector<LOFAR::CEP::VdsPartDesc> &parts = vdsDesc.getParts();
@@ -63,8 +71,6 @@ ClusteredObservation *ClusteredObservation::LoadFromVds(const std::string &vdsFi
 
 ClusteredObservation *ClusteredObservation::LoadFromRef(const std::string &refFilename)
 {
-	throwIfNotEnabled();
-	
 	AOTools::RefFile refFile(refFilename);
 	std::auto_ptr<ClusteredObservation> cObs(new ClusteredObservation());
 	for(AOTools::RefFile::const_iterator i=refFile.begin();i!=refFile.end();++i)
@@ -100,12 +106,5 @@ bool ClusteredObservation::IsRefFilename(const std::string &filename)
 	return
 		(filename.size() > 4 && filename.substr(filename.size()-4) == ".ref");
 }
-
-void ClusteredObservation::throwIfNotEnabled()
-{
-	//if(!IsRemoteModuleEnabled())
-	throw std::runtime_error("The remote module is not enabled: cannot open clustered observations (gds, vds or ref files).");
-}
-
 
 }

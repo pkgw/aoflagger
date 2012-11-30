@@ -90,8 +90,6 @@ class ClusteredObservation
 			return _items;
 		}
 		
-		static bool IsRemoteModuleEnabled();
-		
 		size_t Size() const { return _items.size(); }
 		
 	private:
@@ -103,8 +101,6 @@ class ClusteredObservation
 		void operator=(const ClusteredObservation &source)
 		{
 		}
-		
-		static void throwIfNotEnabled();
 		
 		std::vector<ClusteredObservationItem> _items;
 };
