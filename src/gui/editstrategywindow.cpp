@@ -29,9 +29,10 @@
 #include "../strategy/control/strategywriter.h"
 #include "../strategy/control/defaultstrategy.h"
 
+#include "addstrategyactionmenu.h"
 #include "editstrategywindow.h"
 #include "mswindow.h"
-#include "addstrategyactionmenu.h"
+#include "strategywizardwindow.h"
 
 #include "strategyframes/absthresholdframe.h"
 #include "strategyframes/baselineselectionframe.h"
@@ -67,9 +68,10 @@ EditStrategyWindow::EditStrategyWindow(class MSWindow &msWindow)
 	_moveUpButton(Gtk::Stock::GO_UP), _moveDownButton(Gtk::Stock::GO_DOWN),
 	_addFOBButton("FOB"), _addFOMSButton("FOMS"),
 	_loadEmptyButton(Gtk::Stock::NEW), _loadDefaultButton("Default"),
+	_wizardButton("Wizard..."),
 	_loadFullButton("Full"),
 	_saveButton(Gtk::Stock::SAVE), _openButton(Gtk::Stock::OPEN),
-	_rightFrame(0)
+	_rightFrame(0), _wizardWindow(0)
 {
 	_store = Gtk::TreeStore::create(_columns);
 	_view.set_model(_store);
@@ -141,18 +143,17 @@ void EditStrategyWindow::initLoadDefaultsButtons()
 {
 	_strategyLoadDefaultsButtonBox.pack_start(_loadEmptyButton);
 	_loadEmptyButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadEmptyClicked));
-	_loadEmptyButton.show();
 
 	_strategyLoadDefaultsButtonBox.pack_start(_loadDefaultButton);
 	_loadDefaultButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadDefaultClicked));
-	_loadDefaultButton.show();
+	
+	_strategyLoadDefaultsButtonBox.pack_start(_wizardButton);
+	_wizardButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onWizardClicked));
 
 	_strategyLoadDefaultsButtonBox.pack_start(_loadFullButton);
 	_loadFullButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadFullButtonClicked));
-	_loadFullButton.show();
 
 	_strategyBox.pack_start(_strategyLoadDefaultsButtonBox, Gtk::PACK_SHRINK, 0);
-	_strategyLoadDefaultsButtonBox.show();
 }
 
 void EditStrategyWindow::fillStore()
@@ -528,3 +529,14 @@ void EditStrategyWindow::addContainerBetween(rfiStrategy::ActionContainer &root,
 	root.Add(dynamic_cast<Action *>(newContainer));
 }
 
+void EditStrategyWindow::onWizardClicked()
+{
+	if(_wizardWindow == 0)
+	{
+		_wizardWindow = new StrategyWizardWindow();
+		_wizardWindow->show();
+	} else {
+		_wizardWindow->show();
+		_wizardWindow->raise();
+	}
+}
