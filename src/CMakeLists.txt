@@ -83,6 +83,7 @@ set(GUI_FILES
   gui/plotframe.cpp
   gui/progresswindow.cpp
   gui/rawoptionwindow.cpp
+  gui/strategywizardwindow.cpp
   gui/tfstatoptionwindow.cpp
   ${GUI_PLOT_FILES} ${GUI_QUALITY_FILES})
 
