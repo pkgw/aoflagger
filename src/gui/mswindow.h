@@ -45,13 +45,14 @@
 
 #include "plotframe.h"
 #include "imagecomparisonwidget.h"
+#include "interfaces.h"
 
 #include "../imaging/defaultmodels.h"
 
 /**
 	@author A.R. Offringa <offringa@astro.rug.nl>
 */
-class MSWindow : public Gtk::Window {
+class MSWindow : public Gtk::Window, private StrategyController {
 	public:
 		MSWindow();
 		~MSWindow();
@@ -103,12 +104,13 @@ class MSWindow : public Gtk::Window {
 		{
 			return _timeFrequencyWidget.GetMetaData();
 		}
-		rfiStrategy::Strategy &Strategy() const { return *_strategy; }
-		void SetStrategy(rfiStrategy::Strategy *newStrategy) { _strategy = newStrategy; }
-
+		
 		void onExecuteStrategyFinished();
 		void OpenPath(const std::string &path);
 	private:
+		rfiStrategy::Strategy &Strategy() { return *_strategy; }
+		void SetStrategy(rfiStrategy::Strategy *newStrategy);
+
 		void createToolbar();
 		void loadCurrentTFData();
 

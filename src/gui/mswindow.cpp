@@ -2103,3 +2103,9 @@ void MSWindow::onTimeMergeUnsetValues()
 		_timeFrequencyWidget.Update();
 	}
 }
+
+void MSWindow::SetStrategy(rfiStrategy::Strategy* newStrategy)
+{
+	delete _strategy;
+	_strategy = newStrategy;
+}

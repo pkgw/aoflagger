@@ -31,7 +31,7 @@
 
 #include "addstrategyactionmenu.h"
 #include "editstrategywindow.h"
-#include "mswindow.h"
+#include "interfaces.h"
 #include "strategywizardwindow.h"
 
 #include "strategyframes/absthresholdframe.h"
@@ -62,8 +62,8 @@
 
 using namespace rfiStrategy;
 
-EditStrategyWindow::EditStrategyWindow(class MSWindow &msWindow)
- : Gtk::Window(), _msWindow(msWindow),
+EditStrategyWindow::EditStrategyWindow(StrategyController &strategyController)
+ : Gtk::Window(), _strategyController(strategyController),
 	_addActionButton(Gtk::Stock::ADD), _removeActionButton(Gtk::Stock::REMOVE),
 	_moveUpButton(Gtk::Stock::GO_UP), _moveDownButton(Gtk::Stock::GO_DOWN),
 	_addFOBButton("FOB"), _addFOMSButton("FOMS"),
@@ -73,6 +73,8 @@ EditStrategyWindow::EditStrategyWindow(class MSWindow &msWindow)
 	_saveButton(Gtk::Stock::SAVE), _openButton(Gtk::Stock::OPEN),
 	_rightFrame(0), _wizardWindow(0)
 {
+	_strategyController.SignalOnStrategyChanged().connect(sigc::mem_fun(*this, &EditStrategyWindow::onStrategyChanged));
+	
 	_store = Gtk::TreeStore::create(_columns);
 	_view.set_model(_store);
 	_view.append_column("Description", _columns.description);
@@ -94,7 +96,7 @@ EditStrategyWindow::EditStrategyWindow(class MSWindow &msWindow)
 	
 	show_all();
 	
-	_strategy = &_msWindow.Strategy();
+	_strategy = &_strategyController.Strategy();
 	fillStore();
 }
 
@@ -154,6 +156,14 @@ void EditStrategyWindow::initLoadDefaultsButtons()
 	_loadFullButton.signal_clicked().connect(sigc::mem_fun(*this, &EditStrategyWindow::onLoadFullButtonClicked));
 
 	_strategyBox.pack_start(_strategyLoadDefaultsButtonBox, Gtk::PACK_SHRINK, 0);
+}
+
+void EditStrategyWindow::onStrategyChanged()
+{
+	_strategy = &_strategyController.Strategy();
+	clearRightFrame();
+	_store->clear();
+	fillStore();
 }
 
 void EditStrategyWindow::fillStore()
@@ -489,11 +499,9 @@ void EditStrategyWindow::onOpenClicked()
 	{
 		StrategyReader reader;
 		std::string filename(dialog.get_filename());
-		Strategy *oldStrategy = _strategy;
 		try {
 			_strategy = reader.CreateStrategyFromFile(filename);
-			_msWindow.SetStrategy(_strategy);
-			delete oldStrategy;
+			_strategyController.SetStrategy(_strategy);
 			_store->clear();
 			fillStore();
 		} catch(std::exception &e)
@@ -533,7 +541,7 @@ void EditStrategyWindow::onWizardClicked()
 {
 	if(_wizardWindow == 0)
 	{
-		_wizardWindow = new StrategyWizardWindow();
+		_wizardWindow = new StrategyWizardWindow(_strategyController);
 		_wizardWindow->show();
 	} else {
 		_wizardWindow->show();

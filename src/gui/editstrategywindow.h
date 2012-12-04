@@ -40,7 +40,7 @@
 class EditStrategyWindow : public Gtk::Window
 {
 	public:
-		EditStrategyWindow(class MSWindow &msWindow);
+		EditStrategyWindow(class StrategyController &strategyController);
 		~EditStrategyWindow();
 
 		void AddAction(rfiStrategy::Action *newAction);
@@ -67,6 +67,8 @@ class EditStrategyWindow : public Gtk::Window
 		void onLoadDefaultClicked();
 		void onWizardClicked();
 		void onLoadFullButtonClicked();
+		
+		void onStrategyChanged();
 
 		void clearRightFrame();
 		void selectAction(rfiStrategy::Action *action);
@@ -92,7 +94,7 @@ class EditStrategyWindow : public Gtk::Window
 			Gtk::TreeModelColumn<size_t> childIndex;
 		};
 		
-		class MSWindow &_msWindow;
+		class StrategyController &_strategyController;
 
 		Gtk::HPaned _paned;
 		Gtk::VBox _strategyBox;
