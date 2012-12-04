@@ -40,23 +40,38 @@ namespace rfiStrategy {
 		DefaultStrategy::FLAG_CLEAR_FLAGS      = aoflagger::StrategyFlags::CLEAR_FLAGS,
 		DefaultStrategy::FLAG_AUTO_CORRELATION = aoflagger::StrategyFlags::AUTO_CORRELATION;
 			
-	Strategy *DefaultStrategy::CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency, double timeRes, double frequencyRes)
+	Strategy *DefaultStrategy::CreateStrategy(enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
-		bool calPassband =
-			// Default MWA observations have strong frequency dependence
-			(strategyId==MWA_STRATEGY && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
-			// Other cases with large bandwidth
-			((flags&FLAG_LARGE_BANDWIDTH) != 0);
-		
 		Strategy *strategy = new Strategy();
-		LoadDefaultSingleStrategy(*strategy, false, false, calPassband);
+		LoadStrategy(*strategy, telescopeId, flags, frequency, timeRes, frequencyRes);
 		return strategy;
 	}
 	
-	void DefaultStrategy::LoadDefaultSingleStrategy(ActionBlock &block, bool pedantic, bool pulsar, bool calPassband)
+	void DefaultStrategy::LoadStrategy(ActionBlock &strategy, enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
+	{
+		bool calPassband =
+			// Default MWA observations have strong frequency dependence
+			(telescopeId==MWA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
+			// Other cases with large bandwidth
+			((flags&FLAG_LARGE_BANDWIDTH) != 0);
+		bool keepTransients = (flags&FLAG_TRANSIENTS) != 0;
+		bool clearFlags =
+			((flags&FLAG_CLEAR_FLAGS) != 0) ||
+			((flags&FLAG_GUI_FRIENDLY) != 0);
+		bool resetContaminated =
+			((flags&FLAG_GUI_FRIENDLY) != 0);
+		int iterationCount = ((flags&FLAG_ROBUST)==0) ? 2 : 4;
+		
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, calPassband, clearFlags, resetContaminated);
+	}
+	
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated)
 	{
 		ActionBlock *current;
 
+		if(resetContaminated)
+			block.Add(new SetImageAction());
+		
 		block.Add(new SetFlaggingAction());
 
 		ForEachPolarisationBlock *fepBlock = new ForEachPolarisationBlock();
@@ -73,14 +88,14 @@ namespace rfiStrategy {
 		current = focAction;
 
 		IterationBlock *iteration = new IterationBlock();
-		iteration->SetIterationCount(2);
-		iteration->SetSensitivityStart(4.0);
+		iteration->SetIterationCount(iterationCount);
+		iteration->SetSensitivityStart(2.0 * pow(2.0, iterationCount/2.0));
 		current->Add(iteration);
 		current = iteration;
 		
 		SumThresholdAction *t1 = new SumThresholdAction();
 		t1->SetBaseSensitivity(1.0);
-		if(pulsar)
+		if(keepTransients)
 			t1->SetFrequencyDirectionFlagging(false);
 		current->Add(t1);
 
@@ -88,12 +103,12 @@ namespace rfiStrategy {
 		current->Add(cfr1);
 
 		cfr1->Add(new FrequencySelectionAction());
-		if(!pulsar)
+		if(!keepTransients)
 			cfr1->Add(new TimeSelectionAction());
 	
 		current->Add(new SetImageAction());
 		ChangeResolutionAction *changeResAction = new ChangeResolutionAction();
-		if(pulsar)
+		if(keepTransients)
 			changeResAction->SetTimeDecreaseFactor(1);
 		else
 			changeResAction->SetTimeDecreaseFactor(3);
@@ -116,7 +131,7 @@ namespace rfiStrategy {
 		filter on 26-08-2011
 		*/
 		HighPassFilterAction *hpAction = new HighPassFilterAction();
-		if(pulsar)
+		if(keepTransients)
 		{
 			hpAction->SetWindowWidth(1);
 		} else {
@@ -137,7 +152,7 @@ namespace rfiStrategy {
 		}
 		
 		SumThresholdAction *t2 = new SumThresholdAction();
-		if(pulsar)
+		if(keepTransients)
 			t2->SetFrequencyDirectionFlagging(false);
 		current->Add(t2);
 		
@@ -151,15 +166,16 @@ namespace rfiStrategy {
 		block.Add(setFlagsInAllPolarizations);
 		block.Add(new StatisticalFlagAction());
 
+		bool pedantic = false;
 		if(pedantic)
 		{
 			CombineFlagResults *cfr2 = new CombineFlagResults();
 			block.Add(cfr2);
 			cfr2->Add(new FrequencySelectionAction());
-			if(!pulsar)
+			if(!keepTransients)
 				cfr2->Add(new TimeSelectionAction());
 		} else {
-			if(!pulsar)
+			if(!keepTransients)
 				block.Add(new TimeSelectionAction());
 		}
 
@@ -167,17 +183,20 @@ namespace rfiStrategy {
 		baselineSelection->SetPreparationStep(true);
 		block.Add(baselineSelection);
 
-		SetFlaggingAction *orWithOriginals = new SetFlaggingAction();
-		orWithOriginals->SetNewFlagging(SetFlaggingAction::OrOriginal);
-		block.Add(orWithOriginals);
+		if(!clearFlags)
+		{
+			SetFlaggingAction *orWithOriginals = new SetFlaggingAction();
+			orWithOriginals->SetNewFlagging(SetFlaggingAction::OrOriginal);
+			block.Add(orWithOriginals);
+		}
 	}
 
-	void DefaultStrategy::LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic, bool pulsar, bool calPassband)
+	void DefaultStrategy::LoadFullStrategy(ActionBlock &destination, enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
 		ForEachBaselineAction *feBaseBlock = new ForEachBaselineAction();
 		destination.Add(feBaseBlock);
 		
-		LoadDefaultSingleStrategy(*feBaseBlock, pedantic, pulsar, calPassband);
+		LoadStrategy(*feBaseBlock, telescopeId, flags, frequency, timeRes, frequencyRes);
 
 		feBaseBlock->Add(new WriteFlagsAction());
 

@@ -17,11 +17,11 @@ namespace rfiStrategy {
 		* The contents of this enum needs to be equal to aoflagger::StrategyId
 		* defined in interfaces/aoflagger.h
 		*/
-		enum DefaultStrategyId {
-			DEFAULT_STRATEGY = aoflagger::GENERIC_TELESCOPE,
-			LOFAR_STRATEGY = aoflagger::LOFAR_TELESCOPE,
-			MWA_STRATEGY = aoflagger::MWA_TELESCOPE,
-			WSRT_STRATEGY = aoflagger::WSRT_TELESCOPE
+		enum TelescopeId {
+			GENERIC_TELESCOPE = aoflagger::GENERIC_TELESCOPE,
+			LOFAR_TELESCOPE = aoflagger::LOFAR_TELESCOPE,
+			MWA_TELESCOPE = aoflagger::MWA_TELESCOPE,
+			WSRT_TELESCOPE = aoflagger::WSRT_TELESCOPE
 		};
 
 		/**
@@ -44,11 +44,14 @@ namespace rfiStrategy {
 			FLAG_CLEAR_FLAGS,
 			FLAG_AUTO_CORRELATION;
 				
-		/** @TODO Always returns the same strategy for now. */
-		static Strategy *CreateStrategy(enum DefaultStrategyId strategyId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+		/** @TODO Not all flags are implemented yet. */
+		static Strategy *CreateStrategy(enum TelescopeId telescopeId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
 		
-		static void LoadDefaultFullStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false, bool calPassband = false);
-		static void LoadDefaultSingleStrategy(ActionBlock &destination, bool pedantic = false, bool pulsar = false, bool calPassband = false);
+		static void LoadStrategy(ActionBlock &strategy, enum TelescopeId telescopeId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+		
+		static void LoadFullStrategy(ActionBlock &destination, enum TelescopeId telescopeId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
+		
+		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated);
 
 		private:
 	};

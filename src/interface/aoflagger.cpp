@@ -221,7 +221,7 @@ namespace aoflagger {
 	
 	Strategy::Strategy(enum TelescopeId telescopeId, unsigned strategyFlags, double frequency, double timeRes, double frequencyRes) :
 		_data(new StrategyData(rfiStrategy::DefaultStrategy::CreateStrategy(
-			(rfiStrategy::DefaultStrategy::DefaultStrategyId) telescopeId,
+			(rfiStrategy::DefaultStrategy::TelescopeId) telescopeId,
 			strategyFlags,
 			timeRes,
 			frequencyRes

@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 		if(!strategyFile.IsSet())
 		{
 			subStrategy = new rfiStrategy::Strategy();
-			rfiStrategy::DefaultStrategy::LoadDefaultFullStrategy(*subStrategy);
+			rfiStrategy::DefaultStrategy::LoadFullStrategy(*subStrategy, rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_NONE);
 		} else {
 			rfiStrategy::StrategyReader reader;
 			try {

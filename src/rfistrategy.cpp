@@ -79,10 +79,11 @@ int main(int argc, char *argv[])
 
 	string profile(argv[parameterIndex]), filename(argv[parameterIndex+1]);
 
-	rfiStrategy::Strategy *strategy = new rfiStrategy::Strategy();
+	rfiStrategy::Strategy *strategy;
 	if(profile == "default")
 	{
-		DefaultStrategy::LoadDefaultFullStrategy(*strategy, false, false);
+		strategy = new Strategy();
+		DefaultStrategy::LoadFullStrategy(*strategy, DefaultStrategy::GENERIC_TELESCOPE, DefaultStrategy::FLAG_NONE);
 	}
 	else {
 		cerr << "Unknown profile: " << profile << endl;

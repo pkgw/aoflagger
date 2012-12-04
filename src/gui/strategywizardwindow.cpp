@@ -22,10 +22,10 @@ StrategyWizardWindow::StrategyWizardWindow(class StrategyController &controller)
 {
 	_telescopeSubBox.pack_start(_telescopeLabel);
 	_telescopeList = Gtk::ListStore::create(_telescopeListColumns);
-	addTelescope("Generic", rfiStrategy::DefaultStrategy::DEFAULT_STRATEGY);
-	addTelescope("LOFAR (Low-Frequency Array, Europe)", rfiStrategy::DefaultStrategy::LOFAR_STRATEGY);
-	addTelescope("MWA (Murchison Widefield Array, Australia)", rfiStrategy::DefaultStrategy::MWA_STRATEGY);
-	addTelescope("WSRT (Westerbork Synth. Rad. Telesc., Netherlands)", rfiStrategy::DefaultStrategy::WSRT_STRATEGY);
+	addTelescope("Generic", rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE);
+	addTelescope("LOFAR (Low-Frequency Array, Europe)", rfiStrategy::DefaultStrategy::LOFAR_TELESCOPE);
+	addTelescope("MWA (Murchison Widefield Array, Australia)", rfiStrategy::DefaultStrategy::MWA_TELESCOPE);
+	addTelescope("WSRT (Westerbork Synth. Rad. Telesc., Netherlands)", rfiStrategy::DefaultStrategy::WSRT_TELESCOPE);
 	_telescopeCombo.set_model(_telescopeList);
 	_telescopeCombo.pack_start(_telescopeListColumns.name, false);
 	_telescopeCombo.signal_changed().connect(sigc::mem_fun(*this, &StrategyWizardWindow::updateSensitivities));
@@ -124,8 +124,8 @@ void StrategyWizardWindow::onNextClicked()
 
 void StrategyWizardWindow::onFinishClicked()
 {
-	const enum rfiStrategy::DefaultStrategy::DefaultStrategyId telescopeId =
-		(enum rfiStrategy::DefaultStrategy::DefaultStrategyId) (int) ((*_telescopeCombo.get_active())[_telescopeListColumns.val]);
+	const enum rfiStrategy::DefaultStrategy::TelescopeId telescopeId =
+		(enum rfiStrategy::DefaultStrategy::TelescopeId) (int) ((*_telescopeCombo.get_active())[_telescopeListColumns.val]);
 		
 	int flags = rfiStrategy::DefaultStrategy::FLAG_NONE;
 	if(_lowFreqRadioButton.get_active())

@@ -443,7 +443,7 @@ void EditStrategyWindow::onLoadEmptyClicked()
 void EditStrategyWindow::onLoadDefaultClicked()
 {
 	_strategy->RemoveAll();
-	DefaultStrategy::LoadDefaultSingleStrategy(*_strategy);
+	DefaultStrategy::LoadStrategy(*_strategy, rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY);
 	_store->clear();
 	fillStore();
 }
@@ -451,7 +451,7 @@ void EditStrategyWindow::onLoadDefaultClicked()
 void EditStrategyWindow::onLoadFullButtonClicked()
 {
 	_strategy->RemoveAll();
-	DefaultStrategy::LoadDefaultFullStrategy(*_strategy);
+	DefaultStrategy::LoadFullStrategy(*_strategy, rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY);
 	_store->clear();
 	fillStore();
 }

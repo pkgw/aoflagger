@@ -112,8 +112,9 @@ MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(
 
 	set_default_size(800,600);
 
-	_strategy = new rfiStrategy::Strategy();
-	rfiStrategy::DefaultStrategy::LoadDefaultSingleStrategy(*_strategy);
+	_strategy = rfiStrategy::DefaultStrategy::CreateStrategy(
+		rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE,
+		rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY);
 	_imagePlaneWindow = new ImagePlaneWindow();
 }
 
