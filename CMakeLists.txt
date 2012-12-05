@@ -12,6 +12,7 @@ find_library(CASA_CASA_LIB casa_casa REQUIRED)
 find_library(CASA_MEASURES_LIB casa_measures REQUIRED)
 set(CASA_LIBS ${CASA_MS_LIB} ${CASA_TABLES_LIB} ${CASA_CASA_LIB})
 find_path(CASA_INCLUDE_DIR NAMES ms/MeasurementSets/MeasurementSet.h PATHS /usr/local/include/casacore PATH_SUFFIXES casacore)
+find_path(FITSIO_INCLUDE_DIR NAMES fitsio.h)
 
 #find_package(GSL)
 
@@ -30,6 +31,7 @@ endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 include_directories(${CASA_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBXML2_INCLUDE_DIR})
+include_directories(${FITSIO_INCLUDE_DIR})
 
 add_subdirectory(src)
 
