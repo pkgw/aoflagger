@@ -8,7 +8,7 @@
 StrategyWizardWindow::StrategyWizardWindow(class StrategyController &controller) : Window(),
 	_strategyController(controller),
 	_telescopeLabel("Telescope:"),
-	_telescopeCombo(false),
+	_telescopeCombo(),
 	_finishButton(Gtk::Stock::OK),
 	_nextButton(Gtk::Stock::MEDIA_NEXT),
 	_previousButton(Gtk::Stock::MEDIA_PREVIOUS),
