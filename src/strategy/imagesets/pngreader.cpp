@@ -1,6 +1,6 @@
 #include "pngreader.h"
 
-#include <libpng/png.h>
+#include <png.h>
 
 rfiStrategy::BaselineData* rfiStrategy::PngReader::Read()
 {
