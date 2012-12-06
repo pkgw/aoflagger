@@ -27,7 +27,17 @@ int main(int argc, char *argv[])
 	Gtk::Main kit(argc, argv);
 	AOQPlotWindow window;
 	if(argc>1)
+	{
 		window.Open(argv[1]);
-	kit.run();
+		kit.run();
+	} else {
+		std::cout << "Syntax: aoqplot <observation>\n\n"
+			"If your observation consists of a single observation, specify a measurement\n"
+			"set. To get statistics for a (remote) observation consisting of multiple measurement\n"
+			"sets, specify a measurement set specifier instead (generally a .ref, .vds\n"
+			".gvds or .gds file).\n\n"
+			"aoqplot is part of the AOFlagger software package, written\n"
+			"by Andre Offringa (offringa@gmail.com).\n";
+	}
 	return 0;
 }
