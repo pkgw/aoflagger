@@ -4,9 +4,7 @@ link_libraries(${CASA_LIBS} ${CASA_MEASURES_LIB})
 link_libraries(${LAPACK_lapack_LIBRARY})
 link_libraries(${FITSIO_LIB})
 
-# We add -msse2 because it needs the sse2 instruction set to compile some files, and
-# this will force its inclusion in case the below -march=natve is not set.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DNDEBUG -funroll-loops -msse2 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DNDEBUG -funroll-loops -O3")
 
 include(CheckCXXCompilerFlag)
 
@@ -17,6 +15,9 @@ CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
 if(COMPILER_SUPPORTS_MARCH_NATIVE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 else()
+	# We add -msse2 because it needs the sse2 instruction set to compile some files, and
+	# this will force its inclusion in case the below -march=natve is not set.
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
   message(STATUS " CXX compiler does not support -march=native : your code will not be optimized with -march=native.")
   message(STATUS " This probably means your gcc is old ( < 4.2).")
 endif(COMPILER_SUPPORTS_MARCH_NATIVE)
@@ -224,6 +225,7 @@ else()
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 add_library(aoflagger ${IMAGING_FILES} ${INTERFACE_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
+target_link_libraries(aoflagger png)
 link_libraries(aoflagger)
 
 if(GTKMM_FOUND)
@@ -235,48 +237,45 @@ if(GTKMM_FOUND)
   link_directories(${GTKMM_LIBDIR})
   
   add_executable(rfigui rfigui.cpp)
-  target_link_libraries(rfigui aoflaggergui ${GTKMM_LIBRARIES} ${LIBXML2_LIBRARIES} png)
+  target_link_libraries(rfigui aoflaggergui ${GTKMM_LIBRARIES} ${LIBXML2_LIBRARIES})
   
 	if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 		add_executable(aoqplot aoqplot.cpp ${REMOTE_FILES})
-		target_link_libraries(aoqplot aoflaggergui ${GTKMM_LIBRARIES} png)
+		target_link_libraries(aoqplot aoflaggergui ${GTKMM_LIBRARIES})
 		add_executable(badstations badstations.cpp)
-		target_link_libraries(badstations aoflaggerremote ${GTKMM_LIBRARIES} png)
+		target_link_libraries(badstations aoflaggerremote ${GTKMM_LIBRARIES})
 		add_executable(aofrequencyfilter aofrequencyfilter.cpp)
-		target_link_libraries(aofrequencyfilter aoflaggerremote ${GTKMM_LIBRARIES} png)
+		target_link_libraries(aofrequencyfilter aoflaggerremote ${GTKMM_LIBRARIES})
 	endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 else()
   message(WARNING " The graphical user interface library GTKMM was not found; rfigui, aoqplot and aoqplot will not be compiled.")
 endif(GTKMM_FOUND)
 
 add_executable(aoflagger-bin aoflagger.cpp)
-target_link_libraries(aoflagger-bin ${LIBXML2_LIBRARIES} png)
+target_link_libraries(aoflagger-bin ${LIBXML2_LIBRARIES})
 set_target_properties(aoflagger-bin
   PROPERTIES OUTPUT_NAME aoflagger)
 
 add_executable(rfistrategy rfistrategy.cpp)
-target_link_libraries(rfistrategy ${LIBXML2_LIBRARIES} png)
+target_link_libraries(rfistrategy ${LIBXML2_LIBRARIES})
 
 add_executable(msinfo msinfo.cpp)
-target_link_libraries(msinfo png)
 
 add_executable(colormapper colormapper.cpp)
-target_link_libraries(colormapper png)
 # add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
-# target_link_libraries(imgzenith png)
 
 if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
   add_executable(aoquality aoquality.cpp)
-  target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES} png)
+  target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES})
 
 	add_executable(aoremoteclient aoremoteclient.cpp)
-  target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES} png)
+  target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES})
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
 add_custom_target(check COMMAND aotest DEPENDS aotest)
-target_link_libraries(aotest ${LIBXML2_LIBRARIES} png)
+target_link_libraries(aotest ${LIBXML2_LIBRARIES})
 
 install (TARGETS rficonsole aoflagger-bin rfigui aoqplot aoquality aoremoteclient DESTINATION bin)
 install (TARGETS aoflagger DESTINATION lib) 
