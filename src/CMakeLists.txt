@@ -276,6 +276,7 @@ endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
 add_custom_target(check COMMAND aotest DEPENDS aotest)
+target_link_libraries(aotest ${LIBXML2_LIBRARIES} png)
 
 install (TARGETS rficonsole aoflagger-bin rfigui aoqplot aoquality aoremoteclient DESTINATION bin)
 install (TARGETS aoflagger DESTINATION lib) 

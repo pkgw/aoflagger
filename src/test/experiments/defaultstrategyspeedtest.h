@@ -45,6 +45,7 @@
 #include "../../strategy/actions/timeselectionaction.h"
 
 #include "../../strategy/control/artifactset.h"
+#include "../../strategy/control/defaultstrategy.h"
 
 #include "../../msio/timefrequencydata.h"
 
@@ -141,7 +142,9 @@ inline void DefaultStrategySpeedTest::prepareStrategy(rfiStrategy::ArtifactSet &
 inline void DefaultStrategySpeedTest::TimeStrategy::operator()()
 {
 	rfiStrategy::ArtifactSet artifacts(0);
-	rfiStrategy::Strategy *strategy = rfiStrategy::Strategy::CreateDefaultSingleStrategy();
+	rfiStrategy::Strategy *strategy = rfiStrategy::DefaultStrategy::CreateStrategy(
+		rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_NONE
+	);
 	prepareStrategy(artifacts);
 	DummyProgressListener progressListener;
 	Stopwatch watch(true);
@@ -397,7 +400,9 @@ inline void DefaultStrategySpeedTest::TimeRankOperator::operator()()
 {
 	rfiStrategy::ArtifactSet artifacts(0);
 
-	rfiStrategy::Strategy *strategy = rfiStrategy::Strategy::CreateDefaultSingleStrategy();
+	rfiStrategy::Strategy *strategy = rfiStrategy::DefaultStrategy::CreateStrategy(
+		rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_NONE
+	);
 	prepareStrategy(artifacts);
 	DummyProgressListener progressListener;
 	Stopwatch watch(true);
