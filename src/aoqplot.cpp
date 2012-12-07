@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 			"sets, specify a measurement set specifier instead (generally a .ref, .vds\n"
 			".gvds or .gds file).\n\n"
 			"aoqplot is part of the AOFlagger software package, written\n"
-			"by Andre Offringa (offringa@gmail.com).\n";
+			"by André Offringa (offringa@gmail.com).\n";
 	}
 	return 0;
 }
