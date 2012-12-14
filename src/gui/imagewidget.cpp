@@ -58,7 +58,7 @@ ImageWidget::ImageWidget() :
 	_showTitle(true),
 	_max(1.0), _min(0.0),
 	_range(Winsorized),
-	_cairoFilter(Cairo::FILTER_BEST),
+	_cairoFilter(Cairo::FILTER_NEAREST),
 	_manualTitle(false),
 	_manualXAxisDescription(false),
 	_manualYAxisDescription(false),
