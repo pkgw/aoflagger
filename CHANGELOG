@@ -1,3 +1,26 @@
+Version 2.3.0
+2012-12-16	André Offringa <of...nga@mso.anu.edu.au>
+
+Summary: A wizzard for creating strategies & solved compilation issues under Ubuntu
+
+Full list of changes:
+
+* Fixing Ubuntu compilation error reported by A. Chippendale, D. Jacobs, R. Wayth and O. Smirnov. Ubuntu seems to use a different linker (~configuration?) than other Linux distributions, which causes the order of libraries that are linked to matter. The flagger should now also compile fine on Ubuntu 11-13.
+
+* The AOFlagger now knows how to create custom strategies with certain modifications, that can be specified in a small wizzard window in the GUI. Some modifications include making the strategy more or less sensitive, making it insensitive for transient effects, making it more robust and being more aware of off-axis sources. The default strategy inside the GUI is slightly changed, which I think alows better experimenting for generic cases.
+
+* Test suite is now again working (seems to have been broken in the transfer to new repository structure)
+
+* It is now possible to open a png file inside the rfigui.
+
+* Slight performance improvements to quality stat collector.
+
+* Bug fix: VDS files (remote obs specifiers) could not be opened after the new repository structure.
+
+* Bug fix: Added support for custom CFITSIO directory.
+
+* Bug fix: Some supported GTKMM versions gave compilation errors (reported by M. Loose).
+
 Version 2.2.0
 2012-11-10	André Offringa <of...nga@mso.anu.edu.au>
 
