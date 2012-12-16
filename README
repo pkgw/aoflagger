@@ -3,23 +3,16 @@ For the latest version and information about installing, go to http://aoflagger.
 These sources are published under the rules of the GNU general public license version 3.0 and
 come without any warranty.
 
-You can compile the software by executing from the AOFlagger directory:
+The quick summary to compile and install, from the aoflagger root directory:
 
 mkdir build
-cd build
+cd build/
 cmake ../
- or
-cmake ../ -DCASA_INCLUDE_DIR=/home/anoko/casacore/include -DCASA_MS_LIB=.. [..etc..]
+make (or make -j <thread count>)
+sudo make install
 
-make
- or
-make -j <thread count>
+This will normally work when you have installed all libraries in their default locations. If you have not done so, you might need to tell cmake where the libraries are. The easiest way to do this is by adding search paths to cmake, e.g.:
 
-Change the directories to the directories where you have installed them. If you have installed
-casacore in a custom directory, you have to set the following variables:
+cmake ../ -DCMAKE_PREFIX_PATH=/opt/cep/casacore/
 
-CASA_MS_LIB
-CASA_TABLES_LIB
-CASA_CASA_LIB
-CASA_MEASURES_LIB
-CASA_INCLUDE_DIR
+This will include /opt/cep/casacore to the search path. Multiple paths can be specified by separating them with a colon ':'.
