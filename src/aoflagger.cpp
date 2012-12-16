@@ -205,8 +205,9 @@ int main(int argc, char **argv)
 			
 		checkRelease();
 
-		if(threadCount.IsSet())
-			AOLogger::Debug << "Number of threads: " << threadCount.Value() << "\n";
+		if(!threadCount.IsSet())
+			threadCount = sysconf(_SC_NPROCESSORS_ONLN);
+		AOLogger::Debug << "Number of threads: " << threadCount.Value() << "\n";
 
 		Stopwatch watch(true);
 
