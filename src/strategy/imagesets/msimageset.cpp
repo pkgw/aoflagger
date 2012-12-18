@@ -206,9 +206,13 @@ namespace rfiStrategy {
 		double bandStart = round(bandInfo.channels.front().frequencyHz/100000.0)/10.0;
 		double bandEnd = round(bandInfo.channels.back().frequencyHz/100000.0)/10.0;
 		sstream
-			<< info1.station << ' ' << info1.name << " x " << info2.station << ' ' << info2.name
-			<< ", spect window " << _band << " (" << bandStart
-			<< "MHz -" << bandEnd << "MHz)";
+			<< info1.station << ' ' << info1.name << " x " << info2.station << ' ' << info2.name;
+		if(static_cast<class MSImageSet&>(imageSet()).BandCount() > 1)
+		{
+			sstream
+				<< ", spect window " << _band << " (" << bandStart
+				<< "MHz -" << bandEnd << "MHz)";
+		}
 		return sstream.str();
 	}
 

@@ -94,48 +94,6 @@ namespace rfiStrategy {
 				std::vector<double> observationTimes;
 				BandInfo bandInfo;
 				
-				/*if(times.size() > 0)
-				{
-					// Calculate average time step
-					double avgTimeDistance = 0.0;
-					double lastValue = *times.begin();
-					std::set<double>::const_iterator i=times.begin();
-					++i;
-					while(i!=times.end())
-					{
-						avgTimeDistance += (*i) - lastValue;
-						lastValue = *i;
-						++i;
-					}
-					avgTimeDistance /= times.size()-1;
-						AOLogger::Debug << "Average time step size: " << avgTimeDistance << '\n';
-
-					// Create the times map
-					
-					i=times.begin();
-					lastValue = fabs(*i) - avgTimeDistance;
-					double beforeLastValue = fabs(*i) - 2.0*avgTimeDistance;
-					timeIndices.insert(std::pair<double, unsigned>(*i, 0));
-					unsigned index = 1, skippedIndices = 0;
-					++i;
-					while(i!=times.end())
-					{
-						if(fabs((*i) - lastValue - avgTimeDistance) < avgTimeDistance*9.0/10.0)
-						{
-							timeIndices.insert(std::pair<double, unsigned>(*i, index));
-							observationTimes.push_back(*i);
-							AOLogger::Debug << "Accepted index " << index << ", deviation=" << fabs((*i) - lastValue - avgTimeDistance) << '\n';
-							++index;
-						} else {
-							++skippedIndices;
-							AOLogger::Debug << "Skipped index " << index << ", deviation=" << fabs((*i) - lastValue - avgTimeDistance) << '\n';
-						}
-						lastValue = *i;
-						++i;
-					}
-					AOLogger::Debug << "Number of time indices skipped: " << skippedIndices << '\n';
-				} */
-				
 				unsigned index = 0;
 				for(std::set<double>::const_iterator i=times.begin();i!=times.end();++i)
 				{
@@ -211,20 +169,20 @@ namespace rfiStrategy {
 				switch(_mode)
 				{
 					case Mean:
-						metaData->SetDataDescription("Mean visibility difference");
-						metaData->SetDataUnits("Jy");
+						metaData->SetValueDescription("Mean visibility difference");
+						metaData->SetValueUnits("Jy");
 						break;
 					case StdDev:
-						metaData->SetDataDescription("Stddev of visibility difference");
-						metaData->SetDataUnits("Jy");
+						metaData->SetValueDescription("Stddev of visibility difference");
+						metaData->SetValueUnits("Jy");
 						break;
 					case Variance:
-						metaData->SetDataDescription("Variance of visibility difference");
-						metaData->SetDataUnits("Jy^2");
+						metaData->SetValueDescription("Variance of visibility difference");
+						metaData->SetValueUnits("Jy^2");
 						break;
 					case VarianceOfVariance:
-						metaData->SetDataDescription("Variance of visibility difference");
-						metaData->SetDataUnits("Jy^4");
+						metaData->SetValueDescription("Variance of visibility difference");
+						metaData->SetValueUnits("Jy^4");
 						break;
 				}
 				

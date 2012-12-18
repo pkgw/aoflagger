@@ -64,6 +64,7 @@ set(GUI_PLOT_FILES
   gui/plot/plot2d.cpp
   gui/plot/plotpropertieswindow.cpp
   gui/plot/plotwidget.cpp
+  gui/plot/title.cpp
   gui/plot/verticalplotscale.cpp)
 
 set(GUI_FILES

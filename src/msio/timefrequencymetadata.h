@@ -35,7 +35,7 @@ class TimeFrequencyMetaData
 {
 	public:
 		TimeFrequencyMetaData()
-			: _antenna1(0), _antenna2(0), _band(0), _field(0), _observationTimes(0), _uvw(0), _dataDescription("Visibility"), _dataUnits("Jy")
+			: _antenna1(0), _antenna2(0), _band(0), _field(0), _observationTimes(0), _uvw(0), _valueDescription("Visibility"), _valueUnits("Jy")
 		{
 		}
 		TimeFrequencyMetaData(const AntennaInfo &antenna1, const AntennaInfo &antenna2, const BandInfo &band, const FieldInfo &field, const std::vector<double> &observationTimes)
@@ -46,14 +46,14 @@ class TimeFrequencyMetaData
 			_field(new FieldInfo(field)),
 			_observationTimes(new std::vector<double>(observationTimes)),
 			_uvw(0),
-			_dataDescription("Visibility"),
-			_dataUnits("Jy")
+			_valueDescription("Visibility"),
+			_valueUnits("Jy")
 		{
 		}
 		TimeFrequencyMetaData(const TimeFrequencyMetaData &source)
 			: _antenna1(0), _antenna2(0), _band(0), _field(0), _observationTimes(0), _uvw(0),
-			_dataDescription(source._dataDescription),
-			_dataUnits(source._dataUnits)
+			_valueDescription(source._valueDescription),
+			_valueUnits(source._valueUnits)
 		{
 			if(source._antenna1 != 0)
 				_antenna1 = new AntennaInfo(*source._antenna1);
@@ -182,16 +182,17 @@ class TimeFrequencyMetaData
 		class Baseline Baseline() const {
 			return ::Baseline(*_antenna1, *_antenna2);
 		}
-		const std::string &DataDescription() const { return _dataDescription; }
-		void SetDataDescription(const std::string &dataDescription)
+		
+		const std::string &ValueDescription() const { return _valueDescription; }
+		void SetValueDescription(const std::string &valueDescription)
 		{
-			_dataDescription = dataDescription;
+			_valueDescription = valueDescription;
 		}
 		
-		const std::string &DataUnits() const { return _dataUnits; }
-		void SetDataUnits(const std::string &dataUnits)
+		const std::string &ValueUnits() const { return _valueUnits; }
+		void SetValueUnits(const std::string &valueUnits)
 		{
-			_dataUnits = dataUnits;
+			_valueUnits = valueUnits;
 		}
 	private:
 		void operator=(const TimeFrequencyMetaData &) { }
@@ -202,7 +203,7 @@ class TimeFrequencyMetaData
 		class FieldInfo *_field;
 		std::vector<double> *_observationTimes;
 		std::vector<class UVW> *_uvw;
-		std::string _dataDescription, _dataUnits;
+		std::string _valueDescription, _valueUnits;
 };
 
 #endif // MSIO_TIME_FREQUENCY_META_DATA_H

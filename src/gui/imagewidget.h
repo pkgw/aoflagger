@@ -151,7 +151,10 @@ class ImageWidget : public Gtk::DrawingArea {
 		{
 			_cairoFilter = filter;
 		}
-		
+		void SetTitle(const std::string &title)
+		{
+			_title = title;
+		}
 		void SetXAxisDescription(const std::string &description)
 		{
 			_xAxisDescription = description;
@@ -212,13 +215,16 @@ class ImageWidget : public Gtk::DrawingArea {
 		class HorizontalPlotScale *_horiScale;
 		class VerticalPlotScale *_vertScale;
 		class ColorScale *_colorScale;
+		class Title *_plotTitle;
 		enum ScaleOption _scaleOption;
 		bool _showXYAxes;
 		bool _showColorScale;
 		bool _showXAxisDescription;
 		bool _showYAxisDescription;
 		bool _showZAxisDescription;
+		bool _showTitle;
 		num_t _max, _min;
+		std::string _title;
 		enum Range _range;
 		Cairo::Filter _cairoFilter;
 		std::string _xAxisDescription, _yAxisDescription, _zAxisDescription;

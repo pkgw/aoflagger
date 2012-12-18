@@ -26,9 +26,10 @@
 
 #include <iostream>
 
+#include "plot/colorscale.h"
 #include "plot/horizontalplotscale.h"
 #include "plot/verticalplotscale.h"
-#include "plot/colorscale.h"
+#include "plot/title.h"
 
 ImageWidget::ImageWidget() :
 	_isInitialized(false),
@@ -47,12 +48,14 @@ ImageWidget::ImageWidget() :
 	_horiScale(0),
 	_vertScale(0),
 	_colorScale(0),
+	_plotTitle(0),
 	_scaleOption(NormalScale),
 	_showXYAxes(true),
 	_showColorScale(true),
 	_showXAxisDescription(true),
 	_showYAxisDescription(true),
 	_showZAxisDescription(true),
+	_showTitle(true),
 	_max(1.0), _min(0.0),
 	_range(Winsorized),
 	_cairoFilter(Cairo::FILTER_BEST),
@@ -204,12 +207,12 @@ void ImageWidget::update(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, un
 	num_t min, max;
 	findMinMax(image, mask, min, max);
 	
-	if(_horiScale != 0)
-		delete _horiScale;
-	if(_vertScale != 0)
-		delete _vertScale;
-	if(_colorScale != 0)
-		delete _colorScale;
+	// If these are not yet created, they are 0, so ok to delete.
+	delete _horiScale;
+	delete _vertScale;
+	delete _colorScale;
+	delete _plotTitle;
+		
 	if(_showXYAxes)
 	{
 		_vertScale = new VerticalPlotScale();
@@ -248,12 +251,12 @@ void ImageWidget::update(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, un
 			_vertScale->SetUnitsCaption(_yAxisDescription);
 	}
 	if(_metaData != 0) {
-		if(_showColorScale && _metaData->DataDescription()!="")
+		if(_showColorScale && _metaData->ValueDescription()!="")
 		{
-			if(_metaData->DataUnits()!="")
-				_colorScale->SetUnitsCaption(_metaData->DataDescription() + " (" + _metaData->DataUnits() + ")");
+			if(_metaData->ValueUnits()!="")
+				_colorScale->SetUnitsCaption(_metaData->ValueDescription() + " (" + _metaData->ValueUnits() + ")");
 			else
-				_colorScale->SetUnitsCaption(_metaData->DataDescription());
+				_colorScale->SetUnitsCaption(_metaData->ValueDescription());
 		}
 	}
 	if(_showColorScale)
@@ -266,22 +269,28 @@ void ImageWidget::update(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, un
 			_colorScale->SetUnitsCaption(_zAxisDescription);
 	}
 
+	if(_showTitle && !_title.empty())
+	{
+		_plotTitle = new Title();
+		_plotTitle->SetText(_title);
+		_plotTitle->SetPlotDimensions(width, height, 0.0);
+		_topBorderSize = _plotTitle->GetHeight(cairo);
+	} else {
+		_topBorderSize = 10.0;
+	}
 	// The scale dimensions are depending on each other. However, since the height of the horizontal scale is practically
-	// not dependent on other dimensions, we give the horizontal scale temporary width/height, so that we can calculate its
-	// height:
+	// not dependent on other dimensions, we give the horizontal scale temporary width/height, so that we can calculate its height:
 	if(_showXYAxes)
 	{
 		_horiScale->SetPlotDimensions(width, height, 0.0, 0.0);
 		_bottomBorderSize = _horiScale->GetHeight(cairo);
 		_rightBorderSize = _horiScale->GetRightMargin(cairo);
 	
-		_topBorderSize = 10;
 		_vertScale->SetPlotDimensions(width - _rightBorderSize + 5.0, height - _topBorderSize - _bottomBorderSize, _topBorderSize);
 		_leftBorderSize = _vertScale->GetWidth(cairo);
 	} else {
 		_bottomBorderSize = 0.0;
 		_rightBorderSize = 0.0;
-		_topBorderSize = 0.0;
 		_leftBorderSize = 0.0;
 	}
 	if(_showColorScale)
@@ -517,6 +526,8 @@ void ImageWidget::redrawWithoutChanges(Cairo::RefPtr<Cairo::Context> cairo, unsi
 			_vertScale->Draw(cairo);
 			_horiScale->Draw(cairo);
 		}
+		if(_showTitle && !_title.empty())
+			_plotTitle->Draw(cairo);
 	}
 }
 

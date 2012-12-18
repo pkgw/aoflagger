@@ -91,7 +91,7 @@ void RFIPlots::MakeMeanSpectrumPlot(Plot2DPointSet &pointSet, const TimeFrequenc
 	{
 		pointSet.SetXDesc("Frequency (MHz)");
 		std::stringstream yDesc;
-		yDesc << metaData->DataDescription() << " (" << metaData->DataUnits() << ')';
+		yDesc << metaData->ValueDescription() << " (" << metaData->ValueUnits() << ')';
 		pointSet.SetYDesc(yDesc.str());
 	} else {
 		pointSet.SetXDesc("Index");
@@ -149,7 +149,7 @@ void RFIPlots::MakePowerSpectrumPlot(Plot2DPointSet &pointSet, Image2DCPtr image
 	{
 		pointSet.SetXDesc("Frequency (MHz)");
 		std::stringstream yDesc;
-		yDesc << metaData->DataDescription() << " (" << metaData->DataUnits() << ')';
+		yDesc << metaData->ValueDescription() << " (" << metaData->ValueUnits() << ')';
 		pointSet.SetYDesc(yDesc.str());
 	} else {
 		pointSet.SetXDesc("Index");

@@ -144,14 +144,20 @@ void HorizontalPlotScale::initializeMetrics(Cairo::RefPtr<Cairo::Context> cairo)
 			
 			if(_tickSet->Size() != 0)
 			{
+				cairo->set_font_size(_tickValuesFontSize);
 				Cairo::TextExtents extents;
 				cairo->get_text_extents(_tickSet->GetTick(_tickSet->Size()-1).second, extents);
+				
+				/// TODO this is TOO MUCH, caption is often not in the rightmost position.
 				_rightMargin = extents.width/2+5 > 10 ? extents.width/2+5 : 10;
 			} else {
 				_rightMargin = 0.0;
 			}
 			
 			_metricsAreInitialized = true;
+		} else {
+			_rightMargin = 0.0;
+			_height = 0.0;
 		}
 	}
 } 

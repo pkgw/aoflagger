@@ -297,13 +297,16 @@ void MSWindow::loadCurrentTFData()
 			{
 				_spatialMetaData = new SpatialMatrixMetaData(static_cast<rfiStrategy::SpatialMSImageSet*>(_imageSet)->SpatialMetaData(*_imageSetIndex));
 			}
-			_timeFrequencyWidget.Update();
 			// We store these seperate, as they might access the measurement set. This is
 			// not only faster (the names are used in the onMouse.. events) but also less dangerous,
 			// since the set can be simultaneously accessed by another thread. (thus the io mutex should
 			// be locked before calling below statements).
 			_imageSetName = _imageSet->Name();
 			_imageSetIndexDescription = _imageSetIndex->Description();
+			
+			_timeFrequencyWidget.SetTitle(_imageSetIndexDescription);
+			_timeFrequencyWidget.Update();
+			
 			setSetNameInStatusBar();
 		} catch(std::exception &e)
 		{

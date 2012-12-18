@@ -191,8 +191,8 @@ namespace rfiStrategy {
 				TimeFrequencyMetaDataPtr metaData = TimeFrequencyMetaDataPtr(new TimeFrequencyMetaData());
 				metaData->SetObservationTimes(observationTimes);
 				metaData->SetBand(bandInfo);
-				metaData->SetDataDescription(dataDescription());
-				metaData->SetDataUnits(units());
+				metaData->SetValueDescription(dataDescription());
+				metaData->SetValueUnits(units());
 				
 				// Return it structured.
 				TimeFrequencyData data(TimeFrequencyData::AmplitudePart, StokesIPolarisation, image);
