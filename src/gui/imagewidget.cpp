@@ -59,6 +59,7 @@ ImageWidget::ImageWidget() :
 	_max(1.0), _min(0.0),
 	_range(Winsorized),
 	_cairoFilter(Cairo::FILTER_BEST),
+	_manualTitle(false),
 	_manualXAxisDescription(false),
 	_manualYAxisDescription(false),
 	_manualZAxisDescription(false),
@@ -103,6 +104,10 @@ void ImageWidget::Clear()
 	if(_colorScale != 0) {
 		delete _colorScale;
 		_colorScale = 0;
+	}
+	if(_plotTitle != 0) {
+		delete _plotTitle;
+		_plotTitle = 0;
 	}
 }
 
@@ -269,13 +274,14 @@ void ImageWidget::update(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, un
 			_colorScale->SetUnitsCaption(_zAxisDescription);
 	}
 
-	if(_showTitle && !_title.empty())
+	if(_showTitle && !actualTitleText().empty())
 	{
 		_plotTitle = new Title();
-		_plotTitle->SetText(_title);
+		_plotTitle->SetText(actualTitleText());
 		_plotTitle->SetPlotDimensions(width, height, 0.0);
 		_topBorderSize = _plotTitle->GetHeight(cairo);
 	} else {
+		_plotTitle = 0;
 		_topBorderSize = 10.0;
 	}
 	// The scale dimensions are depending on each other. However, since the height of the horizontal scale is practically
@@ -526,7 +532,7 @@ void ImageWidget::redrawWithoutChanges(Cairo::RefPtr<Cairo::Context> cairo, unsi
 			_vertScale->Draw(cairo);
 			_horiScale->Draw(cairo);
 		}
-		if(_showTitle && !_title.empty())
+		if(_plotTitle != 0)
 			_plotTitle->Draw(cairo);
 	}
 }

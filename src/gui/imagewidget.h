@@ -115,6 +115,11 @@ class ImageWidget : public Gtk::DrawingArea {
 		void SaveSvg(const std::string &filename);
 		void SavePng(const std::string &filename);
 		
+		bool ShowTitle() const { return _showTitle; }
+		void SetShowTitle(bool showTitle) {
+			_showTitle = showTitle;
+		}
+		
 		bool ShowXYAxes() const { return _showXYAxes; }
 		void SetShowXYAxes(bool showXYAxes)
 		{
@@ -151,9 +156,9 @@ class ImageWidget : public Gtk::DrawingArea {
 		{
 			_cairoFilter = filter;
 		}
-		void SetTitle(const std::string &title)
+		void SetTitleText(const std::string &title)
 		{
-			_title = title;
+			_titleText = title;
 		}
 		void SetXAxisDescription(const std::string &description)
 		{
@@ -166,6 +171,16 @@ class ImageWidget : public Gtk::DrawingArea {
 		void SetZAxisDescription(const std::string &description)
 		{
 			_zAxisDescription = description;
+		}
+		
+		bool ManualTitle() const { return _manualTitle; }
+		void SetManualTitle(bool manualTitle) { _manualTitle = manualTitle; }
+		
+		const std::string &ManualTitleText() {
+			return _manualTitleText;
+		}
+		void SetManualTitleText(const std::string &manualTitle) {
+			_manualTitleText = manualTitle;
 		}
 		
 		bool ManualXAxisDescription() const { return _manualXAxisDescription; }
@@ -195,6 +210,13 @@ class ImageWidget : public Gtk::DrawingArea {
 		bool onLeave(GdkEventCrossing *event);
 		bool onButtonReleased(GdkEventButton *event);
 		class ColorMap *createColorMap();
+		std::string actualTitleText() const
+		{
+			if(_manualTitle)
+				return _manualTitleText;
+			else
+				return _titleText;
+		}
 
 		bool _isInitialized;
 		unsigned _initializedWidth, _initializedHeight;
@@ -224,10 +246,11 @@ class ImageWidget : public Gtk::DrawingArea {
 		bool _showZAxisDescription;
 		bool _showTitle;
 		num_t _max, _min;
-		std::string _title;
+		std::string _titleText, _manualTitleText;
 		enum Range _range;
 		Cairo::Filter _cairoFilter;
 		std::string _xAxisDescription, _yAxisDescription, _zAxisDescription;
+		bool _manualTitle;
 		bool _manualXAxisDescription;
 		bool _manualYAxisDescription;
 		bool _manualZAxisDescription;

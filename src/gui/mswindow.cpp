@@ -304,7 +304,7 @@ void MSWindow::loadCurrentTFData()
 			_imageSetName = _imageSet->Name();
 			_imageSetIndexDescription = _imageSetIndex->Description();
 			
-			_timeFrequencyWidget.SetTitle(_imageSetIndexDescription);
+			_timeFrequencyWidget.SetTitleText(_imageSetIndexDescription);
 			_timeFrequencyWidget.Update();
 			
 			setSetNameInStatusBar();

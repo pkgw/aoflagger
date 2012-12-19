@@ -62,12 +62,14 @@ ImagePropertiesWindow::ImagePropertiesWindow(ImageWidget &imageWidget, const std
 	_vStartScale(0, 1.01, 0.01),
 	_vStopScale(0, 1.01, 0.01),
 	
-	_axesFrame("Axes"),
+	_axesFrame("Title & axes"),
 	_showXYAxes("Show XY axes"),
 	_showColorScale("Show color scale"),
+	_showTitleButton("Show title"),
 	_showXAxisDescriptionButton("x-axis desc"),
 	_showYAxisDescriptionButton("y-axis desc"),
 	_showZAxisDescriptionButton("z-axis desc"),
+	_manualTitle("manual"),
 	_manualXAxisDescription("manual"),
 	_manualYAxisDescription("manual"),
 	_manualZAxisDescription("manual")
@@ -232,6 +234,15 @@ void ImagePropertiesWindow::initAxisWidgets()
 	
 	_axesHBox.pack_start(_axesGeneralBox);
 	
+	_showTitleButton.set_active(_imageWidget.ShowTitle());
+	_titleBox.pack_start(_showTitleButton);
+	_manualTitle.set_active(_imageWidget.ManualTitle());
+	_titleBox.pack_start(_manualTitle);
+	_titleEntry.set_text(_imageWidget.ManualTitleText());
+	_titleBox.pack_start(_titleEntry);
+	
+	_axesVisibilityBox.pack_start(_titleBox);
+	
 	_showXAxisDescriptionButton.set_active(_imageWidget.ShowXAxisDescription());
 	_xAxisBox.pack_start(_showXAxisDescriptionButton);
 	
@@ -321,6 +332,11 @@ void ImagePropertiesWindow::onApplyClicked()
 	_imageWidget.SetHorizontalDomain(timeStart, timeEnd);
 	_imageWidget.SetVerticalDomain(freqStart, freqEnd);
 		
+	_imageWidget.SetShowTitle(_showTitleButton.get_active());
+	_imageWidget.SetManualTitle(_manualTitle.get_active());
+	if(_manualTitle.get_active())
+		_imageWidget.SetManualTitleText(_titleEntry.get_text());
+	
 	_imageWidget.SetShowXYAxes(_showXYAxes.get_active());
 	_imageWidget.SetShowXAxisDescription(_showXAxisDescriptionButton.get_active());
 	_imageWidget.SetShowYAxisDescription(_showYAxisDescriptionButton.get_active());

@@ -92,10 +92,10 @@ class ImagePropertiesWindow : public Gtk::Window {
 		Gtk::VBox _axesGeneralBox;
 		Gtk::VBox _axesVisibilityBox;
 		Gtk::CheckButton _showXYAxes, _showColorScale;
-		Gtk::HBox _xAxisBox, _yAxisBox, _zAxisBox;
-		Gtk::CheckButton _showXAxisDescriptionButton, _showYAxisDescriptionButton, _showZAxisDescriptionButton;
-		Gtk::CheckButton _manualXAxisDescription, _manualYAxisDescription, _manualZAxisDescription;
-		Gtk::Entry _xAxisDescriptionEntry, _yAxisDescriptionEntry, _zAxisDescriptionEntry;
+		Gtk::HBox _titleBox, _xAxisBox, _yAxisBox, _zAxisBox;
+		Gtk::CheckButton _showTitleButton, _showXAxisDescriptionButton, _showYAxisDescriptionButton, _showZAxisDescriptionButton;
+		Gtk::CheckButton _manualTitle, _manualXAxisDescription, _manualYAxisDescription, _manualZAxisDescription;
+		Gtk::Entry _titleEntry, _xAxisDescriptionEntry, _yAxisDescriptionEntry, _zAxisDescriptionEntry;
 };
 
 #endif // IMAGEPROPERTIESWINDOW_H
