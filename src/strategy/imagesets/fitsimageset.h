@@ -124,7 +124,7 @@ namespace rfiStrategy {
 			void ReadSingleDishTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData, size_t ifIndex);
 			TimeFrequencyData ReadPrimaryGroupTable(size_t baselineIndex, int band, int stokes, TimeFrequencyMetaData &metaData);
 			
-			void saveSingleDishFlags(std::vector<Mask2DCPtr> &flags);
+			void saveSingleDishFlags(std::vector<Mask2DCPtr> &flags, size_t ifIndex);
 			
 			class FitsFile *_file;
 			std::vector<std::pair<size_t,size_t> > _baselines;

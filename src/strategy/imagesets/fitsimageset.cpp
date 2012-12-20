@@ -77,6 +77,8 @@ namespace rfiStrategy {
 				_baselines.push_back(*i);
 			_bandCount = _file->GetCurrentImageSize(5);
 		} else {
+			// sdfits
+			
 			_baselines.push_back(std::pair<size_t,size_t>(0, 0));
 			_antennaInfos.push_back(AntennaInfo());
 			
@@ -89,8 +91,8 @@ namespace rfiStrategy {
 			{
 				double thisIndex;
 				_file->ReadTableCell(i, ifColumn, &thisIndex, 1);
-				if((int) thisIndex > ifIndex)
-					ifIndex = (int) thisIndex;
+				if((int) round(thisIndex) > ifIndex)
+					ifIndex = (int) round(thisIndex);
 				else break;
 			}
 			_bandCount = ifIndex;
@@ -344,7 +346,8 @@ namespace rfiStrategy {
 	
 	void FitsImageSet::ReadSingleDishTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData, size_t ifIndex)
 	{
-		std::cout << "Found single dish table with " << _file->GetRowCount() << " rows." << std::endl;
+		const int rowCount = _file->GetRowCount();
+		std::cout << "Found single dish table with " << rowCount << " rows." << std::endl;
 		const int
 			timeColumn = _file->GetTableColumnIndex("TIME"),
 			dateObsColumn = _file->GetTableColumnIndex("DATE-OBS"),
@@ -369,7 +372,6 @@ namespace rfiStrategy {
 		_antennaInfos[0].name = telescopeName;
 			
 		const int totalSize = _file->GetTableColumnArraySize(dataColumn);
-		const int rowCount = _file->GetRowCount();
 		std::cout << "Shape of data cells: " << freqCount << " channels x " << polarizationCount << " pols x " << raCount << " RAs x " << decCount << " decs" << "=" << totalSize << '\n';
 		long double cellData[totalSize];
 		bool flagData[totalSize];
@@ -464,7 +466,7 @@ namespace rfiStrategy {
 		if(_file->HasGroups())
 			throw BadUsageException("Not implemented for grouped fits files");
 		else
-			saveSingleDishFlags(flags);
+			saveSingleDishFlags(flags, static_cast<const FitsImageSetIndex&>(index)._band);
 	}
 
 	void FitsImageSet::PerformWriteFlagsTask()
@@ -476,15 +478,16 @@ namespace rfiStrategy {
 		}
 	}
 	
-	void FitsImageSet::saveSingleDishFlags(std::vector<Mask2DCPtr> &flags)
+	void FitsImageSet::saveSingleDishFlags(std::vector<Mask2DCPtr> &flags, size_t ifIndex)
 	{
 		_file->Close();
 		_file->Open(FitsFile::ReadWriteMode);
 		_file->MoveToHDU(2);
-		std::cout << "Writing single dish table with " << _file->GetRowCount() << " rows." << std::endl;
+		std::cout << "Writing single dish table for band " << ifIndex << " with " << _file->GetRowCount() << " rows." << std::endl;
 		const int
 			dataColumn = _file->GetTableColumnIndex("DATA"),
-			flagColumn = _file->GetTableColumnIndex("FLAGGED");
+			flagColumn = _file->GetTableColumnIndex("FLAGGED"),
+			ifColumn = _file->GetTableColumnIndex("IF");
 		const int
 			freqCount = _file->GetTableDimensionSize(dataColumn, 0),
 			polarizationCount = _file->GetTableDimensionSize(dataColumn, 1);
@@ -508,34 +511,38 @@ namespace rfiStrategy {
 		{
 			if((*i)->Height() != (unsigned) freqCount)
 				throw std::runtime_error("Frequency count in given mask does not match with the file");
-			if((*i)->Width() != (unsigned) rowCount)
-				throw std::runtime_error("Time step count in given mask does not match with the file");
 		}
 		for(int row=1;row<=rowCount;++row)
 		{
-			std::cout << row << "\n";
-			_file->ReadTableCell(row, dataColumn, cellData, totalSize);
-			double *dataPtr = cellData;
-			bool *flagPtr = flagData;
+			long double ifNumber;
+			_file->ReadTableCell(row, ifColumn, &ifNumber, 1);
 			
-			for(int f=0;f<freqCount;++f)
+			if(ifNumber == ifIndex+1)
 			{
-				for(int p=0;p<polarizationCount;++p)
+				std::cout << row << "\n";
+				_file->ReadTableCell(row, dataColumn, cellData, totalSize);
+				double *dataPtr = cellData;
+				bool *flagPtr = flagData;
+				
+				for(int f=0;f<freqCount;++f)
 				{
-					if(storedFlags[p]->Value(row-1, f))
+					for(int p=0;p<polarizationCount;++p)
 					{
-						*flagPtr = true;
-						*dataPtr = 1e20;
-					} else {
-						*flagPtr = false;
+						if(storedFlags[p]->Value(row-1, f))
+						{
+							*flagPtr = true;
+							*dataPtr = 1e20;
+						} else {
+							*flagPtr = false;
+						}
+						++dataPtr;
+						++flagPtr;
 					}
-					++dataPtr;
-					++flagPtr;
 				}
+				
+				_file->WriteTableCell(row, dataColumn, cellData, totalSize);
+				_file->WriteTableCell(row, flagColumn, flagData, totalSize);
 			}
-			
-			_file->WriteTableCell(row, dataColumn, cellData, totalSize);
-			_file->WriteTableCell(row, flagColumn, flagData, totalSize);
 		}
 	}
 	
