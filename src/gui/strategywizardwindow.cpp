@@ -25,6 +25,7 @@ StrategyWizardWindow::StrategyWizardWindow(class StrategyController &controller)
 	addTelescope("Generic", rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE);
 	addTelescope("LOFAR (Low-Frequency Array, Europe)", rfiStrategy::DefaultStrategy::LOFAR_TELESCOPE);
 	addTelescope("MWA (Murchison Widefield Array, Australia)", rfiStrategy::DefaultStrategy::MWA_TELESCOPE);
+	addTelescope("Parkes (single dish, Australia)", rfiStrategy::DefaultStrategy::PARKES_TELESCOPE);
 	addTelescope("WSRT (Westerbork Synth. Rad. Telesc., Netherlands)", rfiStrategy::DefaultStrategy::WSRT_TELESCOPE);
 	_telescopeCombo.set_model(_telescopeList);
 	_telescopeCombo.pack_start(_telescopeListColumns.name, false);

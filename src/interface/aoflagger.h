@@ -28,6 +28,8 @@ namespace aoflagger {
 		LOFAR_TELESCOPE,
 		/** @brief Default strategy for the MWA (Murchison Widefield Array in Western Australia). */
 		MWA_TELESCOPE,
+		/** @brief Default strategy for Parkes (single Dish, NSW). */
+		PARKES_TELESCOPE,
 		/** @brief Default strategy for the WSRT (Westerbork Synthesis Radio Telescope in the Netherlands). */
 		WSRT_TELESCOPE
 	};

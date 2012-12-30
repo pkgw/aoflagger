@@ -21,6 +21,7 @@ namespace rfiStrategy {
 			GENERIC_TELESCOPE = aoflagger::GENERIC_TELESCOPE,
 			LOFAR_TELESCOPE = aoflagger::LOFAR_TELESCOPE,
 			MWA_TELESCOPE = aoflagger::MWA_TELESCOPE,
+			PARKES_TELESCOPE = aoflagger::PARKES_TELESCOPE,
 			WSRT_TELESCOPE = aoflagger::WSRT_TELESCOPE
 		};
 

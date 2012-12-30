@@ -512,6 +512,7 @@ namespace rfiStrategy {
 			if((*i)->Height() != (unsigned) freqCount)
 				throw std::runtime_error("Frequency count in given mask does not match with the file");
 		}
+		size_t timeIndex = 0;
 		for(int row=1;row<=rowCount;++row)
 		{
 			long double ifNumber;
@@ -524,11 +525,11 @@ namespace rfiStrategy {
 				double *dataPtr = cellData;
 				bool *flagPtr = flagData;
 				
-				for(int f=0;f<freqCount;++f)
+				for(int p=0;p<polarizationCount;++p)
 				{
-					for(int p=0;p<polarizationCount;++p)
+					for(int f=0;f<freqCount;++f)
 					{
-						if(storedFlags[p]->Value(row-1, f))
+						if(storedFlags[p]->Value(timeIndex, f))
 						{
 							*flagPtr = true;
 							*dataPtr = 1e20;
@@ -542,6 +543,7 @@ namespace rfiStrategy {
 				
 				_file->WriteTableCell(row, dataColumn, cellData, totalSize);
 				_file->WriteTableCell(row, flagColumn, flagData, totalSize);
+				++timeIndex;
 			}
 		}
 	}
