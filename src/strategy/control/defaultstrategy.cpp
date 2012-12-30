@@ -61,11 +61,17 @@ namespace rfiStrategy {
 		bool resetContaminated =
 			((flags&FLAG_GUI_FRIENDLY) != 0);
 		int iterationCount = ((flags&FLAG_ROBUST)==0) ? 2 : 4;
-		
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, calPassband, clearFlags, resetContaminated);
+		double sumThresholdSensitivity = 1.0;
+		if(telescopeId == PARKES_TELESCOPE)
+			sumThresholdSensitivity = 1.4;
+		if((flags&FLAG_SENSITIVE) != 0)
+			sumThresholdSensitivity /= 1.2;
+		if((flags&FLAG_UNSENSITIVE) != 0)
+			sumThresholdSensitivity *= 1.2;
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity)
 	{
 		ActionBlock *current;
 
@@ -94,7 +100,7 @@ namespace rfiStrategy {
 		current = iteration;
 		
 		SumThresholdAction *t1 = new SumThresholdAction();
-		t1->SetBaseSensitivity(1.0);
+		t1->SetBaseSensitivity(sumThresholdSensitivity);
 		if(keepTransients)
 			t1->SetFrequencyDirectionFlagging(false);
 		current->Add(t1);
@@ -152,6 +158,7 @@ namespace rfiStrategy {
 		}
 		
 		SumThresholdAction *t2 = new SumThresholdAction();
+		t2->SetBaseSensitivity(sumThresholdSensitivity);
 		if(keepTransients)
 			t2->SetFrequencyDirectionFlagging(false);
 		current->Add(t2);
