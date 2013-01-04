@@ -62,10 +62,15 @@ class ScalarColumnIterator {
 		{
 			return ScalarColumnIterator<T>(column, 0);
 		}
+// In some versions of casacore, ROScalarColumn is #define'd to be
+// ScalarColumn, which leads to a compile error here since the two First()
+// functions become identical. In that case we only need the one definition.
+#ifndef ROScalarColumn
 		static ScalarColumnIterator First(casa::ROScalarColumn<T> &column)
 		{
-			return ScalarColumnIterator<T>(column, 0);
+				return ScalarColumnIterator<T>(column, 0);
 		}
+#endif
 	private:
 		casa::ROScalarColumn<T> *_column;
 		unsigned _row;
