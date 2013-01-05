@@ -52,7 +52,7 @@ namespace rfiStrategy {
 		
 		static void LoadFullStrategy(ActionBlock &destination, enum TelescopeId telescopeId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
 		
-		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity);
+		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity);
 
 		private:
 	};

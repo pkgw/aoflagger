@@ -55,6 +55,13 @@ namespace rfiStrategy {
 			// Other cases with large bandwidth
 			((flags&FLAG_LARGE_BANDWIDTH) != 0);
 		bool keepTransients = (flags&FLAG_TRANSIENTS) != 0;
+		bool changeResVertically = true;
+		// WSRT has automatic gain control, which strongly affect autocorrelations
+		if(((flags&FLAG_AUTO_CORRELATION) != 0) && telescopeId == WSRT_TELESCOPE)
+		{
+			changeResVertically = false;
+			keepTransients = true;
+		}
 		bool clearFlags =
 			((flags&FLAG_CLEAR_FLAGS) != 0) ||
 			((flags&FLAG_GUI_FRIENDLY) != 0);
@@ -62,16 +69,18 @@ namespace rfiStrategy {
 			((flags&FLAG_GUI_FRIENDLY) != 0);
 		int iterationCount = ((flags&FLAG_ROBUST)==0) ? 2 : 4;
 		double sumThresholdSensitivity = 1.0;
-		if(telescopeId == PARKES_TELESCOPE)
+		if(telescopeId == PARKES_TELESCOPE || telescopeId == WSRT_TELESCOPE)
 			sumThresholdSensitivity = 1.4;
+		if((flags&FLAG_AUTO_CORRELATION) != 0)
+			sumThresholdSensitivity *= 1.4;
 		if((flags&FLAG_SENSITIVE) != 0)
 			sumThresholdSensitivity /= 1.2;
 		if((flags&FLAG_UNSENSITIVE) != 0)
 			sumThresholdSensitivity *= 1.2;
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity);
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity)
 	{
 		ActionBlock *current;
 
@@ -113,29 +122,22 @@ namespace rfiStrategy {
 			cfr1->Add(new TimeSelectionAction());
 	
 		current->Add(new SetImageAction());
-		ChangeResolutionAction *changeResAction = new ChangeResolutionAction();
-		if(keepTransients)
-			changeResAction->SetTimeDecreaseFactor(1);
-		else
-			changeResAction->SetTimeDecreaseFactor(3);
-		changeResAction->SetFrequencyDecreaseFactor(3);
-
-		/*
-		SlidingWindowFitAction *swfAction2 = new SlidingWindowFitAction();
-		if(pulsar)
-		{
-			swfAction2->Parameters().timeDirectionWindowSize = 1;
-		} else {
-			swfAction2->Parameters().timeDirectionKernelSize = 2.5;
-			swfAction2->Parameters().timeDirectionWindowSize = 10;
-		}
-		swfAction2->Parameters().frequencyDirectionKernelSize = 5.0;
-		swfAction2->Parameters().frequencyDirectionWindowSize = 15;
-		changeResAction2->Add(swfAction2);
 		
-		Replaced the sliding window fit action by the faster (SSE) high-pass
-		filter on 26-08-2011
-		*/
+		if(!keepTransients || changeResVertically)
+		{
+			ChangeResolutionAction *changeResAction = new ChangeResolutionAction();
+			if(keepTransients)
+				changeResAction->SetTimeDecreaseFactor(1);
+			else
+				changeResAction->SetTimeDecreaseFactor(3);
+			if(changeResVertically)
+				changeResAction->SetFrequencyDecreaseFactor(3);
+			else
+				changeResAction->SetFrequencyDecreaseFactor(1);
+			current->Add(changeResAction);
+			current = changeResAction;
+		}
+
 		HighPassFilterAction *hpAction = new HighPassFilterAction();
 		if(keepTransients)
 		{
@@ -146,10 +148,11 @@ namespace rfiStrategy {
 		}
 		hpAction->SetVKernelSigmaSq(5.0);
 		hpAction->SetWindowHeight(31);
-		hpAction->SetMode(HighPassFilterAction::StoreRevised);
-		changeResAction->Add(hpAction);
-
-		current->Add(changeResAction);
+		if(!keepTransients || changeResVertically)
+			hpAction->SetMode(HighPassFilterAction::StoreRevised);
+		else
+			hpAction->SetMode(HighPassFilterAction::StoreContaminated);
+		current->Add(hpAction);
 
 		current = focAction;
 		if(calPassband)
