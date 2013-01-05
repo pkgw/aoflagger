@@ -105,13 +105,7 @@ namespace rfiStrategy {
 			{
 				flagBaselines(artifacts, markedBaselines);
 			} else {
-				if(markedBaselines.size() > 0)
-					AOLogger::Info <<
-						"Bad baseline finding is still experimental, please check the results.\n"
-						"These baselines have therefore NOT been flagged yet. Writing flags to\n"
-						"these baselines can be enabled by setting the flag-bad-baselines\n"
-						"property of both BaselineSelectionAction's to '1' in your strategy\n"
-						"file.\n";
+			    // message about bad bls not actually being flagged.
 			}
 		}
 	}

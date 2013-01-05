@@ -57,13 +57,17 @@ class ConsoleProgressHandler : public ProgressListener {
 			ProgressListener::OnStartTask(action, taskNo, taskCount, description, weight);
 			
 			double totalProgress = TotalProgress();
-			
-			AOLogger::Progress << round(totalProgress*1000.0)/10.0 << "% : ";
+			std::ostringstream ss;
+			ss.width (5);
+			ss.precision (1);
+			ss.setf (std::ios_base::fixed);
+			ss << totalProgress * 100 << "% : ";
+			AOLogger::Progress << ss.str ();
 			
 			for(size_t i=1;i<Depth();++i)
 				AOLogger::Progress << "+-";
 			
-			AOLogger::Progress << description << "...\n";
+			AOLogger::Progress << description << "... \r";
 		}
 		
 		virtual void OnEndTask(const rfiStrategy::Action &action)
@@ -118,6 +122,7 @@ int main(int argc, char **argv)
 		generalInfo();
 		AOLogger::Error << "Usage: " << argv[0] << " [options] <obs1> [<obs2> [..]]\n"
 		"  -v will produce verbose output\n"
+		"  -q : quiet output\n"
 		"  -j overrides the number of threads specified in the strategy\n"
 		"     (default: one thread for each CPU core)\n"
 		"  -strategy specifies a possible customized strategy\n"
@@ -148,6 +153,7 @@ int main(int argc, char **argv)
 	Parameter<bool> readUVW;
 	Parameter<std::string> strategyFile;
 	Parameter<bool> logVerbose;
+	Parameter<bool> logQuiet;
 	Parameter<bool> skipFlagged;
 	Parameter<std::string> dataColumn;
 
@@ -175,6 +181,11 @@ int main(int argc, char **argv)
 			AOLogger::Init(basename(argv[0]));
 			AOLogger::Info << "AOFlagger " << AOFLAGGER_VERSION_STR << " (" << AOFLAGGER_VERSION_DATE_STR << ")\n";
 			return 0;
+		}
+		else if(flag=="q")
+		{
+			logQuiet = true;
+			++parameterIndex;
 		}
 		else if(flag=="direct-read")
 		{
@@ -226,10 +237,7 @@ int main(int argc, char **argv)
 	}
 
 	try {
-		AOLogger::Init(basename(argv[0]), false, logVerbose.Value(false));
-		generalInfo();
-			
-		checkRelease();
+		AOLogger::Init(basename(argv[0]), false, logVerbose.Value(false), logQuiet.Value(false));
 
 		if(!threadCount.IsSet())
 			threadCount = sysconf(_SC_NPROCESSORS_ONLN);
@@ -308,6 +316,8 @@ int main(int argc, char **argv)
 		overallStrategy.StartPerformThread(artifacts, progress);
 		rfiStrategy::ArtifactSet *set = overallStrategy.JoinThread();
 		overallStrategy.FinishAll();
+
+		AOLogger::Progress << '\n'; /* finally new line after \rs */
 
 		set->AntennaFlagCountPlot()->Report();
 		set->FrequencyFlagCountPlot()->Report();

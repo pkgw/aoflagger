@@ -34,10 +34,10 @@ AOLogger::LogWriter<AOLogger::FatalLevel> AOLogger::Fatal;
 
 AOLogger::LogWriter<AOLogger::NoLevel, true> AOLogger::Progress;
 
-void AOLogger::Init(const std::string &name, bool useLogger, bool verbose)
+void AOLogger::Init(const std::string &name, bool useLogger, bool verbose, bool quiet)
 {
 	Debug.SetUseLogger(useLogger && verbose);
-	Info.SetUseLogger(useLogger);
+	Info.SetUseLogger(useLogger && !quiet);
 	Warn.SetUseLogger(useLogger);
 	Error.SetUseLogger(useLogger);
 	Fatal.SetUseLogger(useLogger);
@@ -48,9 +48,11 @@ void AOLogger::Init(const std::string &name, bool useLogger, bool verbose)
 		//INIT_LOGGER(name);
 	}
 	else {
-		if(verbose)
-			_coutLevel = DebugLevel;
-		else
-			_coutLevel = InfoLevel;
+	    if(quiet)
+		_coutLevel = WarningLevel;
+	    else if(verbose)
+		_coutLevel = DebugLevel;
+	    else
+		_coutLevel = InfoLevel;
 	}
 }

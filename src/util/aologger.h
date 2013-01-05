@@ -130,7 +130,7 @@ class AOLogger
 				}
 		};
 
-		static void Init(const std::string &name, bool useLogger=false, bool verbose=false);
+		static void Init(const std::string &name, bool useLogger=false, bool verbose=false, bool quiet=false);
 
 		static class LogWriter<DebugLevel> Debug;
 		static class LogWriter<InfoLevel> Info;
