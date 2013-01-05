@@ -36,7 +36,7 @@ namespace rfiStrategy {
 			ForEachPolarisationBlock() :
 				_onXX(true), _onXY(true), _onYX(true), _onYY(true),
 				_onStokesI(false), _onStokesQ(false), _onStokesU(false), _onStokesV(false),
-				_changeRevised(false)
+				_changeRevised(true)
 			{
 			}
 			virtual ~ForEachPolarisationBlock()
