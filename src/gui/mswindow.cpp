@@ -708,7 +708,8 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("EditStrategy", "_Edit strategy"),
   sigc::mem_fun(*this, &MSWindow::onEditStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ExecuteStrategy", "E_xecute strategy"),
-  sigc::mem_fun(*this, &MSWindow::onExecuteStrategyPressed) );
+		Gtk::AccelKey("F9"),
+		sigc::mem_fun(*this, &MSWindow::onExecuteStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStats", "Show _stats"),
   sigc::mem_fun(*this, &MSWindow::onShowStats) );
 	_actionGroup->add( Gtk::Action::create("Previous", Gtk::Stock::GO_BACK),
