@@ -77,10 +77,11 @@ namespace rfiStrategy {
 			sumThresholdSensitivity /= 1.2;
 		if((flags&FLAG_UNSENSITIVE) != 0)
 			sumThresholdSensitivity *= 1.2;
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity);
+		bool onStokesIQ = ((flags&FLAG_FAST) != 0);
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ)
 	{
 		ActionBlock *current;
 
@@ -90,6 +91,15 @@ namespace rfiStrategy {
 		block.Add(new SetFlaggingAction());
 
 		ForEachPolarisationBlock *fepBlock = new ForEachPolarisationBlock();
+		if(onStokesIQ)
+		{
+			fepBlock->SetOnXX(false);
+			fepBlock->SetOnXY(false);
+			fepBlock->SetOnYX(false);
+			fepBlock->SetOnYY(false);
+			fepBlock->SetOnStokesI(true);
+			fepBlock->SetOnStokesQ(true);
+		}
 		block.Add(fepBlock);
 		current = fepBlock;
 
@@ -156,9 +166,7 @@ namespace rfiStrategy {
 
 		current = focAction;
 		if(calPassband)
-		{
 			current->Add(new CalibratePassbandAction());
-		}
 		
 		SumThresholdAction *t2 = new SumThresholdAction();
 		t2->SetBaseSensitivity(sumThresholdSensitivity);
