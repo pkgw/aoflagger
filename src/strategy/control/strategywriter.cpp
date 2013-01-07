@@ -274,7 +274,7 @@ namespace rfiStrategy {
 	void StrategyWriter::writeCalibratePassbandAction(const CalibratePassbandAction &action)
 	{
 		Attribute("type", "CalibratePassbandAction");
-		Write<int>("time-decrease-factor", action.Steps());
+		Write<int>("steps", action.Steps());
 	}
 
 	void StrategyWriter::writeChangeResolutionAction(const ChangeResolutionAction &action)
