@@ -26,6 +26,7 @@
 #include "../actions/adapter.h"
 #include "../actions/addstatisticsaction.h"
 #include "../actions/baselineselectionaction.h"
+#include "../actions/calibratepassbandaction.h"
 #include "../actions/changeresolutionaction.h"
 #include "../actions/collectnoisestatisticsaction.h"
 #include "../actions/combineflagresultsaction.h"
@@ -248,6 +249,8 @@ Action *StrategyReader::parseAction(xmlNode *node)
 		newAction = parseAddStatistics(node);
 	else if(typeStr == "BaselineSelectionAction")
 		newAction = parseBaselineSelectionAction(node);
+	else if(typeStr == "CalibratePassbandAction")
+		newAction = parseCalibratePassbandAction(node);
 	else if(typeStr == "ChangeResolutionAction")
 		newAction = parseChangeResolutionAction(node);
 	else if(typeStr == "CollectNoiseStatisticsAction")
@@ -361,6 +364,13 @@ Action *StrategyReader::parseBaselineSelectionAction(xmlNode *node)
 	newAction->SetAbsThreshold(getDouble(node, "abs-threshold"));
 	newAction->SetSmoothingSigma(getDouble(node, "smoothing-sigma"));
 	newAction->SetMakePlot(getBool(node, "make-plot"));
+	return newAction;
+}
+
+Action *StrategyReader::parseCalibratePassbandAction(xmlNode *node)
+{
+	CalibratePassbandAction *newAction = new CalibratePassbandAction();
+	newAction->SetSteps(getInt(node, "steps"));
 	return newAction;
 }
 

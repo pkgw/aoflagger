@@ -23,6 +23,7 @@
 #include "../actions/adapter.h"
 #include "../actions/addstatisticsaction.h"
 #include "../actions/baselineselectionaction.h"
+#include "../actions/calibratepassbandaction.h"
 #include "../actions/changeresolutionaction.h"
 #include "../actions/collectnoisestatisticsaction.h"
 #include "../actions/combineflagresultsaction.h"
@@ -111,6 +112,9 @@ namespace rfiStrategy {
 				break;
 			case BaselineSelectionActionType:
 				writeBaselineSelectionAction(static_cast<const BaselineSelectionAction&>(action));
+				break;
+			case CalibratePassbandActionType:
+				writeCalibratePassbandAction(static_cast<const CalibratePassbandAction&>(action));
 				break;
 			case ChangeResolutionActionType:
 				writeChangeResolutionAction(static_cast<const ChangeResolutionAction&>(action));
@@ -265,6 +269,12 @@ namespace rfiStrategy {
 		Write<num_t>("smoothing-sigma", action.SmoothingSigma());
 		Write<num_t>("abs-threshold", action.AbsThreshold());
 		Write<bool>("make-plot", action.MakePlot());
+	}
+
+	void StrategyWriter::writeCalibratePassbandAction(const CalibratePassbandAction &action)
+	{
+		Attribute("type", "CalibratePassbandAction");
+		Write<int>("time-decrease-factor", action.Steps());
 	}
 
 	void StrategyWriter::writeChangeResolutionAction(const ChangeResolutionAction &action)
