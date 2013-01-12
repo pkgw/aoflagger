@@ -537,13 +537,16 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("MenuPlotFlagComparison", "_Compare flags") );
 	_actionGroup->add( Gtk::Action::create("MenuActions", "_Actions") );
 	_actionGroup->add( Gtk::Action::create("MenuData", "_Data") );
+	
 	_actionGroup->add( Gtk::Action::create("OpenFile", Gtk::Stock::OPEN, "Open _file"),
-  sigc::mem_fun(*this, &MSWindow::onActionFileOpen) );
-	_actionGroup->add( Gtk::Action::create("OpenDirectory", Gtk::Stock::OPEN, "Open _directory"),
-  sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpen) );
-	_actionGroup->add( Gtk::Action::create("OpenDirectorySpatial", Gtk::Stock::OPEN, "Open _directory as spatial"),
+		Gtk::AccelKey("<control>O"),
+		sigc::mem_fun(*this, &MSWindow::onActionFileOpen) );
+	_actionGroup->add( Gtk::Action::create("OpenDirectory", "Open _directory"),
+		Gtk::AccelKey("<control>D"),
+		sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpen) );
+	_actionGroup->add( Gtk::Action::create("OpenDirectorySpatial", "Open _directory as spatial"),
   sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpenForSpatial) );
-	_actionGroup->add( Gtk::Action::create("OpenDirectoryST", Gtk::Stock::OPEN, "Open _directory as spatial/time"),
+	_actionGroup->add( Gtk::Action::create("OpenDirectoryST", "Open _directory as spatial/time"),
   sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpenForST) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSet", "Open _testset") );
 
@@ -618,9 +621,11 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("Compress", "Compress"),
 	sigc::mem_fun(*this, &MSWindow::onCompress) );
 	_actionGroup->add( Gtk::Action::create("Quit", Gtk::Stock::QUIT),
-	sigc::mem_fun(*this, &MSWindow::onQuit) );
+		Gtk::AccelKey("<control>Q"),
+		sigc::mem_fun(*this, &MSWindow::onQuit) );
 
 	_actionGroup->add( Gtk::Action::create("ImageProperties", "Plot properties..."),
+		Gtk::AccelKey("<control>P"),
   	sigc::mem_fun(*this, &MSWindow::onImagePropertiesPressed) );
 	_timeGraphButton = Gtk::ToggleAction::create("TimeGraph", "Time graph");
 	_timeGraphButton->set_active(false); 
@@ -632,25 +637,32 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("PlotLogLogDist", "Plot _log-log dist"),
   sigc::mem_fun(*this, &MSWindow::onPlotLogLogDistPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotComplexPlane", "Plot _complex plane"),
-  sigc::mem_fun(*this, &MSWindow::onPlotComplexPlanePressed) );
+		Gtk::AccelKey("<alt>C"),
+		sigc::mem_fun(*this, &MSWindow::onPlotComplexPlanePressed) );
 	_actionGroup->add( Gtk::Action::create("PlotMeanSpectrum", "Plot _mean spectrum"),
-  sigc::mem_fun(*this, &MSWindow::onPlotMeanSpectrumPressed) );
+		Gtk::AccelKey("<alt>M"),
+		sigc::mem_fun(*this, &MSWindow::onPlotMeanSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSumSpectrum", "Plot s_um spectrum"),
-  sigc::mem_fun(*this, &MSWindow::onPlotSumSpectrumPressed) );
+		Gtk::AccelKey("<alt>U"),
+		sigc::mem_fun(*this, &MSWindow::onPlotSumSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerSpectrum", "Plot _power spectrum"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumPressed) );
+		Gtk::AccelKey("<alt>W"),
+		sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerSpectrumComparison", "Power _spectrum"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumComparisonPressed) );
+		sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotRMSSpectrum", "Plot _rms spectrum"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerRMSPressed) );
+		Gtk::AccelKey("<alt>R"),
+		sigc::mem_fun(*this, &MSWindow::onPlotPowerRMSPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSNRSpectrum", "Plot spectrum snr"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerSNRPressed) );
+		sigc::mem_fun(*this, &MSWindow::onPlotPowerSNRPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerTime", "Plot power vs _time"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerTimePressed) );
+		Gtk::AccelKey("<alt>T"),
+		sigc::mem_fun(*this, &MSWindow::onPlotPowerTimePressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerTimeComparison", "Po_wer vs time"),
   sigc::mem_fun(*this, &MSWindow::onPlotPowerTimeComparisonPressed) );
-	_actionGroup->add( Gtk::Action::create("PlotTimeScatter", "Plot time s_catter"),
-  sigc::mem_fun(*this, &MSWindow::onPlotTimeScatterPressed) );
+	_actionGroup->add( Gtk::Action::create("PlotTimeScatter", "Plot t_ime scatter"),
+ 		Gtk::AccelKey("<alt>I"),
+		sigc::mem_fun(*this, &MSWindow::onPlotTimeScatterPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotTimeScatterComparison", "Time _scatter"),
   sigc::mem_fun(*this, &MSWindow::onPlotTimeScatterComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSingularValues", "Plot _singular values"),
@@ -662,9 +674,11 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("PlotQualityAll", "Plot quality (all)"),
   sigc::mem_fun(*this, &MSWindow::onPlotQualityAllPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowImagePlane", "_Show image plane"),
+		Gtk::AccelKey("<control>I"),
   sigc::mem_fun(*this, &MSWindow::onShowImagePlane) );
 	_actionGroup->add( Gtk::Action::create("SetAndShowImagePlane", "S_et and show image plane"),
-  sigc::mem_fun(*this, &MSWindow::onSetAndShowImagePlane) );
+		Gtk::AccelKey("<control><shift>I"),
+		sigc::mem_fun(*this, &MSWindow::onSetAndShowImagePlane) );
 	_actionGroup->add( Gtk::Action::create("AddToImagePlane", "Add to _image plane"),
   sigc::mem_fun(*this, &MSWindow::onAddToImagePlane) );
 	
@@ -706,28 +720,37 @@ void MSWindow::createToolbar()
   sigc::mem_fun(*this, &MSWindow::onSimulateOnAxisSource) );
 
 	_actionGroup->add( Gtk::Action::create("EditStrategy", "_Edit strategy"),
+		Gtk::AccelKey("F8"),
   sigc::mem_fun(*this, &MSWindow::onEditStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ExecuteStrategy", "E_xecute strategy"),
 		Gtk::AccelKey("F9"),
 		sigc::mem_fun(*this, &MSWindow::onExecuteStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStats", "Show _stats"),
-  sigc::mem_fun(*this, &MSWindow::onShowStats) );
+		Gtk::AccelKey("F2"),
+		sigc::mem_fun(*this, &MSWindow::onShowStats) );
 	_actionGroup->add( Gtk::Action::create("Previous", Gtk::Stock::GO_BACK),
-  sigc::mem_fun(*this, &MSWindow::onLoadPrevious) );
+		Gtk::AccelKey("F5"),
+		sigc::mem_fun(*this, &MSWindow::onLoadPrevious) );
 	_actionGroup->add( Gtk::Action::create("Next", Gtk::Stock::GO_FORWARD),
-  sigc::mem_fun(*this, &MSWindow::onLoadNext) );
+		Gtk::AccelKey("F6"),
+		sigc::mem_fun(*this, &MSWindow::onLoadNext) );
 	_actionGroup->add( Gtk::Action::create("LargeStepPrevious", Gtk::Stock::GOTO_FIRST),
   sigc::mem_fun(*this, &MSWindow::onLoadLargeStepPrevious) );
 	_actionGroup->add( Gtk::Action::create("LargeStepNext", Gtk::Stock::GOTO_LAST),
   sigc::mem_fun(*this, &MSWindow::onLoadLargeStepNext) );
 	_actionGroup->add( Gtk::Action::create("GoTo", "_Go to..."),
+		Gtk::AccelKey("<control>G"),
   sigc::mem_fun(*this, &MSWindow::onGoToPressed) );
   _originalFlagsButton = Gtk::ToggleAction::create("OriginalFlags", "Original\nflags");
 	_originalFlagsButton->set_active(true); 
-	_actionGroup->add(_originalFlagsButton, sigc::mem_fun(*this, &MSWindow::onToggleFlags) );
+	_actionGroup->add(_originalFlagsButton,
+			Gtk::AccelKey("F3"),
+			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
   _altFlagsButton = Gtk::ToggleAction::create("AlternativeFlags", "Alternative\nflags");
 	_altFlagsButton->set_active(true); 
-	_actionGroup->add(_altFlagsButton, sigc::mem_fun(*this, &MSWindow::onToggleFlags) );
+	_actionGroup->add(_altFlagsButton,
+			Gtk::AccelKey("F4"),
+			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
 	_actionGroup->add( Gtk::Action::create("ClearAltFlags", "Clear"),
   sigc::mem_fun(*this, &MSWindow::onClearAltFlagsPressed) );
 
@@ -736,9 +759,15 @@ void MSWindow::createToolbar()
 	_originalImageButton->set_active(true);
 	_backgroundImageButton = Gtk::RadioAction::create(imageGroup, "ImageBackground", "Background");
 	_diffImageButton = Gtk::RadioAction::create(imageGroup, "ImageDiff", "Difference");
-	_actionGroup->add(_originalImageButton, sigc::mem_fun(*this, &MSWindow::onToggleImage) );
-	_actionGroup->add(_backgroundImageButton, sigc::mem_fun(*this, &MSWindow::onToggleImage) );
-	_actionGroup->add(_diffImageButton, sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+	_actionGroup->add(_originalImageButton,
+		Gtk::AccelKey("<control>1"),
+		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+	_actionGroup->add(_backgroundImageButton,
+		Gtk::AccelKey("<control>2"),
+		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+	_actionGroup->add(_diffImageButton,
+		Gtk::AccelKey("<control>3"),
+		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
 
 	_actionGroup->add( Gtk::Action::create("DiffToOriginal", "Diff->Original"),
   sigc::mem_fun(*this, &MSWindow::onDifferenceToOriginalPressed) );
@@ -746,11 +775,14 @@ void MSWindow::createToolbar()
   sigc::mem_fun(*this, &MSWindow::onBackgroundToOriginalPressed) );
 
 	_actionGroup->add( Gtk::Action::create("ShowReal", "Keep _real part"),
-  sigc::mem_fun(*this, &MSWindow::onShowRealPressed) );
+		Gtk::AccelKey("<control>,"),
+		sigc::mem_fun(*this, &MSWindow::onShowRealPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowImaginary", "Keep _imaginary part"),
-  sigc::mem_fun(*this, &MSWindow::onShowImaginaryPressed) );
+		Gtk::AccelKey("<control>."),
+		sigc::mem_fun(*this, &MSWindow::onShowImaginaryPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowPhase", "Keep _phase part"),
-  sigc::mem_fun(*this, &MSWindow::onShowPhasePressed) );
+		Gtk::AccelKey("<control>1"),
+		sigc::mem_fun(*this, &MSWindow::onShowPhasePressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesI", "Keep _stokesI part"),
   sigc::mem_fun(*this, &MSWindow::onShowStokesIPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesQ", "Keep stokes_Q part"),
@@ -764,13 +796,17 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("ShowCrossPol", "Keep xy+yx part"),
   sigc::mem_fun(*this, &MSWindow::onShowCrossDipolePressed) );
 	_actionGroup->add( Gtk::Action::create("ShowXX", "Keep _xx part"),
-  sigc::mem_fun(*this, &MSWindow::onShowXXPressed) );
+		Gtk::AccelKey("<control>X"),
+		sigc::mem_fun(*this, &MSWindow::onShowXXPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowXY", "Keep xy part"),
-  sigc::mem_fun(*this, &MSWindow::onShowXYPressed) );
+		Gtk::AccelKey("<control><alt>X"),
+		sigc::mem_fun(*this, &MSWindow::onShowXYPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowYX", "Keep yx part"),
-  sigc::mem_fun(*this, &MSWindow::onShowYXPressed) );
+		Gtk::AccelKey("<control><alt>Y"),
+		sigc::mem_fun(*this, &MSWindow::onShowYXPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowYY", "Keep _yy part"),
-  sigc::mem_fun(*this, &MSWindow::onShowYYPressed) );
+		Gtk::AccelKey("<control>Y"),
+		sigc::mem_fun(*this, &MSWindow::onShowYYPressed) );
 	_actionGroup->add( Gtk::Action::create("UnrollPhase", "_Unroll phase"),
 	sigc::mem_fun(*this, &MSWindow::onUnrollPhaseButtonPressed) );
 
@@ -783,9 +819,11 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("RemoveSmallSegments", "Remove small segments"),
   sigc::mem_fun(*this, &MSWindow::onRemoveSmallSegments) );
 	_actionGroup->add( Gtk::Action::create("StoreData", "Store"),
+		Gtk::AccelKey("<control>M"),
   sigc::mem_fun(*this, &MSWindow::onStoreData) );
 	_actionGroup->add( Gtk::Action::create("RecallData", "Recall"),
-  sigc::mem_fun(*this, &MSWindow::onRecallData) );
+		Gtk::AccelKey("<control>R"),
+		sigc::mem_fun(*this, &MSWindow::onRecallData) );
 	_actionGroup->add( Gtk::Action::create("SubtractDataFromMem", "Subtract from mem"),
   sigc::mem_fun(*this, &MSWindow::onSubtractDataFromMem) );
 
