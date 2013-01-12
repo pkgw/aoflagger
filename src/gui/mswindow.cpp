@@ -751,7 +751,7 @@ void MSWindow::createToolbar()
 	_actionGroup->add(_altFlagsButton,
 			Gtk::AccelKey("F4"),
 			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
-	_actionGroup->add( Gtk::Action::create("ClearAltFlags", "Clear"),
+	_actionGroup->add( Gtk::Action::create("ClearAltFlags", "Clear alt flags"),
   sigc::mem_fun(*this, &MSWindow::onClearAltFlagsPressed) );
 
 	Gtk::RadioButtonGroup imageGroup;
@@ -907,6 +907,8 @@ void MSWindow::createToolbar()
     "      <menuitem action='ShowImagePlane'/>"
     "      <menuitem action='SetAndShowImagePlane'/>"
     "      <menuitem action='AddToImagePlane'/>"
+    "      <separator/>"
+    "      <menuitem action='ShowStats'/>"
 	  "    </menu>"
 	  "    <menu action='MenuPlot'>"
     "      <menu action='MenuPlotFlagComparison'>"
@@ -980,6 +982,7 @@ void MSWindow::createToolbar()
     "      <menuitem action='StoreData'/>"
     "      <menuitem action='RecallData'/>"
     "      <menuitem action='SubtractDataFromMem'/>"
+    "      <menuitem action='ClearAltFlags'/>"
 	  "    </menu>"
 	  "    <menu action='MenuActions'>"
     "      <menuitem action='EditStrategy'/>"
@@ -1003,11 +1006,9 @@ void MSWindow::createToolbar()
     "  <toolbar  name='ToolBar'>"
     "    <toolitem action='OpenDirectory'/>"
     "    <separator/>"
-    "    <toolitem action='ClearAltFlags'/>"
-    "    <toolitem action='ShowStats'/>"
-    "    <separator/>"
     "    <toolitem action='Previous'/>"
     "    <toolitem action='Next'/>"
+    "    <separator/>"
     "    <toolitem action='OriginalFlags'/>"
     "    <toolitem action='AlternativeFlags'/>"
     "    <toolitem action='Highlight'/>"
@@ -1029,6 +1030,10 @@ void MSWindow::createToolbar()
 
 void MSWindow::onClearAltFlagsPressed()
 {
+	TimeFrequencyData data = GetActiveData();
+	_timeFrequencyWidget.SetAlternativeMask(
+		Mask2D::CreateSetMaskPtr<false>(data.ImageWidth(), data.ImageHeight())
+	);
 	_timeFrequencyWidget.Update();
 }
 
