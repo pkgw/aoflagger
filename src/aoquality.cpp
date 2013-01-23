@@ -616,7 +616,7 @@ int main(int argc, char *argv[])
 				}
 				else if(helpAction == "collect")
 				{
-					std::cout << "Syntax: " << argv[0] << " collect [-a] <ms>\n\n"
+					std::cout << "Syntax: " << argv[0] << " collect [-a] <ms> [quack timesteps] [list of antennae]\n\n"
 						"The collect action will go over a whole measurement set and \n"
 						"collect the default statistics. It will write the results in the \n"
 						"quality subtables of the main measurement set.\n\n"

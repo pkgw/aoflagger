@@ -67,7 +67,7 @@ namespace rfiStrategy {
 					oldContaminatedData = artifacts.ContaminatedData(),
 					oldRevisedData = artifacts.RevisedData(),
 					oldOriginalData = artifacts.OriginalData();
-
+					
 				if(oldContaminatedData.Polarisation() != oldOriginalData.Polarisation())
 					throw BadUsageException("Contaminated and original do not have equal polarisation, in for each polarisation block");
 

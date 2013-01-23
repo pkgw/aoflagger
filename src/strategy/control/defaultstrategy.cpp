@@ -39,7 +39,20 @@ namespace rfiStrategy {
 		DefaultStrategy::FLAG_GUI_FRIENDLY     = aoflagger::StrategyFlags::GUI_FRIENDLY,
 		DefaultStrategy::FLAG_CLEAR_FLAGS      = aoflagger::StrategyFlags::CLEAR_FLAGS,
 		DefaultStrategy::FLAG_AUTO_CORRELATION = aoflagger::StrategyFlags::AUTO_CORRELATION;
-			
+	
+	std::string DefaultStrategy::TelescopeName(DefaultStrategy::TelescopeId telescopeId)
+	{
+		switch(telescopeId)
+		{
+			default:
+			case GENERIC_TELESCOPE: return "Generic";
+			case LOFAR_TELESCOPE: return "LOFAR";
+			case MWA_TELESCOPE: return "MWA";
+			case PARKES_TELESCOPE: return "Parkes";
+			case WSRT_TELESCOPE: return "WSRT";
+		}
+	}
+		
 	Strategy *DefaultStrategy::CreateStrategy(enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
 		Strategy *strategy = new Strategy();
@@ -50,7 +63,7 @@ namespace rfiStrategy {
 	void DefaultStrategy::LoadStrategy(ActionBlock &strategy, enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
 		bool calPassband =
-			// Default MWA observations have strong frequency dependence
+			// Default MWA observations have strong frequency dependency
 			(telescopeId==MWA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// Other cases with large bandwidth
 			((flags&FLAG_LARGE_BANDWIDTH) != 0);
@@ -78,10 +91,12 @@ namespace rfiStrategy {
 		if((flags&FLAG_UNSENSITIVE) != 0)
 			sumThresholdSensitivity *= 1.2;
 		bool onStokesIQ = ((flags&FLAG_FAST) != 0);
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ);
+		bool assembleStatistics = ((flags&FLAG_GUI_FRIENDLY)!=0) || telescopeId!=MWA_TELESCOPE;
+		
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics)
 	{
 		ActionBlock *current;
 
@@ -174,9 +189,12 @@ namespace rfiStrategy {
 			t2->SetFrequencyDirectionFlagging(false);
 		current->Add(t2);
 		
-		PlotAction *plotPolarizationStatistics = new PlotAction();
-		plotPolarizationStatistics->SetPlotKind(PlotAction::PolarizationStatisticsPlot);
-		block.Add(plotPolarizationStatistics);
+		if(assembleStatistics)
+		{
+			PlotAction *plotPolarizationStatistics = new PlotAction();
+			plotPolarizationStatistics->SetPlotKind(PlotAction::PolarizationStatisticsPlot);
+			block.Add(plotPolarizationStatistics);
+		}
 		
 		SetFlaggingAction *setFlagsInAllPolarizations = new SetFlaggingAction();
 		setFlagsInAllPolarizations->SetNewFlagging(SetFlaggingAction::PolarisationsEqual);
@@ -197,9 +215,12 @@ namespace rfiStrategy {
 				block.Add(new TimeSelectionAction());
 		}
 
-		BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
-		baselineSelection->SetPreparationStep(true);
-		block.Add(baselineSelection);
+		if(assembleStatistics)
+		{
+			BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
+			baselineSelection->SetPreparationStep(true);
+			block.Add(baselineSelection);
+		}
 
 		if(!clearFlags)
 		{

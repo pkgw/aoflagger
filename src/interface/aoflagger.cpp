@@ -14,6 +14,7 @@
 #include "../quality/statisticscollection.h"
 
 #include <vector>
+#include <typeinfo>
 
 #include <boost/shared_ptr.hpp>
 
@@ -306,12 +307,24 @@ namespace aoflagger {
 		return *this;
 	}
 	
+	class ErrorListener : public ProgressListener {
+		virtual void OnStartTask(const rfiStrategy::Action &, size_t, size_t, const std::string &, size_t = 1) {}
+		virtual void OnEndTask(const rfiStrategy::Action &) {}
+		virtual void OnProgress(const rfiStrategy::Action &, size_t, size_t) {}
+		virtual void OnException(const rfiStrategy::Action &, std::exception &e)
+		{
+			std::cerr <<
+				"*** EXCEPTION OCCURED IN THE AOFLAGGER ***\n"
+				"The AOFlagger hit a bug or the given strategy was invalid!\n"
+				"The reported exception " << typeid(e).name() << " is:\n" << e.what();
+		}
+	};
 	
 	FlagMask AOFlagger::Run(Strategy& strategy, ImageSet& input)
 	{
 		boost::mutex mutex;
 		rfiStrategy::ArtifactSet artifacts(&mutex);
-		DummyProgressListener listener;
+		ErrorListener listener;
 		
 		Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(input.Width(), input.Height());
 		TimeFrequencyData inputData, revisedData;
