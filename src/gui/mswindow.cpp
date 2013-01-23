@@ -66,6 +66,8 @@
 #include "../util/compress.h"
 #include "../util/multiplot.h"
 
+#include "controllers/baselinewincontroller.h"
+
 #include "plot/plot2d.h"
 
 #include "antennamapwindow.h"
@@ -90,7 +92,8 @@
 
 #include <iostream>
 
-MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0), _gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0), _imagePropertiesWindow(0), _antennaMapWindow(0), _statistics(new RFIStatistics()),  _imageSet(0), _imageSetIndex(0), _gaussianTestSets(true), _spatialMetaData(0), _plotWindow(_plotManager)
+MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0), _gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0), _imagePropertiesWindow(0), _antennaMapWindow(0), _statistics(new RFIStatistics()),  _imageSet(0), _imageSetIndex(0), _gaussianTestSets(true), _spatialMetaData(0), _plotWindow(_plotManager),
+_controller(new BaselineWindowController())
 {
 	createToolbar();
 
@@ -116,6 +119,9 @@ MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(
 		rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE,
 		rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY);
 	_imagePlaneWindow = new ImagePlaneWindow();
+	
+	_controller->SignalStateChange().connect(
+		sigc::mem_fun(*this, &MSWindow::onControllerStateChange));
 }
 
 MSWindow::~MSWindow()
@@ -271,9 +277,8 @@ void MSWindow::OpenPath(const std::string &path)
 
 void MSWindow::onToggleFlags()
 {
-	_timeFrequencyWidget.SetShowOriginalMask(_originalFlagsButton->get_active());
-	_timeFrequencyWidget.SetShowAlternativeMask(_altFlagsButton->get_active());
-	_timeFrequencyWidget.Update();
+	_controller->SetShowOriginalFlags(_originalFlagsButton->get_active());
+	_controller->SetShowAlternativeFlags(_altFlagsButton->get_active());
 }
 
 void MSWindow::loadCurrentTFData()
@@ -903,6 +908,9 @@ void MSWindow::createToolbar()
     "      <menuitem action='ImageProperties'/>"
     "      <menuitem action='ShowAntennaMapWindow'/>"
     "      <menuitem action='TimeGraph'/>"
+    "      <separator/>"
+    "      <menuitem action='OriginalFlags'/>"
+    "      <menuitem action='AlternativeFlags'/>"
     "      <separator/>"
     "      <menuitem action='ShowImagePlane'/>"
     "      <menuitem action='SetAndShowImagePlane'/>"
@@ -2156,4 +2164,15 @@ void MSWindow::SetStrategy(rfiStrategy::Strategy* newStrategy)
 {
 	delete _strategy;
 	_strategy = newStrategy;
+}
+
+void MSWindow::onControllerStateChange()
+{
+	_originalFlagsButton->set_active(_controller->AreOriginalFlagsShown());
+	_timeFrequencyWidget.SetShowOriginalMask(_controller->AreOriginalFlagsShown());
+	
+	_altFlagsButton->set_active(_controller->AreAlternativeFlagsShown());
+	_timeFrequencyWidget.SetShowAlternativeMask(_controller->AreAlternativeFlagsShown());
+	
+	_timeFrequencyWidget.Update();
 }

@@ -22,6 +22,7 @@
 
 #include <set>
 
+#include <boost/smart_ptr/scoped_ptr.hpp>
 #include <boost/thread/mutex.hpp>
 
 #include <gtkmm/actiongroup.h>
@@ -48,6 +49,8 @@
 #include "interfaces.h"
 
 #include "../imaging/defaultmodels.h"
+
+class BaselineWindowController;
 
 /**
 	@author A.R. Offringa <offringa@astro.rug.nl>
@@ -242,6 +245,8 @@ class MSWindow : public Gtk::Window, private StrategyController {
 		void onShowAntennaMapWindow();
 		void openTestSet(unsigned index);
 		
+		void onControllerStateChange();
+		
 		Gtk::VBox _mainVBox;
 		Gtk::VPaned _panedArea;
 		ImageComparisonWidget _timeFrequencyWidget;
@@ -280,6 +285,8 @@ class MSWindow : public Gtk::Window, private StrategyController {
 		TimeFrequencyData _storedData;
 		PlotManager _plotManager;
 		PlotWindow _plotWindow;
+		
+		boost::scoped_ptr<BaselineWindowController> _controller;
 };
 
 #endif
