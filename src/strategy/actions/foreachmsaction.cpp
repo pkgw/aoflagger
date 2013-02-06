@@ -62,7 +62,8 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 		if(!skip)
 		{
 			ImageSet *imageSet = ImageSet::Create(filename, _baselineIOMode, _readUVW);
-			if(dynamic_cast<MSImageSet*>(imageSet))
+			bool isMS = dynamic_cast<MSImageSet*>(imageSet) != 0;
+			if(isMS)
 			{ 
 				MSImageSet *msImageSet = static_cast<MSImageSet*>(imageSet);
 				msImageSet->SetDataColumnName(_dataColumnName);
@@ -83,7 +84,8 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 			delete index;
 			delete imageSet;
 
-			writeHistory(*i);
+			if(isMS)
+				writeHistory(*i);
 		}
 	
 		progress.OnEndTask(*this);

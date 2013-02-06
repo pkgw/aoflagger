@@ -107,6 +107,7 @@ namespace rfiStrategy {
 			}
 			
 		private:
+			FitsImageSet(const FitsImageSet &source);
 			BaselineData loadData(const ImageSetIndex &index);
 			
 			size_t getAntenna1(const ImageSetIndex &index) {
@@ -126,7 +127,7 @@ namespace rfiStrategy {
 			
 			void saveSingleDishFlags(std::vector<Mask2DCPtr> &flags, size_t ifIndex);
 			
-			class FitsFile *_file;
+			boost::shared_ptr<class FitsFile> _file;
 			std::vector<std::pair<size_t,size_t> > _baselines;
 			size_t _bandCount;
 			std::vector<AntennaInfo> _antennaInfos;

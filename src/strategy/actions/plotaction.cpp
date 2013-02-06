@@ -73,10 +73,16 @@ namespace rfiStrategy {
 	{
 		if(artifacts.AntennaFlagCountPlot() == 0)
 			throw BadUsageException("No antenna flag count plot in the artifact set");
-
-		TimeFrequencyData &data = artifacts.ContaminatedData();
-		TimeFrequencyMetaDataCPtr meta = artifacts.MetaData();
-		artifacts.AntennaFlagCountPlot()->Add(data, meta);
+		
+		if(artifacts.HasMetaData() && artifacts.MetaData()->HasAntenna1() && artifacts.MetaData()->HasAntenna2())
+		{
+			TimeFrequencyData &data = artifacts.ContaminatedData();
+			TimeFrequencyMetaDataCPtr meta = artifacts.MetaData();
+			artifacts.AntennaFlagCountPlot()->Add(data, meta);
+		} else {
+			AOLogger::Warn << "The strategy contains an action that makes an antenna plot, but the image set did not provide meta data.\n"
+				"Plot will not be made.\n";
+		}
 	}
 
 	void PlotAction::plotFrequencyFlagCounts(ArtifactSet &artifacts)

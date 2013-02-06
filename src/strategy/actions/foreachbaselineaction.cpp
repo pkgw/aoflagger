@@ -29,6 +29,7 @@
 
 #include <boost/thread.hpp>
 
+#include "../imagesets/fitsimageset.h"
 #include "../imagesets/imageset.h"
 #include "../imagesets/msimageset.h"
 
@@ -176,6 +177,12 @@ namespace rfiStrategy {
 			return false;
 		if(!_antennaeToInclude.empty() && (_antennaeToInclude.count(a1id) == 0 && _antennaeToInclude.count(a2id) == 0))
 			return false;
+		
+		// For SDFits files, we want to select everything -- it's confusing
+		// if the default option "only flag cross correlations" would also
+		// hold for sdfits files.
+		if(dynamic_cast<FitsImageSet*>(imageSet)!=0)
+			return true;
 
 		switch(_selection)
 		{
@@ -191,14 +198,6 @@ namespace rfiStrategy {
 				if(!_hasInitAntennae)
 					throw BadUsageException("For each baseline over 'EqualToCurrent' with no current baseline");
 				throw BadUsageException("Not implemented");
-				/*TimeFrequencyMetaDataCPtr metaData = imageSet->LoadMetaData(index);
-				const AntennaInfo
-					&a1 = metaData->Antenna1(),
-					&a2 = metaData->Antenna2();
-				Baseline b(a1, a2);
-				Baseline initB(_initAntenna1, _initAntenna2);
-				return (roundl(b.Distance()) == roundl(initB.Distance()) &&
-					roundl(b.Angle()/5) == roundl(initB.Angle()/5));*/
 			}
 			case AutoCorrelationsOfCurrentAntennae:
 				if(!_hasInitAntennae)
