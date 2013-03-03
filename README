@@ -1,8 +1,10 @@
 -- Read-me file for the AOFlagger distribution --
 
-For the latest version and information about installing, go to http://aoflagger.sourceforge.net/ .
+For the latest version and information about installing, go to
+http://aoflagger.sourceforge.net/ .
 
-The quick summary to compile and install, from the aoflagger root directory:
+The quick summary to compile and install, from the aoflagger root
+directory:
 
 mkdir build
 cd build/
@@ -10,11 +12,15 @@ cmake ../
 make (or make -j <thread count>)
 sudo make install
 
-This will normally work when you have installed all libraries in their default locations. If you have not done so, you might need to tell cmake where the libraries are. The easiest way to do this is by adding search paths to cmake, e.g.:
+This will normally work when you have installed all libraries in
+their default locations. If you have not done so, you might need
+to tell cmake where the libraries are. The easiest way to do this
+is by adding search paths to cmake, e.g.:
 
 cmake ../ -DCMAKE_PREFIX_PATH=/opt/cep/casacore/
 
-This will include /opt/cep/casacore to the search path. Multiple paths can be specified by separating them with a colon ':'.
+This will include /opt/cep/casacore to the search path. Multiple
+paths can be specified by separating them with a colon ':'.
 
 -- License --
 
@@ -26,7 +32,7 @@ and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of
 the License, or (at your option) any later version.
 
-Foobar is distributed in the hope that it will be useful,
+AOFlagger is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
