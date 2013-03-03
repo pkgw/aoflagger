@@ -36,6 +36,8 @@ include_directories(${FITSIO_INCLUDE_DIR})
 
 add_subdirectory(src)
 
+install(DIRECTORY data/icons data/applications DESTINATION share )
+
 # add target to generate API documentation with Doxygen
 find_package(Doxygen)
 
