@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "mswindow.h"
 
-#include <gtkmm/icontheme.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/filechooserdialog.h>

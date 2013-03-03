@@ -37,6 +37,8 @@
 AOQPlotWindow::AOQPlotWindow() :
 	_isOpen(false)
 {
+	set_default_icon_name("aoqplot");
+	
 	_notebook.append_page(_baselinePlotPage, "Baselines");
 	_baselinePlotPage.show();
 	_baselinePlotPage.SignalStatusChange().connect(sigc::mem_fun(*this, &AOQPlotWindow::onStatusChange));
