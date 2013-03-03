@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "mswindow.h"
 
+#include <gtkmm/icontheme.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/filechooserdialog.h>
@@ -114,6 +115,7 @@ _controller(new BaselineWindowController())
 	_mainVBox.show();
 
 	set_default_size(800,600);
+	set_default_icon_name("aoflagger");
 
 	_strategy = rfiStrategy::DefaultStrategy::CreateStrategy(
 		rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE,
