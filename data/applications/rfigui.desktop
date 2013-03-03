@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AOFlagger GUI
+Comment=Visualize radio data & RFI algorithms
+Comment[nl]=Visualiseer radiodata & RFI algoritmes
+Icon=aoflagger
+Exec=rfigui
+Terminal=false
+Categories=Science;Astronomy;DataVisualization;
