@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=AOQPlot
+GenericName=Radio data analyzer
+Comment=Visualize quality info for radio data
+Comment[nl]=Analyseer de kwaliteit van radiodata
+Icon=aoqplot
+Exec=aoqplot
+Terminal=false
+Categories=Science;Astronomy;DataVisualization;
