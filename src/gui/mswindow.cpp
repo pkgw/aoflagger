@@ -547,9 +547,10 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("OpenFile", Gtk::Stock::OPEN, "Open _file"),
 		Gtk::AccelKey("<control>O"),
 		sigc::mem_fun(*this, &MSWindow::onActionFileOpen) );
-	_actionGroup->add( Gtk::Action::create("OpenDirectory", "Open _directory"),
-		Gtk::AccelKey("<control>D"),
+	Glib::RefPtr <Gtk::Action> openDirAction = Gtk::Action::create("OpenDirectory", "Open _directory");
+	_actionGroup->add(openDirAction, Gtk::AccelKey("<control>D"),
 		sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpen) );
+	openDirAction->set_icon_name("folder");
 	_actionGroup->add( Gtk::Action::create("OpenDirectorySpatial", "Open _directory as spatial"),
   sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpenForSpatial) );
 	_actionGroup->add( Gtk::Action::create("OpenDirectoryST", "Open _directory as spatial/time"),
@@ -682,7 +683,7 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("ShowImagePlane", "_Show image plane"),
 		Gtk::AccelKey("<control>I"),
   sigc::mem_fun(*this, &MSWindow::onShowImagePlane) );
-	_actionGroup->add( Gtk::Action::create("SetAndShowImagePlane", "S_et and show image plane"),
+	_actionGroup->add( Gtk::Action::create("SetAndShowImagePlane", "S_et & show image plane"),
 		Gtk::AccelKey("<control><shift>I"),
 		sigc::mem_fun(*this, &MSWindow::onSetAndShowImagePlane) );
 	_actionGroup->add( Gtk::Action::create("AddToImagePlane", "Add to _image plane"),
@@ -747,13 +748,15 @@ void MSWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("GoTo", "_Go to..."),
 		Gtk::AccelKey("<control>G"),
   sigc::mem_fun(*this, &MSWindow::onGoToPressed) );
-  _originalFlagsButton = Gtk::ToggleAction::create("OriginalFlags", "Original\nflags");
-	_originalFlagsButton->set_active(true); 
+  _originalFlagsButton = Gtk::ToggleAction::create("OriginalFlags", "Or flags");
+	_originalFlagsButton->set_active(true);
+	_originalFlagsButton->set_icon_name("showoriginalflags");
 	_actionGroup->add(_originalFlagsButton,
 			Gtk::AccelKey("F3"),
 			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
-  _altFlagsButton = Gtk::ToggleAction::create("AlternativeFlags", "Alternative\nflags");
+  _altFlagsButton = Gtk::ToggleAction::create("AlternativeFlags", "Alt flags");
 	_altFlagsButton->set_active(true); 
+	_altFlagsButton->set_icon_name("showalternativeflags");
 	_actionGroup->add(_altFlagsButton,
 			Gtk::AccelKey("F4"),
 			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
@@ -912,6 +915,7 @@ void MSWindow::createToolbar()
     "      <separator/>"
     "      <menuitem action='OriginalFlags'/>"
     "      <menuitem action='AlternativeFlags'/>"
+    "      <menuitem action='Highlight'/>"
     "      <separator/>"
     "      <menuitem action='ShowImagePlane'/>"
     "      <menuitem action='SetAndShowImagePlane'/>"
@@ -1020,7 +1024,6 @@ void MSWindow::createToolbar()
     "    <separator/>"
     "    <toolitem action='OriginalFlags'/>"
     "    <toolitem action='AlternativeFlags'/>"
-    "    <toolitem action='Highlight'/>"
     "    <separator/>"
     "    <toolitem action='ImageOriginal'/>"
     "    <toolitem action='ImageBackground'/>"
