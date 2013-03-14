@@ -27,12 +27,13 @@
 #include "../../util/progresslistener.h"
 
 #include <limits>
+#include <vector>
 
 namespace rfiStrategy {
 	void SpatialCompositionAction::Perform(ArtifactSet &artifacts, ProgressListener &progress)
 	{
 		size_t imageCount = artifacts.ContaminatedData().ImageCount();
-		Image2DPtr images[imageCount];
+		std::vector<Image2DPtr> images(imageCount);
 		for(size_t p=0;p<imageCount;++p)
 			images[p] = Image2D::CreateZeroImagePtr(artifacts.ContaminatedData().ImageWidth(), artifacts.ContaminatedData().ImageHeight());
 

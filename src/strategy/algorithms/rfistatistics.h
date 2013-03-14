@@ -37,7 +37,8 @@
 */
 class RFIStatistics {
 	public:
-		struct ChannelInfo {
+		class ChannelInfo {
+		public:
 			ChannelInfo() : frequencyHz(0), totalCount(0), totalAmplitude(0.0), rfiCount(0), rfiAmplitude(0.0), broadbandRfiCount(0), lineRfiCount(0), broadbandRfiAmplitude(0.0), lineRfiAmplitude(0.0), falsePositiveCount(0), falseNegativeCount(0), truePositiveCount(0), trueNegativeCount(0), falsePositiveAmplitude(0), falseNegativeAmplitude(0)
 			{
 			}
@@ -60,7 +61,8 @@ class RFIStatistics {
 			long double falsePositiveAmplitude;
 			long double falseNegativeAmplitude;
 		};
-		struct TimestepInfo {
+		class TimestepInfo {
+		public:
 			TimestepInfo() : time(0), totalCount(0), totalAmplitude(0.0), rfiCount(0), broadbandRfiCount(0), lineRfiCount(0), rfiAmplitude(0.0), broadbandRfiAmplitude(0.0), lineRfiAmplitude(0.0)
 			{
 			}
@@ -77,7 +79,8 @@ class RFIStatistics {
 			long double broadbandRfiAmplitude;
 			long double lineRfiAmplitude;
 		};
-		struct AmplitudeBin {
+		class AmplitudeBin {
+		public:
 			AmplitudeBin() : centralAmplitude(0.0), count(0), rfiCount(0), broadbandRfiCount(0), lineRfiCount(0), featureAvgCount(0), featureMaxCount(0), featureIntCount(0), xxCount(0), xyCount(0), yxCount(0), yyCount(0), xxRfiCount(0), xyRfiCount(0), yxRfiCount(0), yyRfiCount(0), stokesQCount(0), stokesUCount(0), stokesVCount(0), falsePositiveCount(0), falseNegativeCount(0), truePositiveCount(0), trueNegativeCount(0)
 			{
 			}
@@ -106,8 +109,9 @@ class RFIStatistics {
 			long unsigned trueNegativeCount;
 		};
 
-		struct IndexTriple
+		class IndexTriple
 		{
+		public:
 			IndexTriple() :
 			antenna1Index(0), antenna2Index(0), thirdIndex(0)
 			{
@@ -133,8 +137,9 @@ class RFIStatistics {
 			double thirdIndex;
 		};
 
-		struct BaselineTimeInfo
+		class BaselineTimeInfo
 		{
+		public:
 			BaselineTimeInfo() :
 			antenna1Index(0), antenna2Index(0),
 				time(0), totalCount(0), rfiCount(0)
@@ -146,8 +151,9 @@ class RFIStatistics {
 			long unsigned rfiCount;
 		};
 		
-		struct BaselineFrequencyInfo
+		class BaselineFrequencyInfo
 		{
+		public:
 		BaselineFrequencyInfo() :
 			antenna1Index(0), antenna2Index(0),
 				centralFrequency(0), totalCount(0),
@@ -160,8 +166,9 @@ class RFIStatistics {
 			long unsigned rfiCount;
 		};
 		
-		struct TimeFrequencyInfo
+		class TimeFrequencyInfo
 		{
+		public:
 			TimeFrequencyInfo() :
 				time(0.0), centralFrequency(0.0),
 				totalCount(0), rfiCount(0),
@@ -175,7 +182,8 @@ class RFIStatistics {
 			double rfiAmplitude;
 		};
 
-		struct BaselineInfo {
+		class BaselineInfo {
+		public:
 			BaselineInfo() : antenna1(0), antenna2(0), antenna1Name(), antenna2Name(), baselineLength(0.0), baselineAngle(0.0), count(0), totalAmplitude(0.0), rfiCount(0), broadbandRfiCount(0), lineRfiCount(0), rfiAmplitude(0.0), broadbandRfiAmplitude(0.0), lineRfiAmplitude(0.0), baselineStatistics(0)
 			{
 			}
@@ -341,11 +349,11 @@ class RFIStatistics {
 				return (totalRfi / (double) count) < (rhs.totalRfi / (double) count);
 			}
 		};
-		typedef std::map<size_t, struct FeatureInfo> FeatureMap;
+		typedef std::map<size_t, class FeatureInfo> FeatureMap;
 		typedef std::map<int, std::map<int, BaselineInfo> > BaselineMatrix;
 		typedef std::map<std::pair<double, double>, TimeFrequencyInfo > TimeFrequencyInfoMap;
-		typedef std::map<struct IndexTriple, struct BaselineFrequencyInfo> BaselineFrequencyInfoMap;
-		typedef std::map<struct IndexTriple, struct BaselineTimeInfo> BaselineTimeInfoMap;
+		typedef std::map<class IndexTriple, class BaselineFrequencyInfo> BaselineFrequencyInfoMap;
+		typedef std::map<class IndexTriple, class BaselineTimeInfo> BaselineTimeInfoMap;
 		
 		std::map<double, class ChannelInfo> _autoChannels, _crossChannels;
 		std::map<double, class TimestepInfo> _autoTimesteps, _crossTimesteps;

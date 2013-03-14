@@ -168,8 +168,9 @@ namespace rfiStrategy {
 			bool UseHammingWindow() const { return _useHammingWindow; }
 			void SetUseHammingWindow(bool useHammingWindow) { _useHammingWindow = useHammingWindow; }
 private:
-			struct IterationData
+			class IterationData
 			{
+			public:
 				ArtifactSet
 					*artifacts;
 				size_t
@@ -841,29 +842,6 @@ private:
 				numl_t angle = SinusFitter::Phase((numl_t) maxX, (numl_t) maxY);
  				AOLogger::Debug << "Angle: " << angle/M_PInl*180.0 << ",maxX=" << maxX << ",maxY=" << maxY << '\n';
 				return angle;
-				/*
-				image = FFTTools::AngularTransform(image);
-				unsigned pixelDist = (unsigned) (ActualSincScaleAsRaDecDist()*image->Height()/2.0);
-				AOLogger::Debug << "Ignoring " << (image->Height()/2-pixelDist) << "-" << (image->Height()/2+pixelDist) << '\n';
-				numl_t highestSum = -1e10;
-				size_t highestIndex = 0;
-				for(size_t x=0;x<image->Width();++x)
-				{
-					numl_t sum = 0.0;
-					for(size_t y=0;y<pixelDist;++y)
-					{
-						sum += image->Value(x, y);
-						sum += image->Value(x, image->Height() - y - 1);
-					}
-					if(sum > highestSum)
-					{
-						highestSum = sum;
-						highestIndex = x;
-					}
-				}
-				numl_t angle = (numl_t) highestIndex * M_PInl / image->Width();
-				AOLogger::Debug << "Angle: " << angle/M_PInl*180.0 << '\n';
-				return angle;*/
 			}
 
 			enum Operation _operation;

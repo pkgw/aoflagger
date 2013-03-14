@@ -197,10 +197,10 @@ class TimeFrequencyMetaData
 	private:
 		void operator=(const TimeFrequencyMetaData &) { }
 		
-		class AntennaInfo *_antenna1;
-		class AntennaInfo *_antenna2;
-		class BandInfo *_band;
-		class FieldInfo *_field;
+		AntennaInfo *_antenna1;
+		AntennaInfo *_antenna2;
+		BandInfo *_band;
+		FieldInfo *_field;
 		std::vector<double> *_observationTimes;
 		std::vector<class UVW> *_uvw;
 		std::string _valueDescription, _valueUnits;

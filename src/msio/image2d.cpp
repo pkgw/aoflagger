@@ -262,7 +262,7 @@ num_t Image2D::GetMode() const
 
 num_t Image2D::GetRMS(size_t xOffset, size_t yOffset, size_t width, size_t height) const
 {
-	size_t long count = 0;
+	size_t count = 0;
 	num_t total = 0.0;
 	for(size_t y=yOffset;y<height+yOffset;++y)
 	{

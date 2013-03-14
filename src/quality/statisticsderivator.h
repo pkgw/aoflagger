@@ -127,7 +127,7 @@ class StatisticsDerivator
 			
 			// create the images
 			const size_t pCount = _collection.PolarizationCount();
-			Image2DPtr realImage[pCount], imagImage[pCount];
+			std::vector<Image2DPtr> realImage(pCount), imagImage(pCount);
 			Mask2DPtr mask = Mask2D::CreateSetMaskPtr<true>(timesteps.size(), frequencies.size());
 			for(size_t p=0;p<pCount;++p)
 			{
@@ -156,7 +156,7 @@ class StatisticsDerivator
 					}
 				}
 			}
-			TimeFrequencyData data = TimeFrequencyData::CreateComplexTFData(pCount, (Image2DCPtr*) realImage, (Image2DCPtr*) imagImage);
+			TimeFrequencyData data = TimeFrequencyData::CreateComplexTFData(pCount, (Image2DCPtr*) &(realImage[0]), (Image2DCPtr*) &(imagImage[0]));
 			data.SetGlobalMask(mask);
 			TimeFrequencyMetaDataPtr metaData(new TimeFrequencyMetaData());
 			metaData->SetObservationTimes(observationTimes);

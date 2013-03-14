@@ -20,6 +20,7 @@
 #include "fitsimageset.h"
 
 #include <sstream>
+#include <vector>
 
 #include "../../msio/date.h"
 #include "../../msio/fitsfile.h"
@@ -177,8 +178,8 @@ namespace rfiStrategy {
 			frequencyStep = stokesCount*complexCount,
 			frequencyCount = _file->GetCurrentImageSize(4),
 			bandStep = frequencyStep*frequencyCount;
-		std::vector<long double> valuesR[frequencyCount];
-		std::vector<long double> valuesI[frequencyCount];
+		std::vector<std::vector<long double> > valuesR(frequencyCount);
+		std::vector<std::vector<long double> > valuesI(frequencyCount);
 		std::vector<long double> data(_file->GetImageSize());
 		size_t groupCount = _file->GetGroupCount();
 		bool hasDate2 = _file->HasGroupParameter("DATE", 2);
@@ -387,8 +388,8 @@ namespace rfiStrategy {
 		AOLogger::Debug << "Shape of data cells: " << freqCount << " channels x " << polarizationCount << " pols x " << raCount << " RAs x " << decCount << " decs" << "=" << totalSize << '\n';
 		long double cellData[totalSize];
 		bool flagData[totalSize];
-		Image2DPtr images[polarizationCount];
-		Mask2DPtr masks[polarizationCount];
+		std::vector<Image2DPtr> images(polarizationCount);
+		std::vector<Mask2DPtr> masks(polarizationCount);
 		for(int i=0;i<polarizationCount;++i)
 		{
 			images[i] = Image2D::CreateZeroImagePtr(rowCount, freqCount);

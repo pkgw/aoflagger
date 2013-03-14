@@ -26,6 +26,8 @@
 
 #include "../../util/progresslistener.h"
 
+#include <vector>
+
 namespace rfiStrategy {
 	void ImagerAction::Perform(ArtifactSet &artifacts, ProgressListener &progress)
 	{
@@ -58,7 +60,7 @@ namespace rfiStrategy {
 			{
 				UVW uvw = metaData->UVW()[t];
 				size_t channelCount = inputReal->Height();
-				std::complex<ImagerNumeric>data[channelCount];
+				std::vector<std::complex<ImagerNumeric> > data(channelCount);
 				for(size_t ch=0;ch!=channelCount;++ch) {
 					if(mask->Value(t, ch))
 						data[ch] = std::complex<ImagerNumeric>(0.0, 0.0);
@@ -66,7 +68,7 @@ namespace rfiStrategy {
 						data[ch] = std::complex<ImagerNumeric>(inputReal->Value(t, ch), inputImag->Value(t, ch));
 				}
 				
-				btImager.Image(uvw.u, uvw.v, uvw.w, band.channels[0].frequencyHz, band.channels[1].frequencyHz-band.channels[0].frequencyHz, channelCount, data, imager->FTReal());
+				btImager.Image(uvw.u, uvw.v, uvw.w, band.channels[0].frequencyHz, band.channels[1].frequencyHz-band.channels[0].frequencyHz, channelCount, &(data[0]), imager->FTReal());
 			}
 		} else {
 			progress.OnStartTask(*this, 0, 1, "Imaging baseline");

@@ -289,10 +289,11 @@ void BaselineMatrixLoader::LoadPerChannel(size_t timeIndex, std::vector<TimeFreq
 	casa::ROArrayColumn<casa::Complex> dataColumn(table, "DATA");
 	casa::ROArrayColumn<double> uvwColumn(table, "UVW");
 
-	Image2DPtr
-		xxRImage[_frequencyCount], xxIImage[_frequencyCount], xyRImage[_frequencyCount], xyIImage[_frequencyCount], yxRImage[_frequencyCount], yxIImage[_frequencyCount], yyRImage[_frequencyCount], yyIImage[_frequencyCount];
-	Mask2DPtr
-		xxMask[_frequencyCount], xyMask[_frequencyCount], yxMask[_frequencyCount], yyMask[_frequencyCount];
+	std::vector<Image2DPtr>
+		xxRImage(_frequencyCount), xxIImage(_frequencyCount), xyRImage(_frequencyCount), xyIImage(_frequencyCount),
+		yxRImage(_frequencyCount), yxIImage(_frequencyCount), yyRImage(_frequencyCount), yyIImage(_frequencyCount);
+	std::vector<Mask2DPtr>
+		xxMask(_frequencyCount), xyMask(_frequencyCount), yxMask(_frequencyCount), yyMask(_frequencyCount);
 	for(size_t f=0;f<(size_t) _frequencyCount;++f)
 	{
 		xxRImage[f] = Image2D::CreateZeroImagePtr(nrAntenna, nrAntenna),

@@ -1565,10 +1565,10 @@ void RFIStatistics::saveMetaData(const std::string &filename) const
 	if(_crossTimesteps.empty() || _crossChannels.empty())
 		return;
 	
-	const struct TimestepInfo
+	const class TimestepInfo
 		&firstStep = _crossTimesteps.begin()->second,
 		&lastStep = _crossTimesteps.rbegin()->second;
-	const struct ChannelInfo
+	const class ChannelInfo
 		&startChannel = _crossChannels.begin()->second,
 		&endChannel = _crossChannels.rbegin()->second;
 
@@ -1669,13 +1669,13 @@ void RFIStatistics::saveMetaData(const std::string &filename) const
 void RFIStatistics::savePlots(const std::string &basename) const
 {
 	
-	struct TimestepInfo firstStep, lastStep;
+	class TimestepInfo firstStep, lastStep;
 	if(!_crossTimesteps.empty())
 	{
 		firstStep = _crossTimesteps.begin()->second;
 		lastStep = _crossTimesteps.rbegin()->second;
 	}
-	struct ChannelInfo startChannel, endChannel;
+	class ChannelInfo startChannel, endChannel;
 	if(!_crossChannels.empty())
 	{
 		startChannel = _crossChannels.begin()->second;
