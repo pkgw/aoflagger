@@ -17,7 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
 #include <gtkmm/stock.h>
 #include <gtkmm/uimanager.h>
@@ -66,7 +66,7 @@
 #include "../util/compress.h"
 #include "../util/multiplot.h"
 
-#include "controllers/baselinewincontroller.h"
+#include "controllers/rfiguicontroller.h"
 
 #include "plot/plot2d.h"
 
@@ -81,6 +81,7 @@
 #include "msoptionwindow.h"
 #include "noisestatoptionwindow.h"
 #include "numinputdialog.h"
+#include "plotwindow.h"
 #include "progresswindow.h"
 #include "rawoptionwindow.h"
 #include "tfstatoptionwindow.h"
@@ -92,15 +93,15 @@
 
 #include <iostream>
 
-MSWindow::MSWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0), _gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0), _imagePropertiesWindow(0), _antennaMapWindow(0), _statistics(new RFIStatistics()),  _imageSet(0), _imageSetIndex(0), _gaussianTestSets(true), _spatialMetaData(0), _plotWindow(_plotManager),
-_controller(new BaselineWindowController())
+RFIGuiWindow::RFIGuiWindow() : _imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0), _gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0), _imagePropertiesWindow(0), _antennaMapWindow(0), _statistics(new RFIStatistics()),  _imageSet(0), _imageSetIndex(0), _gaussianTestSets(true), _spatialMetaData(0), _plotWindow(new PlotWindow(_plotManager)),
+_controller(new RFIGuiController(*this))
 {
 	createToolbar();
 
 	_mainVBox.pack_start(_timeFrequencyWidget);
-	_timeFrequencyWidget.OnMouseMovedEvent().connect(sigc::mem_fun(*this, &MSWindow::onTFWidgetMouseMoved));
-	_timeFrequencyWidget.OnMouseLeaveEvent().connect(sigc::mem_fun(*this, &MSWindow::setSetNameInStatusBar));
-	_timeFrequencyWidget.OnButtonReleasedEvent().connect(sigc::mem_fun(*this, &MSWindow::onTFWidgetButtonReleased));
+	_timeFrequencyWidget.OnMouseMovedEvent().connect(sigc::mem_fun(*this, &RFIGuiWindow::onTFWidgetMouseMoved));
+	_timeFrequencyWidget.OnMouseLeaveEvent().connect(sigc::mem_fun(*this, &RFIGuiWindow::setSetNameInStatusBar));
+	_timeFrequencyWidget.OnButtonReleasedEvent().connect(sigc::mem_fun(*this, &RFIGuiWindow::onTFWidgetButtonReleased));
 	_timeFrequencyWidget.SetShowXAxisDescription(false);
 	_timeFrequencyWidget.SetShowYAxisDescription(false);
 	_timeFrequencyWidget.SetShowZAxisDescription(false);
@@ -122,16 +123,17 @@ _controller(new BaselineWindowController())
 	_imagePlaneWindow = new ImagePlaneWindow();
 	
 	_controller->SignalStateChange().connect(
-		sigc::mem_fun(*this, &MSWindow::onControllerStateChange));
+		sigc::mem_fun(*this, &RFIGuiWindow::onControllerStateChange));
 }
 
-MSWindow::~MSWindow()
+RFIGuiWindow::~RFIGuiWindow()
 {
 	boost::mutex::scoped_lock lock(_ioMutex);
 	while(!_actionGroup->get_actions().empty())
 		_actionGroup->remove(*_actionGroup->get_actions().begin());
 	
 	delete _imagePlaneWindow;
+	delete _plotWindow;
 	if(_histogramWindow != 0)
 		delete _histogramWindow;
 	if(_optionWindow != 0)
@@ -163,7 +165,7 @@ MSWindow::~MSWindow()
 		delete _spatialMetaData;
 }
 
-void MSWindow::onActionDirectoryOpen()
+void RFIGuiWindow::onActionDirectoryOpen()
 {
   Gtk::FileChooserDialog dialog("Select a measurement set",
           Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
@@ -181,7 +183,7 @@ void MSWindow::onActionDirectoryOpen()
 	}
 }
 
-void MSWindow::onActionDirectoryOpenForSpatial()
+void RFIGuiWindow::onActionDirectoryOpenForSpatial()
 {
   Gtk::FileChooserDialog dialog("Select a measurement set",
           Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
@@ -203,7 +205,7 @@ void MSWindow::onActionDirectoryOpenForSpatial()
 	}
 }
 
-void MSWindow::onActionDirectoryOpenForST()
+void RFIGuiWindow::onActionDirectoryOpenForST()
 {
   Gtk::FileChooserDialog dialog("Select a measurement set",
           Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
@@ -225,7 +227,7 @@ void MSWindow::onActionDirectoryOpenForST()
 	}
 }
 
-void MSWindow::onActionFileOpen()
+void RFIGuiWindow::onActionFileOpen()
 {
   Gtk::FileChooserDialog dialog("Select a measurement set");
   dialog.set_transient_for(*this);
@@ -242,7 +244,7 @@ void MSWindow::onActionFileOpen()
 	}
 }
 
-void MSWindow::OpenPath(const std::string &path)
+void RFIGuiWindow::OpenPath(const std::string &path)
 {
 	if(_optionWindow != 0)
 		delete _optionWindow;
@@ -276,13 +278,13 @@ void MSWindow::OpenPath(const std::string &path)
 	}
 }
 
-void MSWindow::onToggleFlags()
+void RFIGuiWindow::onToggleFlags()
 {
 	_controller->SetShowOriginalFlags(_originalFlagsButton->get_active());
 	_controller->SetShowAlternativeFlags(_altFlagsButton->get_active());
 }
 
-void MSWindow::loadCurrentTFData()
+void RFIGuiWindow::loadCurrentTFData()
 {
 	if(_imageSet != 0) {
 		try {
@@ -322,7 +324,7 @@ void MSWindow::loadCurrentTFData()
 	}
 }
 
-void MSWindow::setSetNameInStatusBar()
+void RFIGuiWindow::setSetNameInStatusBar()
 {
   if(HasImageSet()) {
 		_statusbar.pop();
@@ -330,7 +332,7 @@ void MSWindow::setSetNameInStatusBar()
   }
 }
 		
-void MSWindow::onLoadPrevious()
+void RFIGuiWindow::onLoadPrevious()
 {
 	if(_imageSet != 0) {
 		boost::mutex::scoped_lock lock(_ioMutex);
@@ -340,7 +342,7 @@ void MSWindow::onLoadPrevious()
 	}
 }
 
-void MSWindow::onLoadNext()
+void RFIGuiWindow::onLoadNext()
 {
 	if(_imageSet != 0) {
 		boost::mutex::scoped_lock lock(_ioMutex);
@@ -350,7 +352,7 @@ void MSWindow::onLoadNext()
 	}
 }
 
-void MSWindow::onLoadLargeStepPrevious()
+void RFIGuiWindow::onLoadLargeStepPrevious()
 {
 	if(_imageSet != 0) {
 		boost::mutex::scoped_lock lock(_ioMutex);
@@ -360,7 +362,7 @@ void MSWindow::onLoadLargeStepPrevious()
 	}
 }
 
-void MSWindow::onLoadLargeStepNext()
+void RFIGuiWindow::onLoadLargeStepNext()
 {
 	if(_imageSet != 0) {
 		boost::mutex::scoped_lock lock(_ioMutex);
@@ -370,7 +372,7 @@ void MSWindow::onLoadLargeStepNext()
 	}
 }
 
-void MSWindow::onEditStrategyPressed()
+void RFIGuiWindow::onEditStrategyPressed()
 {
 	if(_editStrategyWindow != 0)
 		delete _editStrategyWindow;
@@ -378,7 +380,7 @@ void MSWindow::onEditStrategyPressed()
 	_editStrategyWindow->show();
 }
 
-void MSWindow::onExecuteStrategyPressed()
+void RFIGuiWindow::onExecuteStrategyPressed()
 {
 	if(_progressWindow != 0)
 		delete _progressWindow;
@@ -424,7 +426,7 @@ void MSWindow::onExecuteStrategyPressed()
 	}
 }
 
-void MSWindow::onExecuteStrategyFinished()
+void RFIGuiWindow::onExecuteStrategyFinished()
 {
 	rfiStrategy::ArtifactSet *artifacts = _strategy->JoinThread();
 	if(artifacts != 0)
@@ -473,7 +475,7 @@ void MSWindow::onExecuteStrategyFinished()
 	}
 }
 
-void MSWindow::onToggleImage()
+void RFIGuiWindow::onToggleImage()
 {
 	ImageComparisonWidget::TFImage image = ImageComparisonWidget::TFOriginalImage;
 	if(_backgroundImageButton->get_active())
@@ -484,7 +486,7 @@ void MSWindow::onToggleImage()
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::SetImageSet(rfiStrategy::ImageSet *newImageSet)
+void RFIGuiWindow::SetImageSet(rfiStrategy::ImageSet *newImageSet)
 {
 	if(_imageSet != 0) {
 		delete _imageSet;
@@ -501,7 +503,7 @@ void MSWindow::SetImageSet(rfiStrategy::ImageSet *newImageSet)
 	}
 }
 
-void MSWindow::SetImageSetIndex(rfiStrategy::ImageSetIndex *newImageSetIndex)
+void RFIGuiWindow::SetImageSetIndex(rfiStrategy::ImageSetIndex *newImageSetIndex)
 {
 	if(HasImageSet())
 	{
@@ -514,7 +516,7 @@ void MSWindow::SetImageSetIndex(rfiStrategy::ImageSetIndex *newImageSetIndex)
 	}
 }
 
-void MSWindow::openTestSet(unsigned index)
+void RFIGuiWindow::openTestSet(unsigned index)
 {
 	unsigned width = 1024, height = 1024;
 	if(HasImage())
@@ -532,7 +534,7 @@ void MSWindow::openTestSet(unsigned index)
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::createToolbar()
+void RFIGuiWindow::createToolbar()
 {
 	_actionGroup = Gtk::ActionGroup::create();
 	_actionGroup->add( Gtk::Action::create("MenuFile", "_File") );
@@ -546,15 +548,15 @@ void MSWindow::createToolbar()
 	
 	_actionGroup->add( Gtk::Action::create("OpenFile", Gtk::Stock::OPEN, "Open _file"),
 		Gtk::AccelKey("<control>O"),
-		sigc::mem_fun(*this, &MSWindow::onActionFileOpen) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onActionFileOpen) );
 	Glib::RefPtr <Gtk::Action> openDirAction = Gtk::Action::create("OpenDirectory", "Open _directory");
 	_actionGroup->add(openDirAction, Gtk::AccelKey("<control>D"),
-		sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpen) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onActionDirectoryOpen) );
 	openDirAction->set_icon_name("folder");
 	_actionGroup->add( Gtk::Action::create("OpenDirectorySpatial", "Open _directory as spatial"),
-  sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpenForSpatial) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onActionDirectoryOpenForSpatial) );
 	_actionGroup->add( Gtk::Action::create("OpenDirectoryST", "Open _directory as spatial/time"),
-  sigc::mem_fun(*this, &MSWindow::onActionDirectoryOpenForST) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onActionDirectoryOpenForST) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSet", "Open _testset") );
 
 	Gtk::RadioButtonGroup testSetGroup;
@@ -562,132 +564,132 @@ void MSWindow::createToolbar()
 	_gaussianTestSetsButton->set_active(true);
 	_rayleighTestSetsButton = Gtk::RadioAction::create(testSetGroup, "RayleighTestSets", "Rayleigh");
 	_zeroTestSetsButton = Gtk::RadioAction::create(testSetGroup, "ZeroTestSets", "Zero");
-	_actionGroup->add(_gaussianTestSetsButton, sigc::mem_fun(*this, &MSWindow::onGaussianTestSets) );
-	_actionGroup->add(_rayleighTestSetsButton, sigc::mem_fun(*this, &MSWindow::onRayleighTestSets) );
-	_actionGroup->add(_zeroTestSetsButton, sigc::mem_fun(*this, &MSWindow::onZeroTestSets) );
+	_actionGroup->add(_gaussianTestSetsButton, sigc::mem_fun(*this, &RFIGuiWindow::onGaussianTestSets) );
+	_actionGroup->add(_rayleighTestSetsButton, sigc::mem_fun(*this, &RFIGuiWindow::onRayleighTestSets) );
+	_actionGroup->add(_zeroTestSetsButton, sigc::mem_fun(*this, &RFIGuiWindow::onZeroTestSets) );
 	
 	_actionGroup->add( Gtk::Action::create("OpenTestSetA", "Test set A"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetA) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetA) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetB", "Test set B"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetB) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetB) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetC", "Test set C"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetC) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetC) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetD", "Test set D"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetD) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetD) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetE", "Test set E"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetE) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetE) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetF", "Test set F"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetF) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetF) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetG", "Test set G"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetG) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetG) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetH", "Test set H"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetH) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetH) );
 	_actionGroup->add( Gtk::Action::create("OpenTestSetNoise", "Noise"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetNoise));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetNoise));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetModel3", "3-stars model"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSet3Model));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSet3Model));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetModel5", "5-stars model"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSet5Model));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSet5Model));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetNoiseModel3", "3-stars model with noise"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetNoise3Model));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetNoise3Model));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetNoiseModel5", "5-stars model with noise"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetNoise5Model));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetNoise5Model));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetBStrong", "Test set B (strong RFI)"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetBStrong));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetBStrong));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetBWeak", "Test set B (weak RFI)"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetBWeak));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetBWeak));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetBAligned", "Test set B (aligned)"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetBAligned));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetBAligned));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetGaussianBroadband", "Gaussian broadband"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetGaussianBroadband));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetGaussianBroadband));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetSinusoidalBroadband", "Sinusoidal broadband"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetSinusoidalBroadband));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetSinusoidalBroadband));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetSlewedGaussianBroadband", "Slewed Gaussian"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetSlewedGaussianBroadband));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetSlewedGaussianBroadband));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetBurstBroadband", "Burst"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetBurstBroadband));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetBurstBroadband));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetRFIDistributionLow", "Slope -2 dist low"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetRFIDistributionLow));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetRFIDistributionLow));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetRFIDistributionMid", "Slope -2 dist mid"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetRFIDistributionMid));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetRFIDistributionMid));
 	_actionGroup->add( Gtk::Action::create("OpenTestSetRFIDistributionHigh", "Slope -2 dist high"),
-	sigc::mem_fun(*this, &MSWindow::onOpenTestSetRFIDistributionHigh));
+	sigc::mem_fun(*this, &RFIGuiWindow::onOpenTestSetRFIDistributionHigh));
 	_actionGroup->add( Gtk::Action::create("AddTestModification", "Test modify") );
 	_actionGroup->add( Gtk::Action::create("AddStaticFringe", "Static fringe"),
-	sigc::mem_fun(*this, &MSWindow::onAddStaticFringe) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onAddStaticFringe) );
 	_actionGroup->add( Gtk::Action::create("Add1SigmaStaticFringe", "Static 1 sigma fringe"),
-	sigc::mem_fun(*this, &MSWindow::onAdd1SigmaFringe) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onAdd1SigmaFringe) );
 	_actionGroup->add( Gtk::Action::create("SetToOne", "Set to 1"),
-	sigc::mem_fun(*this, &MSWindow::onSetToOne) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onSetToOne) );
 	_actionGroup->add( Gtk::Action::create("SetToI", "Set to i"),
-	sigc::mem_fun(*this, &MSWindow::onSetToI) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onSetToI) );
 	_actionGroup->add( Gtk::Action::create("SetToOnePlusI", "Set to 1+i"),
-	sigc::mem_fun(*this, &MSWindow::onSetToOnePlusI) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onSetToOnePlusI) );
 	_actionGroup->add( Gtk::Action::create("MultiplyData", "Multiply data..."),
-	sigc::mem_fun(*this, &MSWindow::onMultiplyData) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onMultiplyData) );
 	_actionGroup->add( Gtk::Action::create("Compress", "Compress"),
-	sigc::mem_fun(*this, &MSWindow::onCompress) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onCompress) );
 	_actionGroup->add( Gtk::Action::create("Quit", Gtk::Stock::QUIT),
 		Gtk::AccelKey("<control>Q"),
-		sigc::mem_fun(*this, &MSWindow::onQuit) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onQuit) );
 
 	_actionGroup->add( Gtk::Action::create("ImageProperties", "Plot properties..."),
 		Gtk::AccelKey("<control>P"),
-  	sigc::mem_fun(*this, &MSWindow::onImagePropertiesPressed) );
+  	sigc::mem_fun(*this, &RFIGuiWindow::onImagePropertiesPressed) );
 	_timeGraphButton = Gtk::ToggleAction::create("TimeGraph", "Time graph");
 	_timeGraphButton->set_active(false); 
-	_actionGroup->add(_timeGraphButton, sigc::mem_fun(*this, &MSWindow::onTimeGraphButtonPressed) );
-	_actionGroup->add( Gtk::Action::create("ShowAntennaMapWindow", "Show antenna map"), sigc::mem_fun(*this, &MSWindow::onShowAntennaMapWindow) );
+	_actionGroup->add(_timeGraphButton, sigc::mem_fun(*this, &RFIGuiWindow::onTimeGraphButtonPressed) );
+	_actionGroup->add( Gtk::Action::create("ShowAntennaMapWindow", "Show antenna map"), sigc::mem_fun(*this, &RFIGuiWindow::onShowAntennaMapWindow) );
 	
 	_actionGroup->add( Gtk::Action::create("PlotDist", "Plot _distribution"),
-  sigc::mem_fun(*this, &MSWindow::onPlotDistPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotDistPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotLogLogDist", "Plot _log-log dist"),
-  sigc::mem_fun(*this, &MSWindow::onPlotLogLogDistPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotLogLogDistPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotComplexPlane", "Plot _complex plane"),
 		Gtk::AccelKey("<alt>C"),
-		sigc::mem_fun(*this, &MSWindow::onPlotComplexPlanePressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotComplexPlanePressed) );
 	_actionGroup->add( Gtk::Action::create("PlotMeanSpectrum", "Plot _mean spectrum"),
 		Gtk::AccelKey("<alt>M"),
-		sigc::mem_fun(*this, &MSWindow::onPlotMeanSpectrumPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotMeanSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSumSpectrum", "Plot s_um spectrum"),
 		Gtk::AccelKey("<alt>U"),
-		sigc::mem_fun(*this, &MSWindow::onPlotSumSpectrumPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotSumSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerSpectrum", "Plot _power spectrum"),
 		Gtk::AccelKey("<alt>W"),
-		sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerSpectrumPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerSpectrumComparison", "Power _spectrum"),
-		sigc::mem_fun(*this, &MSWindow::onPlotPowerSpectrumComparisonPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerSpectrumComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotRMSSpectrum", "Plot _rms spectrum"),
 		Gtk::AccelKey("<alt>R"),
-		sigc::mem_fun(*this, &MSWindow::onPlotPowerRMSPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerRMSPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSNRSpectrum", "Plot spectrum snr"),
-		sigc::mem_fun(*this, &MSWindow::onPlotPowerSNRPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerSNRPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerTime", "Plot power vs _time"),
 		Gtk::AccelKey("<alt>T"),
-		sigc::mem_fun(*this, &MSWindow::onPlotPowerTimePressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerTimePressed) );
 	_actionGroup->add( Gtk::Action::create("PlotPowerTimeComparison", "Po_wer vs time"),
-  sigc::mem_fun(*this, &MSWindow::onPlotPowerTimeComparisonPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotPowerTimeComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotTimeScatter", "Plot t_ime scatter"),
  		Gtk::AccelKey("<alt>I"),
-		sigc::mem_fun(*this, &MSWindow::onPlotTimeScatterPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onPlotTimeScatterPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotTimeScatterComparison", "Time _scatter"),
-  sigc::mem_fun(*this, &MSWindow::onPlotTimeScatterComparisonPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotTimeScatterComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSingularValues", "Plot _singular values"),
-  sigc::mem_fun(*this, &MSWindow::onPlotSingularValuesPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotSingularValuesPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSNRToFitVariance", "Plot SNR to fit variance"),
-  sigc::mem_fun(*this, &MSWindow::onPlotSNRToFitVariance) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotSNRToFitVariance) );
 	_actionGroup->add( Gtk::Action::create("PlotQuality25", "Plot quality (25)"),
-  sigc::mem_fun(*this, &MSWindow::onPlotQuality25Pressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotQuality25Pressed) );
 	_actionGroup->add( Gtk::Action::create("PlotQualityAll", "Plot quality (all)"),
-  sigc::mem_fun(*this, &MSWindow::onPlotQualityAllPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onPlotQualityAllPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowImagePlane", "_Show image plane"),
 		Gtk::AccelKey("<control>I"),
-  sigc::mem_fun(*this, &MSWindow::onShowImagePlane) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowImagePlane) );
 	_actionGroup->add( Gtk::Action::create("SetAndShowImagePlane", "S_et & show image plane"),
 		Gtk::AccelKey("<control><shift>I"),
-		sigc::mem_fun(*this, &MSWindow::onSetAndShowImagePlane) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onSetAndShowImagePlane) );
 	_actionGroup->add( Gtk::Action::create("AddToImagePlane", "Add to _image plane"),
-  sigc::mem_fun(*this, &MSWindow::onAddToImagePlane) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onAddToImagePlane) );
 	
 	Gtk::RadioButtonGroup setGroup;
 	_ncpSetButton = Gtk::RadioAction::create(setGroup, "NCPSet", "Use NCP set");
@@ -712,56 +714,56 @@ void MSWindow::createToolbar()
 	_actionGroup->add(_simFixBandwidthButton);
 	
 	_actionGroup->add( Gtk::Action::create("SimulateCorrelation", "Simulate correlation"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateCorrelation) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateCorrelation) );
 	_actionGroup->add( Gtk::Action::create("SimulateSourceSetA", "Simulate source set A"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateSourceSetA) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateSourceSetA) );
 	_actionGroup->add( Gtk::Action::create("SimulateSourceSetB", "Simulate source set B"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateSourceSetB) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateSourceSetB) );
 	_actionGroup->add( Gtk::Action::create("SimulateSourceSetC", "Simulate source set C"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateSourceSetC) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateSourceSetC) );
 	_actionGroup->add( Gtk::Action::create("SimulateSourceSetD", "Simulate source set D"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateSourceSetD) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateSourceSetD) );
 	_actionGroup->add( Gtk::Action::create("SimulateOffAxisSource", "Simulate off-axis source"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateOffAxisSource) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateOffAxisSource) );
 	_actionGroup->add( Gtk::Action::create("SimulateOnAxisSource", "Simulate on-axis source"),
-  sigc::mem_fun(*this, &MSWindow::onSimulateOnAxisSource) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSimulateOnAxisSource) );
 
 	_actionGroup->add( Gtk::Action::create("EditStrategy", "_Edit strategy"),
 		Gtk::AccelKey("F8"),
-  sigc::mem_fun(*this, &MSWindow::onEditStrategyPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onEditStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ExecuteStrategy", "E_xecute strategy"),
 		Gtk::AccelKey("F9"),
-		sigc::mem_fun(*this, &MSWindow::onExecuteStrategyPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onExecuteStrategyPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStats", "Show _stats"),
 		Gtk::AccelKey("F2"),
-		sigc::mem_fun(*this, &MSWindow::onShowStats) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowStats) );
 	_actionGroup->add( Gtk::Action::create("Previous", Gtk::Stock::GO_BACK),
 		Gtk::AccelKey("F5"),
-		sigc::mem_fun(*this, &MSWindow::onLoadPrevious) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onLoadPrevious) );
 	_actionGroup->add( Gtk::Action::create("Next", Gtk::Stock::GO_FORWARD),
 		Gtk::AccelKey("F6"),
-		sigc::mem_fun(*this, &MSWindow::onLoadNext) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onLoadNext) );
 	_actionGroup->add( Gtk::Action::create("LargeStepPrevious", Gtk::Stock::GOTO_FIRST),
-  sigc::mem_fun(*this, &MSWindow::onLoadLargeStepPrevious) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onLoadLargeStepPrevious) );
 	_actionGroup->add( Gtk::Action::create("LargeStepNext", Gtk::Stock::GOTO_LAST),
-  sigc::mem_fun(*this, &MSWindow::onLoadLargeStepNext) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onLoadLargeStepNext) );
 	_actionGroup->add( Gtk::Action::create("GoTo", "_Go to..."),
 		Gtk::AccelKey("<control>G"),
-  sigc::mem_fun(*this, &MSWindow::onGoToPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onGoToPressed) );
   _originalFlagsButton = Gtk::ToggleAction::create("OriginalFlags", "Or flags");
 	_originalFlagsButton->set_active(true);
 	_originalFlagsButton->set_icon_name("showoriginalflags");
 	_actionGroup->add(_originalFlagsButton,
 			Gtk::AccelKey("F3"),
-			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
+			sigc::mem_fun(*this, &RFIGuiWindow::onToggleFlags));
   _altFlagsButton = Gtk::ToggleAction::create("AlternativeFlags", "Alt flags");
 	_altFlagsButton->set_active(true); 
 	_altFlagsButton->set_icon_name("showalternativeflags");
 	_actionGroup->add(_altFlagsButton,
 			Gtk::AccelKey("F4"),
-			sigc::mem_fun(*this, &MSWindow::onToggleFlags));
+			sigc::mem_fun(*this, &RFIGuiWindow::onToggleFlags));
 	_actionGroup->add( Gtk::Action::create("ClearAltFlags", "Clear alt flags"),
-  sigc::mem_fun(*this, &MSWindow::onClearAltFlagsPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onClearAltFlagsPressed) );
 
 	Gtk::RadioButtonGroup imageGroup;
 	_originalImageButton = Gtk::RadioAction::create(imageGroup, "ImageOriginal", "Original");
@@ -770,90 +772,90 @@ void MSWindow::createToolbar()
 	_diffImageButton = Gtk::RadioAction::create(imageGroup, "ImageDiff", "Difference");
 	_actionGroup->add(_originalImageButton,
 		Gtk::AccelKey("<control>1"),
-		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onToggleImage) );
 	_actionGroup->add(_backgroundImageButton,
 		Gtk::AccelKey("<control>2"),
-		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onToggleImage) );
 	_actionGroup->add(_diffImageButton,
 		Gtk::AccelKey("<control>3"),
-		sigc::mem_fun(*this, &MSWindow::onToggleImage) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onToggleImage) );
 
 	_actionGroup->add( Gtk::Action::create("DiffToOriginal", "Diff->Original"),
-  sigc::mem_fun(*this, &MSWindow::onDifferenceToOriginalPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onDifferenceToOriginalPressed) );
 	_actionGroup->add( Gtk::Action::create("BackToOriginal", "Background->Original"),
-  sigc::mem_fun(*this, &MSWindow::onBackgroundToOriginalPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onBackgroundToOriginalPressed) );
 
 	_actionGroup->add( Gtk::Action::create("ShowReal", "Keep _real part"),
 		Gtk::AccelKey("<control>,"),
-		sigc::mem_fun(*this, &MSWindow::onShowRealPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowRealPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowImaginary", "Keep _imaginary part"),
 		Gtk::AccelKey("<control>."),
-		sigc::mem_fun(*this, &MSWindow::onShowImaginaryPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowImaginaryPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowPhase", "Keep _phase part"),
 		Gtk::AccelKey("<control>1"),
-		sigc::mem_fun(*this, &MSWindow::onShowPhasePressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowPhasePressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesI", "Keep _stokesI part"),
-  sigc::mem_fun(*this, &MSWindow::onShowStokesIPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowStokesIPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesQ", "Keep stokes_Q part"),
-  sigc::mem_fun(*this, &MSWindow::onShowStokesQPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowStokesQPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesU", "Keep stokes_U part"),
-  sigc::mem_fun(*this, &MSWindow::onShowStokesUPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowStokesUPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowStokesV", "Keep stokes_V part"),
-  sigc::mem_fun(*this, &MSWindow::onShowStokesVPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowStokesVPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowAutoPol", "Keep xx+yy part"),
-  sigc::mem_fun(*this, &MSWindow::onShowAutoDipolePressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowAutoDipolePressed) );
 	_actionGroup->add( Gtk::Action::create("ShowCrossPol", "Keep xy+yx part"),
-  sigc::mem_fun(*this, &MSWindow::onShowCrossDipolePressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onShowCrossDipolePressed) );
 	_actionGroup->add( Gtk::Action::create("ShowXX", "Keep _xx part"),
 		Gtk::AccelKey("<control>X"),
-		sigc::mem_fun(*this, &MSWindow::onShowXXPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowXXPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowXY", "Keep xy part"),
 		Gtk::AccelKey("<control><alt>X"),
-		sigc::mem_fun(*this, &MSWindow::onShowXYPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowXYPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowYX", "Keep yx part"),
 		Gtk::AccelKey("<control><alt>Y"),
-		sigc::mem_fun(*this, &MSWindow::onShowYXPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowYXPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowYY", "Keep _yy part"),
 		Gtk::AccelKey("<control>Y"),
-		sigc::mem_fun(*this, &MSWindow::onShowYYPressed) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onShowYYPressed) );
 	_actionGroup->add( Gtk::Action::create("UnrollPhase", "_Unroll phase"),
-	sigc::mem_fun(*this, &MSWindow::onUnrollPhaseButtonPressed) );
+	sigc::mem_fun(*this, &RFIGuiWindow::onUnrollPhaseButtonPressed) );
 
 	_actionGroup->add( Gtk::Action::create("Segment", "Segment"),
-  sigc::mem_fun(*this, &MSWindow::onSegment) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSegment) );
 	_actionGroup->add( Gtk::Action::create("Cluster", "Cluster"),
-  sigc::mem_fun(*this, &MSWindow::onCluster) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onCluster) );
 	_actionGroup->add( Gtk::Action::create("Classify", "Classify"),
-  sigc::mem_fun(*this, &MSWindow::onClassify) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onClassify) );
 	_actionGroup->add( Gtk::Action::create("RemoveSmallSegments", "Remove small segments"),
-  sigc::mem_fun(*this, &MSWindow::onRemoveSmallSegments) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onRemoveSmallSegments) );
 	_actionGroup->add( Gtk::Action::create("StoreData", "Store"),
 		Gtk::AccelKey("<control>M"),
-  sigc::mem_fun(*this, &MSWindow::onStoreData) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onStoreData) );
 	_actionGroup->add( Gtk::Action::create("RecallData", "Recall"),
 		Gtk::AccelKey("<control>R"),
-		sigc::mem_fun(*this, &MSWindow::onRecallData) );
+		sigc::mem_fun(*this, &RFIGuiWindow::onRecallData) );
 	_actionGroup->add( Gtk::Action::create("SubtractDataFromMem", "Subtract from mem"),
-  sigc::mem_fun(*this, &MSWindow::onSubtractDataFromMem) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onSubtractDataFromMem) );
 
 	_actionGroup->add( Gtk::Action::create("Highlight", "Highlight"),
-  sigc::mem_fun(*this, &MSWindow::onHightlightPressed) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onHightlightPressed) );
 	_actionGroup->add( Gtk::Action::create("TimeMergeUnsetValues", "Merge unset values in time"),
-  sigc::mem_fun(*this, &MSWindow::onTimeMergeUnsetValues) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onTimeMergeUnsetValues) );
 	_actionGroup->add( Gtk::Action::create("VertEVD", "Vert EVD"),
-  sigc::mem_fun(*this, &MSWindow::onVertEVD) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onVertEVD) );
 	_actionGroup->add( Gtk::Action::create("ApplyTimeProfile", "Apply time profile"),
-  sigc::mem_fun(*this, &MSWindow::onApplyTimeProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onApplyTimeProfile) );
 	_actionGroup->add( Gtk::Action::create("ApplyVertProfile", "Apply vert profile"),
-  sigc::mem_fun(*this, &MSWindow::onApplyVertProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onApplyVertProfile) );
 	_actionGroup->add( Gtk::Action::create("RestoreTimeProfile", "Restore time profile"),
-  sigc::mem_fun(*this, &MSWindow::onRestoreTimeProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onRestoreTimeProfile) );
 	_actionGroup->add( Gtk::Action::create("RestoreVertProfile", "Restore vert profile"),
-  sigc::mem_fun(*this, &MSWindow::onRestoreVertProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onRestoreVertProfile) );
 	_actionGroup->add( Gtk::Action::create("ReapplyTimeProfile", "Reapply time profile"),
-  sigc::mem_fun(*this, &MSWindow::onReapplyTimeProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onReapplyTimeProfile) );
 	_actionGroup->add( Gtk::Action::create("ReapplyVertProfile", "Reapply vert profile"),
-  sigc::mem_fun(*this, &MSWindow::onReapplyVertProfile) );
+  sigc::mem_fun(*this, &RFIGuiWindow::onReapplyVertProfile) );
 
 	Glib::RefPtr<Gtk::UIManager> uiManager =
 		Gtk::UIManager::create();
@@ -1040,7 +1042,7 @@ void MSWindow::createToolbar()
 	pMenubar->show();
 }
 
-void MSWindow::onClearAltFlagsPressed()
+void RFIGuiWindow::onClearAltFlagsPressed()
 {
 	TimeFrequencyData data = GetActiveData();
 	_timeFrequencyWidget.SetAlternativeMask(
@@ -1049,7 +1051,7 @@ void MSWindow::onClearAltFlagsPressed()
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::onDifferenceToOriginalPressed()
+void RFIGuiWindow::onDifferenceToOriginalPressed()
 {
 	if(HasImage())
 	{
@@ -1062,7 +1064,7 @@ void MSWindow::onDifferenceToOriginalPressed()
 		_originalImageButton->set_active();
 }
 
-void MSWindow::onBackgroundToOriginalPressed()
+void RFIGuiWindow::onBackgroundToOriginalPressed()
 {
 	if(HasImage())
 	{
@@ -1076,7 +1078,7 @@ void MSWindow::onBackgroundToOriginalPressed()
 		_originalImageButton->set_active();
 }
 
-void MSWindow::onHightlightPressed()
+void RFIGuiWindow::onHightlightPressed()
 {
 	if(_highlightWindow != 0)
 		delete _highlightWindow;
@@ -1084,7 +1086,7 @@ void MSWindow::onHightlightPressed()
 	_highlightWindow->show();
 }
 
-void MSWindow::onAddStaticFringe()
+void RFIGuiWindow::onAddStaticFringe()
 {
 	try {
 		if(HasImage())
@@ -1101,7 +1103,7 @@ void MSWindow::onAddStaticFringe()
 	}
 }
 
-void MSWindow::onAdd1SigmaFringe()
+void RFIGuiWindow::onAdd1SigmaFringe()
 {
 	try {
 		if(HasImage())
@@ -1120,7 +1122,7 @@ void MSWindow::onAdd1SigmaFringe()
 	}
 }
 
-void MSWindow::onSetToOne()
+void RFIGuiWindow::onSetToOne()
 {
 	try {
 		TimeFrequencyData data(GetActiveData());
@@ -1140,7 +1142,7 @@ void MSWindow::onSetToOne()
 	}
 }
 
-void MSWindow::onSetToI()
+void RFIGuiWindow::onSetToI()
 {
 	try {
 		TimeFrequencyData data(GetActiveData());
@@ -1160,7 +1162,7 @@ void MSWindow::onSetToI()
 	}
 }
 
-void MSWindow::onSetToOnePlusI()
+void RFIGuiWindow::onSetToOnePlusI()
 {
 	try {
 		TimeFrequencyData data(GetActiveData());
@@ -1180,7 +1182,7 @@ void MSWindow::onSetToOnePlusI()
 	}
 }
 
-void MSWindow::onShowStats()
+void RFIGuiWindow::onShowStats()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1230,7 +1232,7 @@ void MSWindow::onShowStats()
 	}
 }
 
-void MSWindow::onPlotDistPressed()
+void RFIGuiWindow::onPlotDistPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1255,7 +1257,7 @@ void MSWindow::onPlotDistPressed()
 	}
 }
 
-void MSWindow::onPlotLogLogDistPressed()
+void RFIGuiWindow::onPlotLogLogDistPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1276,7 +1278,7 @@ void MSWindow::onPlotLogLogDistPressed()
 	}
 }
 
-void MSWindow::onPlotComplexPlanePressed()
+void RFIGuiWindow::onPlotComplexPlanePressed()
 {
 	if(HasImage()) {
 		if(_plotComplexPlaneWindow != 0)
@@ -1286,31 +1288,7 @@ void MSWindow::onPlotComplexPlanePressed()
 	}
 }
 
-template<bool Weight>
-void MSWindow::plotMeanSpectrumPressed()
-{
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _plotManager.NewPlot2D("Mean spectrum");
-
-		TimeFrequencyData data = _timeFrequencyWidget.GetActiveData();
-		Mask2DCPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(data.ImageWidth(), data.ImageHeight());
-		Plot2DPointSet &beforeSet = plot.StartLine("Without flagging");
-		RFIPlots::MakeMeanSpectrumPlot<Weight>(beforeSet, data, mask, _timeFrequencyWidget.GetMetaData());
-
-		mask = Mask2D::CreateCopy(data.GetSingleMask());
-		if(!mask->AllFalse())
-		{
-			Plot2DPointSet &afterSet = plot.StartLine("Flagged");
-			RFIPlots::MakeMeanSpectrumPlot<Weight>(afterSet, data, mask, _timeFrequencyWidget.GetMetaData());
-		}
-		
-		_plotManager.Update();
-	}
-}
-
-void MSWindow::onPlotPowerSpectrumPressed()
+void RFIGuiWindow::onPlotPowerSpectrumPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1335,7 +1313,7 @@ void MSWindow::onPlotPowerSpectrumPressed()
 	}
 }
 
-void MSWindow::onPlotPowerSpectrumComparisonPressed()
+void RFIGuiWindow::onPlotPowerSpectrumComparisonPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1357,7 +1335,7 @@ void MSWindow::onPlotPowerSpectrumComparisonPressed()
 	}
 }
 
-void MSWindow::onPlotPowerRMSPressed()
+void RFIGuiWindow::onPlotPowerRMSPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1384,7 +1362,7 @@ void MSWindow::onPlotPowerRMSPressed()
 	}
 }
 
-void MSWindow::onPlotPowerSNRPressed()
+void RFIGuiWindow::onPlotPowerSNRPressed()
 {
 	Image2DCPtr
 		image = _timeFrequencyWidget.GetActiveData().GetSingleImage(),
@@ -1414,7 +1392,7 @@ void MSWindow::onPlotPowerSNRPressed()
 	}
 }
 
-void MSWindow::onPlotPowerTimePressed()
+void RFIGuiWindow::onPlotPowerTimePressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1441,7 +1419,7 @@ void MSWindow::onPlotPowerTimePressed()
 	}
 }
 
-void MSWindow::onPlotPowerTimeComparisonPressed()
+void RFIGuiWindow::onPlotPowerTimeComparisonPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1464,7 +1442,7 @@ void MSWindow::onPlotPowerTimeComparisonPressed()
 	}
 }
 
-void MSWindow::onPlotTimeScatterPressed()
+void RFIGuiWindow::onPlotTimeScatterPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1475,7 +1453,7 @@ void MSWindow::onPlotTimeScatterPressed()
 	}
 }
 
-void MSWindow::onPlotTimeScatterComparisonPressed()
+void RFIGuiWindow::onPlotTimeScatterComparisonPressed()
 {
 	if(_timeFrequencyWidget.HasImage())
 	{
@@ -1487,7 +1465,7 @@ void MSWindow::onPlotTimeScatterComparisonPressed()
 	}
 }
 
-void MSWindow::onPlotSingularValuesPressed()
+void RFIGuiWindow::onPlotSingularValuesPressed()
 {
 	if(HasImage())
 	{
@@ -1498,7 +1476,7 @@ void MSWindow::onPlotSingularValuesPressed()
 	}
 }
 
-void MSWindow::onPlotQuality25Pressed()
+void RFIGuiWindow::onPlotQuality25Pressed()
 {
 	if(HasImage())
 	{
@@ -1508,7 +1486,7 @@ void MSWindow::onPlotQuality25Pressed()
 	}
 }
 
-void MSWindow::onPlotQualityAllPressed()
+void RFIGuiWindow::onPlotQualityAllPressed()
 {
 	if(HasImage())
 	{
@@ -1518,7 +1496,7 @@ void MSWindow::onPlotQualityAllPressed()
 	}
 }
 
-void MSWindow::onPlotSNRToFitVariance()
+void RFIGuiWindow::onPlotSNRToFitVariance()
 {
 	bool relative = false;
 
@@ -1654,7 +1632,7 @@ void MSWindow::onPlotSNRToFitVariance()
 	_plotManager.Update();
 }
 
-void MSWindow::onImagePropertiesPressed()
+void RFIGuiWindow::onImagePropertiesPressed()
 {
 	if(_imagePropertiesWindow != 0)
 		delete _imagePropertiesWindow;
@@ -1662,7 +1640,17 @@ void MSWindow::onImagePropertiesPressed()
 	_imagePropertiesWindow->show();
 }
 
-void MSWindow::showPhasePart(enum TimeFrequencyData::PhaseRepresentation phaseRepresentation)
+void RFIGuiWindow::onPlotMeanSpectrumPressed()
+{
+	_controller->PlotMeanSpectrum();
+}
+
+void RFIGuiWindow::onPlotSumSpectrumPressed()
+{
+	_controller->PlotSumSpectrum();
+}
+
+void RFIGuiWindow::showPhasePart(enum TimeFrequencyData::PhaseRepresentation phaseRepresentation)
 {
 	if(HasImage())
 	{
@@ -1689,7 +1677,7 @@ void MSWindow::showPhasePart(enum TimeFrequencyData::PhaseRepresentation phaseRe
 	}
 }
 
-void MSWindow::showPolarisation(enum PolarisationType polarisation)
+void RFIGuiWindow::showPolarisation(enum PolarisationType polarisation)
 {
 	if(HasImage())
 	{
@@ -1717,7 +1705,7 @@ void MSWindow::showPolarisation(enum PolarisationType polarisation)
 	}
 }
 
-void MSWindow::onGoToPressed()
+void RFIGuiWindow::onGoToPressed()
 {
 	if(HasImageSet())
 	{
@@ -1734,7 +1722,7 @@ void MSWindow::onGoToPressed()
 	}
 }
 
-void MSWindow::onTFWidgetMouseMoved(size_t x, size_t y)
+void RFIGuiWindow::onTFWidgetMouseMoved(size_t x, size_t y)
 {
 	Image2DCPtr image = _timeFrequencyWidget.Image();
 	num_t v = image->Value(x, y);
@@ -1761,12 +1749,12 @@ void MSWindow::onTFWidgetMouseMoved(size_t x, size_t y)
 	_statusbar.push(s.str(), 0);
 }
 
-void MSWindow::onShowImagePlane()
+void RFIGuiWindow::onShowImagePlane()
 {
 	_imagePlaneWindow->show();
 }
 
-void MSWindow::onSetAndShowImagePlane()
+void RFIGuiWindow::onSetAndShowImagePlane()
 {
 	_imagePlaneWindow->GetImager()->Empty();
 	onAddToImagePlane();
@@ -1775,7 +1763,7 @@ void MSWindow::onSetAndShowImagePlane()
 	_imagePlaneWindow->Update();
 }
 
-void MSWindow::onAddToImagePlane()
+void RFIGuiWindow::onAddToImagePlane()
 {
 	try {
 		if(_timeFrequencyWidget.GetMetaData() != 0 && _timeFrequencyWidget.GetMetaData()->HasUVW())
@@ -1799,7 +1787,7 @@ void MSWindow::onAddToImagePlane()
 	}
 }
 
-void MSWindow::onMultiplyData()
+void RFIGuiWindow::onMultiplyData()
 {
 	TimeFrequencyData data(GetActiveData());
 	data.MultiplyImages(2.0L);
@@ -1807,7 +1795,7 @@ void MSWindow::onMultiplyData()
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::onSegment()
+void RFIGuiWindow::onSegment()
 {
 	_segmentedImage = SegmentedImage::CreateUnsetPtr(GetOriginalData().ImageWidth(),  GetOriginalData().ImageHeight());
 	Morphology morphology;
@@ -1816,7 +1804,7 @@ void MSWindow::onSegment()
 	Update();
 }
 
-void MSWindow::onCluster()
+void RFIGuiWindow::onCluster()
 {
 	if(_segmentedImage != 0)
 	{
@@ -1827,7 +1815,7 @@ void MSWindow::onCluster()
 	}
 }
 
-void MSWindow::onClassify()
+void RFIGuiWindow::onClassify()
 {
 	if(_segmentedImage != 0)
 	{
@@ -1838,7 +1826,7 @@ void MSWindow::onClassify()
 	}
 }
 
-void MSWindow::onRemoveSmallSegments()
+void RFIGuiWindow::onRemoveSmallSegments()
 {
 	if(_segmentedImage != 0)
 	{
@@ -1849,7 +1837,7 @@ void MSWindow::onRemoveSmallSegments()
 	}
 }
 
-void MSWindow::onTimeGraphButtonPressed()
+void RFIGuiWindow::onTimeGraphButtonPressed()
 {
 	if(_timeGraphButton->get_active())
 	{
@@ -1871,7 +1859,7 @@ void MSWindow::onTimeGraphButtonPressed()
 	}
 }
 
-void MSWindow::onTFWidgetButtonReleased(size_t x, size_t y)
+void RFIGuiWindow::onTFWidgetButtonReleased(size_t x, size_t y)
 {
 	if(HasImage())
 	{
@@ -1885,7 +1873,7 @@ void MSWindow::onTFWidgetButtonReleased(size_t x, size_t y)
 	}
 }
 
-void MSWindow::onUnrollPhaseButtonPressed()
+void RFIGuiWindow::onUnrollPhaseButtonPressed()
 {
 	if(HasImage())
 	{
@@ -1903,13 +1891,13 @@ void MSWindow::onUnrollPhaseButtonPressed()
 	}
 }
 
-void MSWindow::showError(const std::string &description)
+void RFIGuiWindow::showError(const std::string &description)
 {
 	Gtk::MessageDialog dialog(*this, description, false, Gtk::MESSAGE_ERROR);
 	dialog.run();
 }
 
-DefaultModels::SetLocation MSWindow::getSetLocation(bool empty)
+DefaultModels::SetLocation RFIGuiWindow::getSetLocation(bool empty)
 {
 	if(empty)
 		return DefaultModels::EmptySet;
@@ -1921,7 +1909,7 @@ DefaultModels::SetLocation MSWindow::getSetLocation(bool empty)
 		return DefaultModels::EmptySet;
 }
 
-void MSWindow::loadDefaultModel(DefaultModels::Distortion distortion, bool withNoise, bool empty)
+void RFIGuiWindow::loadDefaultModel(DefaultModels::Distortion distortion, bool withNoise, bool empty)
 {
 	unsigned channelCount;
 	if(_sim16ChannelsButton->get_active())
@@ -1943,13 +1931,13 @@ void MSWindow::loadDefaultModel(DefaultModels::Distortion distortion, bool withN
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::onCompress()
+void RFIGuiWindow::onCompress()
 {
 	Compress compress = Compress(GetActiveData());
 	compress.AllToStdOut();
 }
 
-void MSWindow::onShowAntennaMapWindow()
+void RFIGuiWindow::onShowAntennaMapWindow()
 {
 	if(_antennaMapWindow != 0)
 		delete _antennaMapWindow;
@@ -1964,7 +1952,7 @@ void MSWindow::onShowAntennaMapWindow()
 	newWindow->show();
 }
 
-void MSWindow::onVertEVD()
+void RFIGuiWindow::onVertEVD()
 {
 	if(HasImage())
 	{
@@ -1979,7 +1967,7 @@ void MSWindow::onVertEVD()
 	}
 }
 
-void MSWindow::onApplyTimeProfile()
+void RFIGuiWindow::onApplyTimeProfile()
 {
 	if(HasImage())
 	{
@@ -2018,7 +2006,7 @@ void MSWindow::onApplyTimeProfile()
 	}
 }
 
-void MSWindow::onApplyVertProfile()
+void RFIGuiWindow::onApplyVertProfile()
 {
 	if(HasImage())
 	{
@@ -2057,7 +2045,7 @@ void MSWindow::onApplyVertProfile()
 	}
 }
 
-void MSWindow::onUseTimeProfile(bool inverse)
+void RFIGuiWindow::onUseTimeProfile(bool inverse)
 {
 	if(HasImage())
 	{
@@ -2091,7 +2079,7 @@ void MSWindow::onUseTimeProfile(bool inverse)
 	}
 }
 
-void MSWindow::onUseVertProfile(bool inverse)
+void RFIGuiWindow::onUseVertProfile(bool inverse)
 {
 	if(HasImage())
 	{
@@ -2126,7 +2114,7 @@ void MSWindow::onUseVertProfile(bool inverse)
 	}
 }
 
-void MSWindow::onStoreData()
+void RFIGuiWindow::onStoreData()
 {
 	if(HasImage())
 	{
@@ -2134,13 +2122,13 @@ void MSWindow::onStoreData()
 	}
 }
 
-void MSWindow::onRecallData()
+void RFIGuiWindow::onRecallData()
 {
 	_timeFrequencyWidget.SetNewData(_storedData, _timeFrequencyWidget.GetMetaData());
 	_timeFrequencyWidget.Update();
 }
 
-void MSWindow::onSubtractDataFromMem()
+void RFIGuiWindow::onSubtractDataFromMem()
 {
 	if(HasImage())
 	{
@@ -2152,7 +2140,7 @@ void MSWindow::onSubtractDataFromMem()
 	}
 }
 
-void MSWindow::onTimeMergeUnsetValues()
+void RFIGuiWindow::onTimeMergeUnsetValues()
 {
 	if(HasImage())
 	{
@@ -2164,13 +2152,13 @@ void MSWindow::onTimeMergeUnsetValues()
 	}
 }
 
-void MSWindow::SetStrategy(rfiStrategy::Strategy* newStrategy)
+void RFIGuiWindow::SetStrategy(rfiStrategy::Strategy* newStrategy)
 {
 	delete _strategy;
 	_strategy = newStrategy;
 }
 
-void MSWindow::onControllerStateChange()
+void RFIGuiWindow::onControllerStateChange()
 {
 	_originalFlagsButton->set_active(_controller->AreOriginalFlagsShown());
 	_timeFrequencyWidget.SetShowOriginalMask(_controller->AreOriginalFlagsShown());

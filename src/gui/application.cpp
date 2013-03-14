@@ -21,7 +21,7 @@
 
 #include <gtkmm.h>
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
 Application::Application()
 {
@@ -34,7 +34,7 @@ Application::~Application()
 void Application::Run(int argc, char *argv[])
 {
 	Gtk::Main kit(argc, argv);
-	MSWindow window;
+	RFIGuiWindow window;
 	window.present();
 	if(argc > 1)
 	{

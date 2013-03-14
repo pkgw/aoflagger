@@ -32,13 +32,13 @@
 */
 class HighlightWindow : public Gtk::Window {
 	public:
-		HighlightWindow(class MSWindow &msWindow);
+		HighlightWindow(class RFIGuiWindow &rfiGuiWindow);
 		~HighlightWindow();
 	private:
 		void onValueChange();
 		void onHighlightingToggled();
 
-		class MSWindow &_msWindow;
+		class RFIGuiWindow &_rfiGuiWindow;
 		Gtk::VScale _highlightThresholdHighScale;
 		Gtk::VScale _highlightThresholdLowScale;
 		Gtk::HScale _connectedCountScale;

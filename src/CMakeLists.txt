@@ -75,6 +75,7 @@ set(GUI_PLOT_FILES
 set(GUI_FILES
   gui/antennamap/antenna.cpp
   gui/antennamap/antennamap.cpp
+  gui/controllers/rfiguicontroller.cpp
   gui/application.cpp
   gui/complexplaneplotwindow.cpp
   gui/editstrategywindow.cpp
@@ -85,11 +86,12 @@ set(GUI_FILES
   gui/imagepropertieswindow.cpp
   gui/imagewidget.cpp
   gui/msoptionwindow.cpp
-  gui/mswindow.cpp
   gui/noisestatoptionwindow.cpp
   gui/plotframe.cpp
+  gui/plotwindow.cpp
   gui/progresswindow.cpp
   gui/rawoptionwindow.cpp
+  gui/rfiguiwindow.cpp
   gui/strategywizardwindow.cpp
   gui/tfstatoptionwindow.cpp
   ${GUI_PLOT_FILES} ${GUI_QUALITY_FILES})

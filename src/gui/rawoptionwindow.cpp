@@ -27,12 +27,12 @@
 #include "../strategy/imagesets/msimageset.h"
 #include "../strategy/imagesets/rspimageset.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 #include "rawoptionwindow.h"
 
-RawOptionWindow::RawOptionWindow(MSWindow &msWindow, const std::string &filename) :
+RawOptionWindow::RawOptionWindow(RFIGuiWindow &rfiGuiWindow, const std::string &filename) :
 	Gtk::Window(),
-	_msWindow(msWindow),
+	_rfiGuiWindow(rfiGuiWindow),
 	_filename(filename),
 	_openButton("Open"),
 	_modeFrame("Columns to read"),
@@ -116,7 +116,7 @@ void RawOptionWindow::onOpen()
 			imageSet->SetMode(rfiStrategy::RSPImageSet::StatisticsMode);
 		imageSet->Initialize();
 	
-		_msWindow.SetImageSet(imageSet);
+		_rfiGuiWindow.SetImageSet(imageSet);
 	} catch(std::exception &e)
 	{
 		Gtk::MessageDialog dialog(*this, e.what(), false, Gtk::MESSAGE_ERROR);

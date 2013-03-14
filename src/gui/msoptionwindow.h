@@ -35,7 +35,7 @@
 */
 class MSOptionWindow : public Gtk::Window {
 	public:
-		MSOptionWindow(class MSWindow &msWindow, const std::string &filename);
+		MSOptionWindow(class RFIGuiWindow &rfiGuiWindow, const std::string &filename);
 		~MSOptionWindow();
 		void onOpen();
 	private:
@@ -43,7 +43,7 @@ class MSOptionWindow : public Gtk::Window {
 		void initPolarisationButtons();
 		void initPartitioningButtons();
 
-		class MSWindow &_msWindow;
+		class RFIGuiWindow &_rfiGuiWindow;
 		const std::string _filename;
 
 		Gtk::HButtonBox _bottomButtonBox;

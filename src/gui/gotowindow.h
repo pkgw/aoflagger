@@ -38,7 +38,7 @@
 */
 class GoToWindow : public Gtk::Window {
 	public:
-		GoToWindow(class MSWindow &msWindow);
+		GoToWindow(class RFIGuiWindow &rfiGuiWindow);
 		~GoToWindow();
 	private:
 		void onLoadClicked();
@@ -76,7 +76,7 @@ class GoToWindow : public Gtk::Window {
 
 		Glib::RefPtr<Gtk::ListStore> _antennaeStore, _bandStore;
 
-		MSWindow &_msWindow;
+		RFIGuiWindow &_rfiGuiWindow;
 		rfiStrategy::MSImageSet *_imageSet;
 };
 

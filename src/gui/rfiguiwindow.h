@@ -42,8 +42,6 @@
 #include "plot/plotwidget.h"
 #include "plot/plotmanager.h"
 
-#include "plotwindow.h"
-
 #include "plotframe.h"
 #include "imagecomparisonwidget.h"
 #include "interfaces.h"
@@ -55,10 +53,10 @@ class BaselineWindowController;
 /**
 	@author A.R. Offringa <offringa@astro.rug.nl>
 */
-class MSWindow : public Gtk::Window, private StrategyController {
+class RFIGuiWindow : public Gtk::Window, private StrategyController {
 	public:
-		MSWindow();
-		~MSWindow();
+		RFIGuiWindow();
+		~RFIGuiWindow();
 
 		void SetImageSet(rfiStrategy::ImageSet *newImageSet);
 		void SetImageSetIndex(rfiStrategy::ImageSetIndex *newImageSetIndex);
@@ -187,9 +185,9 @@ class MSWindow : public Gtk::Window, private StrategyController {
 		void onPlotDistPressed();
 		void onPlotLogLogDistPressed();
 		void onPlotComplexPlanePressed();
-		void onPlotMeanSpectrumPressed() { plotMeanSpectrumPressed<false>(); }
-		void onPlotSumSpectrumPressed() { plotMeanSpectrumPressed<true>(); }
-		template<bool Weigh> void plotMeanSpectrumPressed();
+		void onPlotMeanSpectrumPressed();
+		void onPlotSumSpectrumPressed();
+		//template<bool Weigh> void plotMeanSpectrumPressed();
 		void onPlotPowerSpectrumPressed();
 		void onPlotPowerSpectrumComparisonPressed();
 		void onPlotPowerRMSPressed();
@@ -284,9 +282,9 @@ class MSWindow : public Gtk::Window, private StrategyController {
 		std::vector<double> _horProfile, _vertProfile;
 		TimeFrequencyData _storedData;
 		PlotManager _plotManager;
-		PlotWindow _plotWindow;
+		class PlotWindow *_plotWindow;
 		
-		boost::scoped_ptr<BaselineWindowController> _controller;
+		boost::scoped_ptr<class RFIGuiController> _controller;
 };
 
 #endif

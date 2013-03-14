@@ -32,6 +32,7 @@ class PlotWidget : public Gtk::DrawingArea {
 		PlotWidget() : _plot(0)
 		{
 			signal_expose_event().connect(sigc::mem_fun(*this, &PlotWidget::onExposeEvent) );
+			set_size_request(400, 300);
 		}
 		
 		~PlotWidget()

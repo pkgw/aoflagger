@@ -22,9 +22,11 @@
 
 #include <boost/bind/bind.hpp>
 
+#include <gtkmm/box.h>
+#include <gtkmm/liststore.h>
+#include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 
-#include "plot/plotmanager.h"
 #include "plot/plotwidget.h"
 
 /**
@@ -32,28 +34,31 @@
 */
 class PlotWindow : public Gtk::Window {
 	public:
-		PlotWindow(PlotManager &plotManager) : _plotManager(plotManager)
-		{
-			plotManager.OnUpdate() = boost::bind(&PlotWindow::handleUpdate, this);
-			add(_plotWidget);
-			_plotWidget.show();
-		}
+		PlotWindow(class PlotManager &plotManager);
+		
 		~PlotWindow()
 		{
 		}
 		
 	private:
-		void handleUpdate()
+		class PlotListColumns : public Gtk::TreeModel::ColumnRecord
 		{
-			const std::vector<Plot2D*> &plots = _plotManager.Items();
-			Plot2D &lastPlot = **plots.rbegin();
-			_plotWidget.SetPlot(lastPlot);
-			show();
-			raise();
-		}
+		public:
+			PlotListColumns()
+			{ add(_index); add(_name); }
+
+			Gtk::TreeModelColumn<unsigned int> _index;
+			Gtk::TreeModelColumn<Glib::ustring> _name;
+		} _plotListColumns;
+		
+		void handleUpdate();
+		void updatePlotList();
 		
 		PlotWidget _plotWidget;
-		PlotManager &_plotManager;
+		class PlotManager &_plotManager;
+		Gtk::HBox _hBox;
+		Glib::RefPtr<Gtk::ListStore> _plotListStore;
+		Gtk::TreeView _plotListView;
 };
 
 #endif

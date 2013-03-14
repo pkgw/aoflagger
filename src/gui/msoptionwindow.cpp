@@ -29,11 +29,11 @@
 
 #include "../strategy/imagesets/msimageset.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
-MSOptionWindow::MSOptionWindow(MSWindow &msWindow, const std::string &filename) :
+MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &filename) :
 	Gtk::Window(),
-	_msWindow(msWindow),
+	_rfiGuiWindow(rfiGUiWindow),
 	_filename(filename),
 	_openButton(Gtk::Stock::OPEN),
 	_dataKindFrame("Columns to read"),
@@ -199,7 +199,7 @@ void MSOptionWindow::onOpen()
 		}
 		imageSet->Initialize();
 	
-		_msWindow.SetImageSet(imageSet);
+		_rfiGuiWindow.SetImageSet(imageSet);
 	} catch(std::exception &e)
 	{
 		Gtk::MessageDialog dialog(*this, e.what(), false, Gtk::MESSAGE_ERROR);

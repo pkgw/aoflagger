@@ -37,10 +37,10 @@
 
 #include "../imaging/uvimager.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
-ComplexPlanePlotWindow::ComplexPlanePlotWindow(MSWindow &_msWindow, PlotManager &plotManager)
-	: _msWindow(_msWindow),
+ComplexPlanePlotWindow::ComplexPlanePlotWindow(RFIGuiWindow &rfiGuiWindow, PlotManager &plotManager)
+	: _rfiGuiWindow(rfiGuiWindow),
 		_plotManager(plotManager),
 		_detailsFrame("Location details"),
 		_detailsLabel(),
@@ -48,10 +48,10 @@ ComplexPlanePlotWindow::ComplexPlanePlotWindow(MSWindow &_msWindow, PlotManager 
 		_yPositionLabel("frequency start position:"),
 		_lengthLabel("time length:"),
 		_ySumLengthLabel("Frequency averaging size:"),
-		_xPositionScale(0.0, _msWindow.GetOriginalData().ImageWidth(), 1.0),
-		_yPositionScale(0.0, _msWindow.GetOriginalData().ImageHeight(), 1.0),
-		_lengthScale(1.0, _msWindow.GetOriginalData().ImageWidth(), 1.0),
-		_ySumLengthScale(1.0, _msWindow.GetOriginalData().ImageHeight(), 1.0),
+		_xPositionScale(0.0, _rfiGuiWindow.GetOriginalData().ImageWidth(), 1.0),
+		_yPositionScale(0.0, _rfiGuiWindow.GetOriginalData().ImageHeight(), 1.0),
+		_lengthScale(1.0, _rfiGuiWindow.GetOriginalData().ImageWidth(), 1.0),
+		_ySumLengthScale(1.0, _rfiGuiWindow.GetOriginalData().ImageHeight(), 1.0),
 		_realVersusImaginaryButton("Real versus imaginary"),
 		_timeVersusRealButton("Time versus real"),
 		_allValuesButton("All values"),
@@ -62,8 +62,8 @@ ComplexPlanePlotWindow::ComplexPlanePlotWindow(MSWindow &_msWindow, PlotManager 
 		_fringeFitButton("Fringe fitted (varying freq)"),
 		_dynamicFringeFitButton("Dynamic fringe fitted (varying freq+amp)"),
 		_plotButton("Plot"),
-		_xMax(_msWindow.GetOriginalData().ImageWidth()),
-		_yMax(_msWindow.GetOriginalData().ImageHeight())
+		_xMax(_rfiGuiWindow.GetOriginalData().ImageWidth()),
+		_yMax(_rfiGuiWindow.GetOriginalData().ImageHeight())
 {
 	_detailsFrame.add(_detailsBox);
 	_detailsBox.show();
@@ -145,7 +145,7 @@ ComplexPlanePlotWindow::ComplexPlanePlotWindow(MSWindow &_msWindow, PlotManager 
 	add(_mainBox);
 	_mainBox.show();
 
-	_observationTimes = _msWindow.TimeFrequencyMetaData()->ObservationTimes();
+	_observationTimes = _rfiGuiWindow.TimeFrequencyMetaData()->ObservationTimes();
 
 	setDetailsLabel();
 }
@@ -156,7 +156,7 @@ ComplexPlanePlotWindow::~ComplexPlanePlotWindow()
 
 void ComplexPlanePlotWindow::onPlotPressed()
 {
-	if(_msWindow.HasImage())
+	if(_rfiGuiWindow.HasImage())
 	{
 		try {
 			Plot2D &plot = _plotManager.NewPlot2D("Complex plane");
@@ -165,7 +165,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 			size_t length = (size_t) _lengthScale.get_value();
 			size_t avgSize = (size_t) _ySumLengthScale.get_value();
 			bool realVersusImaginary = _realVersusImaginaryButton.get_active();
-			const TimeFrequencyData &data = _msWindow.GetActiveData();
+			const TimeFrequencyData &data = _rfiGuiWindow.GetActiveData();
 
 			if(_allValuesButton.get_active())
 			{
@@ -174,7 +174,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 					pointSet = &plot.StartLine("Data", Plot2DPointSet::DrawPoints);
 				else
 					pointSet = &plot.StartLine("Data (real)", Plot2DPointSet::DrawPoints);
-				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_msWindow.AltMask()->Width(), _msWindow.AltMask()->Height());
+				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_rfiGuiWindow.AltMask()->Width(), _rfiGuiWindow.AltMask()->Height());
 				RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, mask, realVersusImaginary, false);
 	
 				if(!realVersusImaginary)
@@ -187,18 +187,18 @@ void ComplexPlanePlotWindow::onPlotPressed()
 			if(_unmaskedValuesButton.get_active())
 			{
 				Plot2DPointSet *pointSet = &plot.StartLine("Without RFI");
-				RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, _msWindow.AltMask(), realVersusImaginary, false);
+				RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, _rfiGuiWindow.AltMask(), realVersusImaginary, false);
 				if(!realVersusImaginary)
 				{
 					pointSet = &plot.StartLine("Without RFI (I)");
-					RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, _msWindow.AltMask(), realVersusImaginary, true);
+					RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, _rfiGuiWindow.AltMask(), realVersusImaginary, true);
 				}
 			}
 	
 			if(_maskedValuesButton.get_active())
 			{
 				Plot2DPointSet *pointSet = &plot.StartLine("Only RFI");
-				Mask2DPtr mask = Mask2D::CreateCopy(_msWindow.AltMask());
+				Mask2DPtr mask = Mask2D::CreateCopy(_rfiGuiWindow.AltMask());
 				mask->Invert();
 				RFIPlots::MakeComplexPlanePlot(*pointSet, data, x, length, y, avgSize, mask, realVersusImaginary, false);
 				if(!realVersusImaginary)
@@ -216,11 +216,11 @@ void ComplexPlanePlotWindow::onPlotPressed()
 				else
 					pointSet = &plot.StartLine("Fit (real)");
 				size_t middleY = (2*y + avgSize) / 2;
-				Baseline baseline(_msWindow.TimeFrequencyMetaData()->Antenna1(), _msWindow.TimeFrequencyMetaData()->Antenna2());
+				Baseline baseline(_rfiGuiWindow.TimeFrequencyMetaData()->Antenna1(), _rfiGuiWindow.TimeFrequencyMetaData()->Antenna2());
 				long double fringeCount =
-					UVImager::GetFringeCount(x, x+length, middleY, _msWindow.TimeFrequencyMetaData());
+					UVImager::GetFringeCount(x, x+length, middleY, _rfiGuiWindow.TimeFrequencyMetaData());
 				long double fringeFrequency = fringeCount / length;
-				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_msWindow.AltMask()->Width(), _msWindow.AltMask()->Height());
+				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_rfiGuiWindow.AltMask()->Width(), _rfiGuiWindow.AltMask()->Height());
 				RFIPlots::MakeFittedComplexPlot(*pointSet, data, x, length, y, avgSize, mask, fringeFrequency, realVersusImaginary, false);
 				if(!realVersusImaginary)
 				{
@@ -239,7 +239,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 				fitter.SetReturnFittedValue(true);
 				fitter.SetReturnMeanValue(false);
 				
-				fitter.SetMetaData(_msWindow.TimeFrequencyMetaData());
+				fitter.SetMetaData(_rfiGuiWindow.TimeFrequencyMetaData());
 				fitter.PerformStaticFrequencyFitOnOneChannel(y);
 
 				Plot2DPointSet *pointSet;
@@ -247,7 +247,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 					pointSet = &plot.StartLine("Fit");
 				else
 					pointSet = &plot.StartLine("Fit (real)");
-				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_msWindow.AltMask()->Width(), _msWindow.AltMask()->Height());
+				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_rfiGuiWindow.AltMask()->Width(), _rfiGuiWindow.AltMask()->Height());
 				RFIPlots::MakeComplexPlanePlot(*pointSet, fitter.Background(), x, length, y, avgSize, mask, realVersusImaginary, false);
 	
 				fitter.SetReturnFittedValue(false);
@@ -282,11 +282,11 @@ void ComplexPlanePlotWindow::onPlotPressed()
 				fitter.Initialize(data);
 				fitter.SetFitChannelsIndividually(true);
 				
-				fitter.SetMetaData(_msWindow.TimeFrequencyMetaData());
+				fitter.SetMetaData(_rfiGuiWindow.TimeFrequencyMetaData());
 				fitter.PerformFringeStop();
 
 				plot.StartLine("Fringe rotation");
-				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_msWindow.AltMask()->Width(), _msWindow.AltMask()->Height());
+				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_rfiGuiWindow.AltMask()->Width(), _rfiGuiWindow.AltMask()->Height());
 				RFIPlots::MakeComplexPlanePlot(plot, fitter.Background(), x, length, y, avgSize, mask, realVersusImaginary, false);
 	
 				if(!realVersusImaginary)
@@ -298,7 +298,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 				FringeStoppingFitter fitter;
 				fitter.Initialize(data);
 				
-				fitter.SetMetaData(_msWindow.TimeFrequencyMetaData());
+				fitter.SetMetaData(_rfiGuiWindow.TimeFrequencyMetaData());
 				//fitter.PerformFringeStop();
 				fitter.SetReturnFittedValue(true);
 				if(_dynamicFringeFitButton.get_active())
@@ -311,7 +311,7 @@ void ComplexPlanePlotWindow::onPlotPressed()
 					pointSet = &plot.StartLine("Fit");
 				else
 					pointSet = &plot.StartLine("Fit (real)");
-				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_msWindow.AltMask()->Width(), _msWindow.AltMask()->Height());
+				Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(_rfiGuiWindow.AltMask()->Width(), _rfiGuiWindow.AltMask()->Height());
 				RFIPlots::MakeComplexPlanePlot(*pointSet, fitter.Background(), x, length, y, avgSize, mask, realVersusImaginary, false);
 	
 				if(!realVersusImaginary)
@@ -338,7 +338,7 @@ void ComplexPlanePlotWindow::setDetailsLabel()
 	size_t length = (size_t) _lengthScale.get_value();
 	size_t avgSize = (size_t) _ySumLengthScale.get_value();
 	size_t middleY = (2*y + avgSize) / 2;
-	TimeFrequencyMetaDataCPtr metaData = _msWindow.TimeFrequencyMetaData();
+	TimeFrequencyMetaDataCPtr metaData = _rfiGuiWindow.TimeFrequencyMetaData();
 
 	double timeStart = _observationTimes[x];
 	double deltaTime;

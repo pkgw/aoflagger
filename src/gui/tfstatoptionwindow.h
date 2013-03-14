@@ -36,13 +36,13 @@
 */
 class TFStatOptionWindow : public Gtk::Window {
 	public:
-		TFStatOptionWindow(class MSWindow &msWindow, const std::string &filename);
+		TFStatOptionWindow(class RFIGuiWindow &rfiGuiWindow, const std::string &filename);
 		~TFStatOptionWindow() { }
 		void onOpen();
 	private:
 		void initModeButtons();
 
-		class MSWindow &_msWindow;
+		class RFIGuiWindow &_rfiGuiWindow;
 		const std::string _filename;
 
 		Gtk::HButtonBox _bottomButtonBox;

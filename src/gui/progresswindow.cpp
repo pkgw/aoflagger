@@ -25,9 +25,9 @@
 
 #include <gtkmm/messagedialog.h>
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
-ProgressWindow::ProgressWindow(class MSWindow &parentWindow) :
+ProgressWindow::ProgressWindow(class RFIGuiWindow &parentWindow) :
 	_currentTaskTitleLabel("Current task:"),
 	_currentTaskLabel("-"),
 	_timeElapsedTitleLabel("Time elapsed:"),

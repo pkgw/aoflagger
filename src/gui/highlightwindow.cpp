@@ -21,12 +21,12 @@
 
 #include "../strategy/algorithms/thresholdconfig.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
 #include <iostream>
 
-HighlightWindow::HighlightWindow(MSWindow &msWindow) :
-	_msWindow(msWindow),
+HighlightWindow::HighlightWindow(RFIGuiWindow &rfiGuiWindow) :
+	_rfiGuiWindow(rfiGuiWindow),
 	_highlightThresholdHighScale(0.0, 1.0, 0.001),
 	_highlightThresholdLowScale(-0.005, 0.005, 0.00001),
 	_connectedCountScale(1.0, 64.0, 1.0),
@@ -63,7 +63,7 @@ HighlightWindow::HighlightWindow(MSWindow &msWindow) :
 	_mainBox.pack_start(_highlightButton, false, true);
 	_highlightButton.show();
 
-	_max = _msWindow.GetActiveData().GetSingleImage()->GetMaximum();
+	_max = _rfiGuiWindow.GetActiveData().GetSingleImage()->GetMaximum();
 
 	add(_mainBox);
 	_mainBox.show();
@@ -82,16 +82,16 @@ void HighlightWindow::onValueChange()
 	// make it exponential and between [0,1]
 	val = powl(2.0L, val) / (4096.0L);
 
-	_msWindow.HighlightConfig().InitializeThresholdsFromFirstThreshold(val*_max, ThresholdConfig::Gaussian);
-	_msWindow.HighlightConfig().SetMinimumConnectedSamples((size_t) round(_connectedCountScale.get_value()));
+	_rfiGuiWindow.HighlightConfig().InitializeThresholdsFromFirstThreshold(val*_max, ThresholdConfig::Gaussian);
+	_rfiGuiWindow.HighlightConfig().SetMinimumConnectedSamples((size_t) round(_connectedCountScale.get_value()));
 	if(_highlightButton.get_active())
-		_msWindow.Update();
+		_rfiGuiWindow.Update();
 	else
 		_highlightButton.set_active(true);
 }
 
 void HighlightWindow::onHighlightingToggled()
 {
-	_msWindow.SetHighlighting(_highlightButton.get_active());
-	_msWindow.Update();
+	_rfiGuiWindow.SetHighlighting(_highlightButton.get_active());
+	_rfiGuiWindow.Update();
 }

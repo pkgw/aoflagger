@@ -25,14 +25,14 @@
 
 #include "../strategy/imagesets/msimageset.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 
 
-GoToWindow::GoToWindow(MSWindow &msWindow) : Gtk::Window(),
+GoToWindow::GoToWindow(RFIGuiWindow &rfiGuiWindow) : Gtk::Window(),
 	_antenna1Frame("Antenna 1"), _antenna2Frame("Antenna 2"), _bandFrame("Band"),
 	_loadButton("Load"),
-	_msWindow(msWindow),
-	_imageSet(&dynamic_cast<rfiStrategy::MSImageSet&>(msWindow.GetImageSet()))
+	_rfiGuiWindow(rfiGuiWindow),
+	_imageSet(&dynamic_cast<rfiStrategy::MSImageSet&>(rfiGuiWindow.GetImageSet()))
 {
 	_antennaeStore = Gtk::ListStore::create(_antennaModelColumns);
 	_bandStore = Gtk::ListStore::create(_bandModelColumns);
@@ -41,7 +41,7 @@ GoToWindow::GoToWindow(MSWindow &msWindow) : Gtk::Window(),
 		_imageSet->Baselines();
 
 	const rfiStrategy::MSImageSetIndex &setIndex =
-		static_cast<rfiStrategy::MSImageSetIndex&>(_msWindow.GetImageSetIndex());
+		static_cast<rfiStrategy::MSImageSetIndex&>(_rfiGuiWindow.GetImageSetIndex());
 	const unsigned antenna1Index = _imageSet->GetAntenna1(setIndex);
 	const unsigned antenna2Index = _imageSet->GetAntenna2(setIndex);
 	const unsigned bandIndex = _imageSet->GetBand(setIndex);
@@ -163,7 +163,7 @@ void GoToWindow::onLoadClicked()
 		size_t a1Index = a1Row[_antennaModelColumns.antennaIndex];
 		size_t a2Index = a2Row[_antennaModelColumns.antennaIndex];
 		size_t bIndex = bRow[_bandModelColumns.bandIndex];
-		_msWindow.SetImageSetIndex(_imageSet->Index(a1Index, a2Index, bIndex));
+		_rfiGuiWindow.SetImageSetIndex(_imageSet->Index(a1Index, a2Index, bIndex));
 		hide();
 	}
 }

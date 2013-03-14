@@ -23,7 +23,7 @@
 /**
 	@author A.R. Offringa <offringa@astro.rug.nl>
 */
-class Application{
+class Application {
 	public:
 		Application();
 		~Application();

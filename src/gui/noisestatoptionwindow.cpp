@@ -22,12 +22,12 @@
 
 #include "../strategy/imagesets/noisestatimageset.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 #include "noisestatoptionwindow.h"
 
-NoiseStatOptionWindow::NoiseStatOptionWindow(MSWindow &msWindow, const std::string &filename) :
+NoiseStatOptionWindow::NoiseStatOptionWindow(RFIGuiWindow &rfiGuiWindow, const std::string &filename) :
 	Gtk::Window(),
-	_msWindow(msWindow),
+	_rfiGuiWindow(rfiGuiWindow),
 	_filename(filename),
 	_openButton("Open"),
 	_modeFrame("What to read"),
@@ -88,7 +88,7 @@ void NoiseStatOptionWindow::onOpen()
 			imageSet->SetMode(rfiStrategy::NoiseStatImageSet::VarianceOfVariance);
 		imageSet->Initialize();
 	
-		_msWindow.SetImageSet(imageSet);
+		_rfiGuiWindow.SetImageSet(imageSet);
 	} catch(std::exception &e)
 	{
 		Gtk::MessageDialog dialog(*this, e.what(), false, Gtk::MESSAGE_ERROR);

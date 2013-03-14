@@ -22,12 +22,12 @@
 
 #include "../strategy/imagesets/timefrequencystatimageset.h"
 
-#include "mswindow.h"
+#include "rfiguiwindow.h"
 #include "tfstatoptionwindow.h"
 
-TFStatOptionWindow::TFStatOptionWindow(MSWindow &msWindow, const std::string &filename) :
+TFStatOptionWindow::TFStatOptionWindow(RFIGuiWindow &rfiGuiWindow, const std::string &filename) :
 	Gtk::Window(),
-	_msWindow(msWindow),
+	_rfiGuiWindow(rfiGuiWindow),
 	_filename(filename),
 	_openButton("Open"),
 	_modeFrame("What to read"),
@@ -96,7 +96,7 @@ void TFStatOptionWindow::onOpen()
 			imageSet->SetMode(rfiStrategy::TimeFrequencyStatImageSet::NonRFIAmplitude);
 		imageSet->Initialize();
 	
-		_msWindow.SetImageSet(imageSet);
+		_rfiGuiWindow.SetImageSet(imageSet);
 	} catch(std::exception &e)
 	{
 		Gtk::MessageDialog dialog(*this, e.what(), false, Gtk::MESSAGE_ERROR);

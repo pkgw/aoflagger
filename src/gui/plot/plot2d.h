@@ -153,10 +153,12 @@ class Plot2D : public Plotable {
 		bool ShowAxisDescriptions() const {
 			return _showAxisDescriptions;
 		}
-		void SetTitle(const std::string &title) { }
+		void SetTitle(const std::string &title) { _title = title; }
 		void SavePdf(const std::string &filename);
 		void SaveSvg(const std::string &filename);
 		void SavePng(const std::string &filename);
+		
+		const std::string &Title() const { return _title; }
 	private:
 		void render(Cairo::RefPtr<Cairo::Context> cr);
 		void render(Cairo::RefPtr<Cairo::Context> cr, Plot2DPointSet &pointSet);
@@ -170,6 +172,7 @@ class Plot2D : public Plotable {
 		bool _logarithmicYAxis, _showAxes, _showAxisDescriptions;
 		double _specifiedMinY, _specifiedMaxY;
 		enum RangeDetermination _vRangeDetermination;
+		std::string _title;
 };
 
 #endif
