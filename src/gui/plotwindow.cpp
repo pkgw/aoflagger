@@ -12,7 +12,7 @@ PlotWindow::PlotWindow(PlotManager &plotManager) :
 	_plotListStore = Gtk::ListStore::create(_plotListColumns);
 	_plotListView.set_model(_plotListStore);
 	_plotListView.append_column("Title", _plotListColumns._name);
-	_hBox.pack_end(_plotListView, false, false);
+	_hBox.pack_end(_plotListView, false, false, 3);
 	
 	add(_hBox);
 	_hBox.show_all();

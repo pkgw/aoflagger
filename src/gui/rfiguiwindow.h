@@ -40,7 +40,6 @@
 #include "../strategy/control/types.h"
 
 #include "plot/plotwidget.h"
-#include "plot/plotmanager.h"
 
 #include "plotframe.h"
 #include "imagecomparisonwidget.h"
@@ -245,6 +244,8 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		
 		void onControllerStateChange();
 		
+		class RFIGuiController *_controller;
+		
 		Gtk::VBox _mainVBox;
 		Gtk::VPaned _panedArea;
 		ImageComparisonWidget _timeFrequencyWidget;
@@ -281,10 +282,7 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		class SpatialMatrixMetaData *_spatialMetaData;
 		std::vector<double> _horProfile, _vertProfile;
 		TimeFrequencyData _storedData;
-		PlotManager _plotManager;
 		class PlotWindow *_plotWindow;
-		
-		boost::scoped_ptr<class RFIGuiController> _controller;
 };
 
 #endif

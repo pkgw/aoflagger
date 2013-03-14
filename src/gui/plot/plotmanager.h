@@ -33,6 +33,7 @@ class PlotManager
 		Plot2D &NewPlot2D(const std::string &plotName)
 		{
 			Plot2D *plot = new Plot2D();
+			plot->SetTitle(plotName);
 			_items.push_back(plot);
 			return *plot;
 		}

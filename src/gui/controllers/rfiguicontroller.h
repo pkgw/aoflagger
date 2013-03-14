@@ -3,10 +3,14 @@
 
 #include <sigc++/signal.h>
 
+#include "../../msio/timefrequencydata.h"
+#include "../../msio/timefrequencymetadata.h"
+
 class RFIGuiController
 {
 	public:
 		RFIGuiController(class RFIGuiWindow &rfiGuiWindow);
+		~RFIGuiController();
 		
 		bool AreOriginalFlagsShown() const { return _showOriginalFlags; }
 		void SetShowOriginalFlags(bool showFlags) {
@@ -49,6 +53,12 @@ class RFIGuiController
 		
 		bool IsImageLoaded() const;
 		
+		TimeFrequencyData ActiveData() const;
+		
+		TimeFrequencyMetaDataCPtr MetaData() const;
+		
+		class PlotManager &PlotManager() { return *_plotManager; }
+		
 	private:
 		void plotMeanSpectrum(bool weight);
 		
@@ -56,6 +66,8 @@ class RFIGuiController
 		
 		sigc::signal<void> _signalStateChange;
 		class RFIGuiWindow &_rfiGuiWindow;
+		
+		class PlotManager *_plotManager;
 };
 
 #endif
