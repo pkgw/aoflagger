@@ -327,12 +327,13 @@ namespace rfiStrategy {
 		BandInfo bandInfo;
 		for(int i=1;i<=_file->GetRowCount();++i)
 		{
-			long double freqSel, ifFreq[numberIfs], chWidth[numberIfs], totalBandwidth[numberIfs], sideband[numberIfs];
+			long double freqSel;
+			std::vector<long double> ifFreq(numberIfs), chWidth(numberIfs), totalBandwidth(numberIfs), sideband(numberIfs);
 			_file->ReadTableCell(i, 1, &freqSel, 1);
-			_file->ReadTableCell(i, 2, ifFreq, numberIfs);
-			_file->ReadTableCell(i, 3, chWidth, numberIfs);
-			_file->ReadTableCell(i, 4, totalBandwidth, numberIfs);
-			_file->ReadTableCell(i, 5, sideband, numberIfs);
+			_file->ReadTableCell(i, 2, &ifFreq[0], numberIfs);
+			_file->ReadTableCell(i, 3, &chWidth[0], numberIfs);
+			_file->ReadTableCell(i, 4, &totalBandwidth[0], numberIfs);
+			_file->ReadTableCell(i, 5, &sideband[0], numberIfs);
 			for(size_t b=0;b<numberIfs;++b)
 			{
 				for(size_t channel=0;channel<data.ImageHeight();++channel)
@@ -386,8 +387,8 @@ namespace rfiStrategy {
 			
 		const int totalSize = _file->GetTableColumnArraySize(dataColumn);
 		AOLogger::Debug << "Shape of data cells: " << freqCount << " channels x " << polarizationCount << " pols x " << raCount << " RAs x " << decCount << " decs" << "=" << totalSize << '\n';
-		long double cellData[totalSize];
-		bool flagData[totalSize];
+		std::vector<long double> cellData(totalSize);
+		bool *flagData = new bool[totalSize];
 		std::vector<Image2DPtr> images(polarizationCount);
 		std::vector<Mask2DPtr> masks(polarizationCount);
 		for(int i=0;i<polarizationCount;++i)
@@ -407,8 +408,8 @@ namespace rfiStrategy {
 			{
 				_file->ReadTableCell(row, timeColumn, &time, 1);
 				_file->ReadTableCell(row, dateObsColumn, &date, 1);
-				_file->ReadTableCell(row, dataColumn, cellData, totalSize);
-				_file->ReadTableCell(row, flagColumn, flagData, totalSize);
+				_file->ReadTableCell(row, dataColumn, &cellData[0], totalSize);
+				_file->ReadTableCell(row, flagColumn, &flagData[0], totalSize);
 			
 				observationTimes[timeIndex] = time;
 				
@@ -439,7 +440,7 @@ namespace rfiStrategy {
 					}
 				}
 
-				long double *dataPtr = cellData;
+				long double *dataPtr = &cellData[0];
 				bool *flagPtr = flagData;
 				for(int p=0;p<polarizationCount;++p)
 				{
@@ -455,6 +456,7 @@ namespace rfiStrategy {
 			}
 			if(ifNumber > _bandCount) _bandCount = ifNumber;
 		}
+		delete[] flagData;
 		for(int p=0;p<polarizationCount;++p)
 		{
 			images[p]->SetTrim(0, 0, timeIndex, images[p]->Height());
@@ -507,8 +509,8 @@ namespace rfiStrategy {
 			
 		const int totalSize = _file->GetTableColumnArraySize(dataColumn);
 		const int rowCount = _file->GetRowCount();
-		double cellData[totalSize];
-		bool flagData[totalSize];
+		std::vector<double> cellData(totalSize);
+		bool *flagData = new bool[totalSize];
 		std::vector<Mask2DCPtr> storedFlags = flags;
 		if(flags.size()==1)
 		{
@@ -534,8 +536,8 @@ namespace rfiStrategy {
 			if(ifNumber == ifIndex+1)
 			{
 				AOLogger::Debug << row << "\n";
-				_file->ReadTableCell(row, dataColumn, cellData, totalSize);
-				double *dataPtr = cellData;
+				_file->ReadTableCell(row, dataColumn, &cellData[0], totalSize);
+				double *dataPtr = &cellData[0];
 				bool *flagPtr = flagData;
 				
 				for(int p=0;p<polarizationCount;++p)
@@ -554,11 +556,12 @@ namespace rfiStrategy {
 					}
 				}
 				
-				_file->WriteTableCell(row, dataColumn, cellData, totalSize);
+				_file->WriteTableCell(row, dataColumn, &cellData[0], totalSize);
 				_file->WriteTableCell(row, flagColumn, flagData, totalSize);
 				++timeIndex;
 			}
 		}
+		delete[] flagData;
 	}
 	
 	void FitsImageSetIndex::Previous()

@@ -50,9 +50,9 @@ std::pair<TimeFrequencyData, TimeFrequencyMetaDataCPtr> BaselinePlotPage::Constr
 		
 		const unsigned antennaCount = _statCollection->BaselineStatistics().AntennaCount();
 
-		Image2DPtr realImages[polarizationCount];
-		Image2DPtr imagImages[polarizationCount];
-		Mask2DPtr mask[polarizationCount];
+		std::vector<Image2DPtr> realImages(polarizationCount);
+		std::vector<Image2DPtr> imagImages(polarizationCount);
+		std::vector<Mask2DPtr> mask(polarizationCount);
 		for(unsigned p=0;p<polarizationCount;++p)
 		{
 			realImages[p] = Image2D::CreateUnsetImagePtr(antennaCount, antennaCount);

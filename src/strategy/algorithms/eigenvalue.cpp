@@ -2,6 +2,7 @@
 #include "eigenvalue.h"
 
 #include <stdexcept>
+#include <vector>
 
 // Needs to be included LAST
 #include "../../f2c.h"
@@ -37,7 +38,7 @@ double Eigenvalue::Compute(Image2DCPtr real, Image2DCPtr imaginary)
 	long int il = n, iu = n; // search for nth eigenvalue
 	double abtol = 0.0;
 	long int nfound = 0;
-	double w[n];
+	std::vector<double> w(n);
 	doublecomplex z; // for eigenvectors, not used
 	long int ldz = 1; // for eigenvectors, not used
 	long int ifail = 0;
@@ -57,7 +58,7 @@ double Eigenvalue::Compute(Image2DCPtr real, Image2DCPtr imaginary)
 	integer *iwork = new integer[5*n];
 
 	// Determine optimal workareasize
-	zheevx_(jobz, range, uplo, &n, a, &lda, &vl, &vu, &il, &iu, &abtol, &nfound, w, &z, &ldz, &complexWorkAreaSize, &workAreaSize, rwork, iwork, &ifail, &info);
+	zheevx_(jobz, range, uplo, &n, a, &lda, &vl, &vu, &il, &iu, &abtol, &nfound, &w[0], &z, &ldz, &complexWorkAreaSize, &workAreaSize, rwork, iwork, &ifail, &info);
 	
 	if(info != 0)
 	{
@@ -69,7 +70,7 @@ double Eigenvalue::Compute(Image2DCPtr real, Image2DCPtr imaginary)
 	
 	workAreaSize = (int) complexWorkAreaSize.r;
 	doublecomplex *work = new doublecomplex[workAreaSize];
-	zheevx_(jobz, range, uplo, &n, a, &lda, &vl, &vu, &il, &iu, &abtol, &nfound, w, &z, &ldz, work, &workAreaSize, rwork, iwork, &ifail, &info);
+	zheevx_(jobz, range, uplo, &n, a, &lda, &vl, &vu, &il, &iu, &abtol, &nfound, &w[0], &z, &ldz, work, &workAreaSize, rwork, iwork, &ifail, &info);
 	
 	delete[] work;
 	delete[] a;
@@ -92,7 +93,7 @@ void Eigenvalue::Remove(Image2DPtr real, Image2DPtr imaginary, bool debug)
 	char uplo[] = "U";  // Upper triangle of A is stored
 	long int n = real->Width();
 	long int lda = n;
-	double w[n];
+	std::vector<double> w(n);
 	long int info = 0;
 	
 	doublecomplex *a = new doublecomplex[n * n];
@@ -108,7 +109,7 @@ void Eigenvalue::Remove(Image2DPtr real, Image2DPtr imaginary, bool debug)
 	doublereal *rwork = new doublereal[7*n];
 
 	// Determine optimal workareasize
-	zheev_(jobz, uplo, &n, a, &lda, w, &complexWorkAreaSize, &workAreaSize, rwork, &info);
+	zheev_(jobz, uplo, &n, a, &lda, &w[0], &complexWorkAreaSize, &workAreaSize, rwork, &info);
 	
 	if(info != 0)
 	{
@@ -119,7 +120,7 @@ void Eigenvalue::Remove(Image2DPtr real, Image2DPtr imaginary, bool debug)
 	
 	workAreaSize = (int) complexWorkAreaSize.r;
 	doublecomplex *work = new doublecomplex[workAreaSize];
-	zheev_(jobz, uplo, &n, a, &lda, w, work, &workAreaSize, rwork, &info);
+	zheev_(jobz, uplo, &n, a, &lda, &w[0], work, &workAreaSize, rwork, &info);
 	
 	delete[] work;
 	delete[] rwork;

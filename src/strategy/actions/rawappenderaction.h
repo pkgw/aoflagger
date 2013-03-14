@@ -27,6 +27,7 @@
 #include "../../msio/rawreader.h"
 
 #include <string>
+#include <vector>
 
 namespace rfiStrategy {
 
@@ -63,12 +64,12 @@ namespace rfiStrategy {
 					_rawWriter->StartWrite();
 					_firstWrite = false;
 				}
-				float buffer[image->Height()];
+				std::vector<float> buffer(image->Height());
 				for(unsigned x=0;x<image->Width();++x)
 				{
 					for(unsigned y=0;y<image->Height();++y)
 						buffer[y] = image->Value(x, y);
-					_rawWriter->Write(buffer, 1);
+					_rawWriter->Write(&buffer[0], 1);
 				}
 			}
 			virtual ActionType Type() const { return RawAppenderActionType; }

@@ -149,40 +149,6 @@ class SIROperator
 			operateHorizontally<XYSwappedMask2D>(swappedMask, eta);
 		}
 		
-		/**
-		 * This is an experimental algorithm that might be slightly faster than
-		 * the original algorithm. Jasper van de Gronde is preparing an article about it.
-		 * @param [in,out] flags The input array of flags to be dilated that will be overwritten
-		 * by the dilatation of itself.
-		 * @param [in] flagsSize Size of the @c flags array.
-		 * @param [in] eta The η parameter that specifies the minimum number of good data
-		 * that any subsequence should have (see class description for the definition).
-		 */
-		static void Operate2PassAlgorithm(bool *flags, const size_t flagsSize, num_t eta)
-		{
-			bool temp[flagsSize];
-			num_t credit = 0.0;
-			for(size_t i=0; i<flagsSize; ++i)
-			{
-				// credit ← max(0, credit) + w(f [i])
-				const num_t w = flags[i] ? eta : eta-1.0;
-				const num_t maxcredit0 = credit > 0.0 ? credit : 0.0;
-				credit = maxcredit0 + w;
-				temp[i] = (credit >= 0.0);
-			}
-			
-			// The same iteration, but now backwards
-			credit = 0.0;
-			size_t i = flagsSize;
-			while(i > 0)
-			{
-				--i;
-				const num_t w = flags[i] ? eta : eta-1.0;
-				const num_t maxcredit0 = credit > 0.0 ? credit : 0.0;
-				credit = maxcredit0 + w;
-				flags[i] = (credit >= 0.0) || temp[i];
-			}
-		}
 	private:
 		SIROperator() { }
 

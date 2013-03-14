@@ -117,7 +117,8 @@ void actionCollect(const std::string &filename, enum CollectingMode mode, Statis
 	std::cout << "Collecting statistics..." << std::endl;
 	
 	size_t channelCount = bands[0].channels.size();
-	bool correlatorFlags[channelCount], correlatorFlagsForBadAntenna[channelCount];
+	bool *correlatorFlags = new bool[channelCount];
+	bool *correlatorFlagsForBadAntenna = new bool[channelCount];
 	for(size_t ch=0; ch!=channelCount; ++ch)
 	{
 		correlatorFlags[ch] = false;
@@ -160,8 +161,8 @@ void actionCollect(const std::string &filename, enum CollectingMode mode, Statis
 		const casa::Array<casa::Complex> dataArray = dataColumn(row);
 		const casa::Array<bool> flagArray = flagColumn(row);
 		
-		std::complex<float> *samples[polarizationCount];
-		bool *isRFI[polarizationCount];
+		std::vector<std::complex<float>* > samples(polarizationCount);
+		bool **isRFI = new bool*[polarizationCount];
 		for(unsigned p = 0; p < polarizationCount; ++p)
 		{
 			isRFI[p] = new bool[band.channels.size()];
@@ -215,6 +216,9 @@ void actionCollect(const std::string &filename, enum CollectingMode mode, Statis
 			delete[] isRFI[p];
 			delete[] samples[p];
 		}
+		delete[] isRFI;
+		delete[] correlatorFlags;
+		delete[] correlatorFlagsForBadAntenna;
 		
 		reportProgress(row, nrow);
 	}
@@ -549,18 +553,18 @@ void actionHistogram(const std::string &filename, const std::string &query, bool
 		actionCollectHistogram(filename, collection, mwaChannels, 0, std::set<size_t>());
 		MeasurementSet set(filename);
 		size_t antennaCount = set.AntennaCount();
-		AntennaInfo antennae[antennaCount];
+		std::vector<AntennaInfo> antennae(antennaCount);
 		for(size_t a=0;a<antennaCount;++a)
 			antennae[a] = set.GetAntennaInfo(a);
 		
 		HistogramCollection *summedCollection = collection.CreateSummedPolarizationCollection();
 		const std::map<HistogramCollection::AntennaPair, LogHistogram*> &histogramMap = summedCollection->GetRFIHistogram(0);
-		printRFISlopeForHistogram(histogramMap, '*', antennae);
+		printRFISlopeForHistogram(histogramMap, '*', &antennae[0]);
 		delete summedCollection;
 		for(unsigned p=0;p<polarizationCount;++p)
 		{
 			const std::map<HistogramCollection::AntennaPair, LogHistogram*> &histogramMap = collection.GetRFIHistogram(p);
-			printRFISlopeForHistogram(histogramMap, '0' + p, antennae);
+			printRFISlopeForHistogram(histogramMap, '0' + p, &antennae[0]);
 		}
 	} else if(query == "remove")
 	{

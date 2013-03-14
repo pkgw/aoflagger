@@ -2,6 +2,7 @@
 #define VERTEVD_H
 
 #include <cmath>
+#include <vector>
 
 #include "../../msio/timefrequencydata.h"
 
@@ -63,7 +64,7 @@ class VertEVD
 	private:
 		static void performIntegrated(const unsigned n, Image2DCPtr real, Image2DCPtr imaginary, Image2DPtr realMatrix, Image2DPtr imaginaryMatrix, Image2DPtr outReal, Image2DPtr outImaginary)
 		{
-			double diagonal[n];
+			std::vector<double> diagonal(n);
 			for(unsigned i=0;i<n;++i)
 				diagonal[i] = 0.0;
 
@@ -132,7 +133,7 @@ class VertEVD
 		
 		static void performOnEachTimestep(const unsigned n, const unsigned t, Image2DCPtr real, Image2DCPtr imaginary, Image2DPtr realMatrix, Image2DPtr imaginaryMatrix, Image2DPtr outReal, Image2DPtr outImaginary)
 		{
-			double diagonal[n];
+			std::vector<double> diagonal(n);
 			for(unsigned i=0;i<n;++i)
 				diagonal[i] = 0.0;
 			

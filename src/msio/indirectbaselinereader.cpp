@@ -22,6 +22,7 @@
 #include <fstream>
 #include <set>
 #include <stdexcept>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 
@@ -95,11 +96,11 @@ void IndirectBaselineReader::PerformReadRequests()
 		const size_t bufferSize = FrequencyCount() * PolarizationCount();
 		for(size_t x=0;x<width;++x)
 		{
-			float dataBuffer[bufferSize*2];
-			bool flagBuffer[bufferSize];
-			dataFile.read((char *) dataBuffer, bufferSize * sizeof(float) * 2);
+			std::vector<float> dataBuffer(bufferSize*2);
+			std::vector<char> flagBuffer(bufferSize);
+			dataFile.read((char *) &dataBuffer[0], bufferSize * sizeof(float) * 2);
 			size_t dataBufferPtr = 0;
-			flagFile.read((char *) flagBuffer, bufferSize * sizeof(bool));
+			flagFile.read((char *) &flagBuffer[0], bufferSize * sizeof(char));
 			size_t flagBufferPtr = 0;
 			for(size_t f=0;f<FrequencyCount();++f) {
 				for(size_t p=0;p<PolarizationCount();++p)
@@ -372,7 +373,7 @@ void IndirectBaselineReader::PerformDataWriteTask(std::vector<Image2DCPtr> _real
 		
 	for(size_t x=0;x<width;++x)
 	{
-		float dataBuffer[bufferSize*2];
+		std::vector<float> dataBuffer(bufferSize*2);
 		
 		size_t dataBufferPtr = 0;
 		for(size_t f=0;f<FrequencyCount();++f) {
@@ -385,7 +386,7 @@ void IndirectBaselineReader::PerformDataWriteTask(std::vector<Image2DCPtr> _real
 			}
 		}
 
-		dataFile.write(reinterpret_cast<char*>(dataBuffer), bufferSize * sizeof(float) * 2);
+		dataFile.write(reinterpret_cast<char*>(&dataBuffer[0]), bufferSize * sizeof(float) * 2);
 		if(dataFile.bad())
 			throw std::runtime_error("Error: failed to update temporary data files! Check access rights and free disk space.");
 	}
@@ -418,9 +419,10 @@ void IndirectBaselineReader::performFlagWriteTask(std::vector<Mask2DCPtr> flags,
 	const std::string flagFilename = FlagFilename(antenna1, antenna2);
 	std::ofstream flagFile(flagFilename.c_str(), std::ofstream::binary | std::ofstream::trunc);
 	
+	bool *flagBuffer = new bool[bufferSize];
 	for(size_t x=0;x<width;++x)
 	{
-		bool flagBuffer[bufferSize];
+		
 		
 		size_t flagBufferPtr = 0;
 		for(size_t f=0;f<FrequencyCount();++f) {
@@ -435,6 +437,7 @@ void IndirectBaselineReader::performFlagWriteTask(std::vector<Mask2DCPtr> flags,
 		if(flagFile.bad())
 			throw std::runtime_error("Error: failed to update temporary flag files! Check access rights and free disk space.");
 	}
+	delete[] flagBuffer;
 	
 	_reorderedFlagFilesHaveChanged = true;
 }

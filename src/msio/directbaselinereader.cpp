@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include "directbaselinereader.h"
 
+#include <vector>
 #include <set>
 #include <stdexcept>
 
@@ -378,7 +379,7 @@ void DirectBaselineReader::readWeights(size_t requestIndex, size_t xOffset, int 
 	size_t polarizationCount = PolarizationCount();
 
 	casa::Array<float>::const_iterator j = weight.begin();
-	float values[polarizationCount];
+	std::vector<float> values(polarizationCount);
 	for(size_t p=0;p<polarizationCount;++p) {
 		values[p] = *j;
 		++j;

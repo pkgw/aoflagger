@@ -95,13 +95,13 @@ void Compress::WriteSubtractFrequencies(std::ofstream &stream, Image2DCPtr image
 	stream.write(reinterpret_cast<const char*>(&height), sizeof(height));
 	stream.write(&mode, sizeof(mode));
 
-	int32_t basis[width];
+	std::vector<int32_t> basis(width);
 	for(size_t x=0;x<width;++x)
 	{
 		SampleRowPtr row = SampleRow::CreateFromColumn(image, x);
 		basis[x] = (int32_t) round(row->Median() * normalizeFactor);
 	}
-	stream.write(reinterpret_cast<char*>(basis), sizeof(basis));
+	stream.write(reinterpret_cast<char*>(&basis[0]), sizeof(basis));
 
 	for(unsigned y=0;y<height;++y)
 	{

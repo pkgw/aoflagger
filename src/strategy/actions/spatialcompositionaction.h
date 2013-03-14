@@ -33,7 +33,7 @@ namespace rfiStrategy {
 		public:
 			enum Operation { SumCrossCorrelationsOperation, SumAutoCorrelationsOperation, EigenvalueDecompositionOperation, EigenvalueRemovalOperation } ;
 
-			SpatialCompositionAction() : _operation(EigenvalueDecompositionOperation), _eigenValueIndex(0)
+			SpatialCompositionAction() : _operation(EigenvalueDecompositionOperation)
 			{
 			}
 			virtual ~SpatialCompositionAction()
@@ -62,7 +62,6 @@ namespace rfiStrategy {
 			void SetOperation(enum Operation operation) { _operation = operation; }
 		private:
 			enum Operation _operation;
-			size_t _eigenValueIndex;
 
 			num_t sumCrossCorrelations(Image2DCPtr image) const;
 			num_t sumAutoCorrelations(Image2DCPtr image) const;

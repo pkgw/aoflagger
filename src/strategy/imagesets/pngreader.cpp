@@ -31,7 +31,6 @@ rfiStrategy::BaselineData* rfiStrategy::PngReader::Read()
 	unsigned bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 	AOLogger::Debug << "Png file: " << width << 'x' << height << " colortype=" << color_type << ", bit_depth=" << bit_depth << '\n';
 
-	unsigned number_of_passes = png_set_interlace_handling(png_ptr);
 	png_read_update_info(png_ptr, info_ptr);
 
 	/* read file */

@@ -125,8 +125,8 @@ inline void NoiseStatisticsTest::TestInitialization::operator()()
 	
 	// Test copy constructor
 	NoiseStatistics copy(statistics);
-	AssertValues(statistics, this, 1, 1.0, 1.0, 1.0, 1.0);
-	AssertRunnable(statistics);
+	AssertValues(copy, this, 1, 1.0, 1.0, 1.0, 1.0);
+	AssertRunnable(copy);
 }
 
 inline void NoiseStatisticsTest::TestCalculations::operator()()

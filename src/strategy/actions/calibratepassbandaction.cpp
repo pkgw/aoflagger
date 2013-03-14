@@ -11,7 +11,7 @@ namespace rfiStrategy {
 	void CalibratePassbandAction::calibrate(TimeFrequencyData& data) const
 	{
 		const size_t height = data.ImageHeight();
-		num_t stddev[_steps];
+		std::vector<num_t> stddev(_steps);
 		for(size_t step=0; step!=_steps; ++step)
 		{
 			const size_t startY = step*height/_steps, endY = (step+1)*height/_steps;

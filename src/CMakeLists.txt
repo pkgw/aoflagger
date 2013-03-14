@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DNDEBUG -funroll-loops -O3")
 include(CheckCXXCompilerFlag)
 
 CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
-CHECK_CXX_COMPILER_FLAG("-pedantic -Wno-long-long" COMPILER_SUPPORTS_PEDANTIC)
+CHECK_CXX_COMPILER_FLAG("-pedantic -Wno-long-long -Werror=vla" COMPILER_SUPPORTS_PEDANTIC)
 
 # -march=native speeds up the flagger with about 6% - 7%, but is not supported prior gcc 4.2.
 # Hence, only enable it if it is supported.
@@ -24,7 +24,7 @@ else()
 endif(COMPILER_SUPPORTS_MARCH_NATIVE)
 
 if(COMPILER_SUPPORTS_PEDANTIC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wno-long-long")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wno-long-long -Werror=vla")
 endif(COMPILER_SUPPORTS_PEDANTIC)
 
 include(CheckIncludeFileCXX)

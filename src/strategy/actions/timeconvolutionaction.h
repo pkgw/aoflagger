@@ -372,18 +372,19 @@ private:
 
 				iterData.maxDist = 0.0;
 
+				std::vector<numl_t>
+					rowRValues(width), rowIValues(width),
+					rowUPositions(width), rowVPositions(width);
 				numl_t
-					rowRValues[width], rowIValues[width],
-					rowUPositions[width], rowVPositions[width],
 					yL = (yEnd - yStart);
 
 				// We average all values returned by Project() over yStart to yEnd
 				for(size_t y=yStart;y<yEnd;++y)
 				{
-					UVProjection::ProjectPositions(iterData.artifacts->MetaData(), width, y, rowUPositions, rowVPositions, _directionRad);
+					UVProjection::ProjectPositions(iterData.artifacts->MetaData(), width, y, &rowUPositions[0], &rowVPositions[0], _directionRad);
 					
-					UVProjection::Project(real, y, rowRValues, false);
-					UVProjection::Project(imaginary, y, rowIValues, true);
+					UVProjection::Project(real, y, &rowRValues[0], false);
+					UVProjection::Project(imaginary, y, &rowIValues[0], true);
 
 					for(size_t x=0;x<width;++x)
 					{

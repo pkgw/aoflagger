@@ -33,6 +33,8 @@
 #include "../quality/statisticscollection.h"
 #include "../quality/histogramcollection.h"
 
+#include <vector>
+
 namespace aoRemote
 {
 
@@ -74,10 +76,10 @@ void ServerConnection::onReceiveInitialResponse()
 	if(initialResponse.hostNameSize == 0 || initialResponse.hostNameSize > 65536)
 		throw std::runtime_error("Client did not send proper hostname");
 	
-	char hostname[initialResponse.hostNameSize + 1];
-	boost::asio::read(_socket, boost::asio::buffer(hostname, initialResponse.hostNameSize));
+	std::vector<char> hostname(initialResponse.hostNameSize + 1);
+	boost::asio::read(_socket, boost::asio::buffer(&hostname[0], initialResponse.hostNameSize));
 	hostname[initialResponse.hostNameSize] = 0;
-	_hostname = hostname;
+	_hostname = std::string(&hostname[0]);
 	
 	_onAwaitingCommand(shared_from_this());
 }
@@ -257,10 +259,10 @@ void ServerConnection::handleError(const GenericReadResponseHeader &header)
 	s << "Client reported \"" << ErrorStr::GetStr(header.errorCode) << '\"';
 	if(header.dataSize > 0)
 	{
-		char message[header.dataSize+1];
-		boost::asio::read(_socket, boost::asio::buffer(message, header.dataSize));
+		std::vector<char> message(header.dataSize+1);
+		boost::asio::read(_socket, boost::asio::buffer(&message[0], header.dataSize));
 		message[header.dataSize] = 0;
-		s << " (detailed info: " << message << ')';
+		s << " (detailed info: " << &message[0] << ')';
 	}
 	_onError(shared_from_this(), s.str());
 }

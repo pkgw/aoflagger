@@ -56,8 +56,8 @@ class RSPReader {
 
 		static void readNetworkOrder(std::ifstream &stream, char *buffer, unsigned length)
 		{
-			char swappedBuffer[length];
-			stream.read(swappedBuffer, length);
+			std::vector<char> swappedBuffer(length);
+			stream.read(&swappedBuffer[0], length);
 			for(unsigned i=0,j=length-1;i<length;++i,--j)
 				buffer[j] = swappedBuffer[i];
 		}

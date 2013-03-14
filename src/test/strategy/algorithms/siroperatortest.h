@@ -34,7 +34,6 @@ class SIROperatorTest : public UnitTest {
 		SIROperatorTest() : UnitTest("Scale-invariant rank operator")
 		{
 			AddTest(TestThreePassAlgorithm(), "Three pass algorithm");
-			//AddTest(TestTwoPassAlgorithm(), "Two pass algorithm");
 			AddTest(TestSpeed(), "SIR operator speed");
 			AddTest(TestTimeApplication(), "Time application");
 			AddTest(TestFrequencyApplication(), "Frequency application");
@@ -48,10 +47,6 @@ class SIROperatorTest : public UnitTest {
 			inline void TestImplementation(Functor operate);
 		};
 		struct TestThreePassAlgorithm : public TestSingleApplication
-		{
-			void operator()();
-		};
-		struct TestTwoPassAlgorithm : public TestSingleApplication
 		{
 			void operator()();
 		};
@@ -123,11 +118,6 @@ class SIROperatorTest : public UnitTest {
 inline void SIROperatorTest::TestThreePassAlgorithm::operator()()
 {
 	TestImplementation(SIROperator::Operate);
-}
-
-inline void SIROperatorTest::TestTwoPassAlgorithm::operator()()
-{
-	TestImplementation(SIROperator::Operate2PassAlgorithm);
 }
 
 template<typename Functor>

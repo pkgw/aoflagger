@@ -67,8 +67,8 @@ namespace rfiStrategy {
 				std::ifstream file(_path.c_str());
 				for(size_t f=0;f<80;++f)
 				{
-					double buffer[timeStepCount];
-					file.read(reinterpret_cast<char *>(buffer), timeStepCount * sizeof(double));
+					std::vector<double> buffer(timeStepCount);
+					file.read(reinterpret_cast<char *>(&buffer[0]), timeStepCount * sizeof(double));
 					for(size_t t=0;t<timeStepCount;++t)
 					{
 						image->SetValue(t, f, buffer[t]);

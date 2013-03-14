@@ -26,6 +26,8 @@
 
 #include <ms/MeasurementSets/MeasurementSet.h>
 
+#include <vector>
+
 using namespace casa;
 
 void MemoryBaselineReader::PerformReadRequests()
@@ -287,7 +289,7 @@ void MemoryBaselineReader::writeFlags()
 		
 		Array<bool>::iterator flagPtr = flagArray.begin();
 		
-		Mask2D *masks[polarizationCount];
+		std::vector<Mask2D*> masks(polarizationCount);
 		for(size_t p=0;p!=polarizationCount;++p)
 			masks[p] = &*result->_flags[p];
 		

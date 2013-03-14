@@ -159,10 +159,10 @@ void Client::writeDataResponse(std::ostringstream &buffer)
 
 std::string Client::readStr(unsigned size)
 {
-	char data[size+1];
-	boost::asio::read(_socket, boost::asio::buffer(data, size));
+	std::vector<char> data(size+1);
+	boost::asio::read(_socket, boost::asio::buffer(&data[0], size));
 	data[size] = 0;
-	return std::string(data);
+	return std::string(&data[0]);
 }
 
 void Client::handleReadQualityTables(unsigned dataSize)

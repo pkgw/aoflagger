@@ -122,7 +122,7 @@ void workThread()
 
 void readThreadFunction(ObservationTimerange &timerange, const size_t &totalRows)
 {
-	MSRowDataExt *rowBuffer[commander->Observation().Size()];
+	std::vector<MSRowDataExt*> rowBuffer(commander->Observation().Size());
 	for(size_t i=0;i<commander->Observation().Size();++i)
 		rowBuffer[i] = new MSRowDataExt[rowCountPerRequest];
 
@@ -136,7 +136,7 @@ void readThreadFunction(ObservationTimerange &timerange, const size_t &totalRows
 		
 		boost::mutex::scoped_lock lock(commanderMutex);
 		std::cout << "Reading... " << std::flush;
-		commander->PushReadDataRowsTask(timerange, currentRow, currentRowCount, rowBuffer);
+		commander->PushReadDataRowsTask(timerange, currentRow, currentRowCount, &rowBuffer[0]);
 		commander->Run(false);
 		commander->CheckErrors();
 		std::cout << "Done.\n" << std::flush;
@@ -153,7 +153,7 @@ void readThreadFunction(ObservationTimerange &timerange, const size_t &totalRows
 void writeThreadFunction()
 {
 	const ClusteredObservation &obs = commander->Observation();
-	MSRowDataExt *rowBuffer[obs.Size()];
+	std::vector<MSRowDataExt*> rowBuffer(obs.Size());
 	for(size_t i=0;i<obs.Size();++i)
 		rowBuffer[i] = new MSRowDataExt[rowCountPerRequest];
 		
@@ -168,7 +168,7 @@ void writeThreadFunction()
 		do {
 			boost::mutex::scoped_lock lock(commanderMutex);
 			std::cout << "Writing... " << std::flush;
-			commander->PushWriteDataRowsTask(*timerange, rowBuffer);
+			commander->PushWriteDataRowsTask(*timerange, &rowBuffer[0]);
 			commander->Run(false);
 			commander->CheckErrors();
 			std::cout << "Done.\n" << std::flush;
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 		writeLane = new lane<ObservationTimerange*>(processorCount);
 		
 		// Start worker threads
-		boost::thread *threads[processorCount];
+		std::vector<boost::thread*> threads(processorCount);
 		for(size_t i=0; i<processorCount; ++i)
 		{
 			threads[i] = new boost::thread(&workThread);

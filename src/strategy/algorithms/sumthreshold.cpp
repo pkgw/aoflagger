@@ -45,7 +45,7 @@ void ThresholdMitigater::VerticalSumThresholdLargeSSE(Image2DCPtr input, Mask2DP
 			__m128i count4 = _mm_set_epi32(0, 0, 0, 0);
 			size_t yBottom;
 			
-			for(yBottom=0;yBottom<Length-1;++yBottom)
+			for(yBottom=0;yBottom+1<Length;++yBottom)
 			{
 				const bool *rowPtr = mask->ValuePtr(x, yBottom);
 				
@@ -184,7 +184,7 @@ void ThresholdMitigater::HorizontalSumThresholdLargeSSE(Image2DCPtr input, Mask2
 				*rValPtrC = input->ValuePtr(0, y+1),
 				*rValPtrD = input->ValuePtr(0, y);
 				
-			for(xRight=0;xRight<Length-1;++xRight)
+			for(xRight=0;xRight+1<Length;++xRight)
 			{
 				// Assign each integer to one bool in the mask
 				// Convert true to 0xFFFFFFFF and false to 0

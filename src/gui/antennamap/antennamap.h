@@ -53,7 +53,7 @@ class AntennaMap {
 		void SetValues(Image2DCPtr correlationMatrix, double timeInFrameSeconds)
 		{
 			unsigned count = correlationMatrix->Height();
-			double values[count];
+			std::vector<double> values(count);
 			for(unsigned i=0;i<count;++i)
 				values[i] = 0.0;
 			

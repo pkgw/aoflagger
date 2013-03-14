@@ -84,10 +84,9 @@ class SummaryPage : public Gtk::HBox {
 			unsigned long totalRFICount = 0;
 			unsigned long totalCount = 0;
 			const unsigned polarizationCount = statistics.PolarizationCount();
-			double stdDev[polarizationCount];
-			double dStdDev[polarizationCount];
-			double variance[polarizationCount];
-			double dVariance[polarizationCount];
+			std::vector<double>
+				stdDev(polarizationCount), dStdDev(polarizationCount),
+				variance(polarizationCount), dVariance(polarizationCount);
 			for(unsigned p=0;p<polarizationCount;++p)
 			{
 				totalRFICount += statistics.rfiCount[p];
@@ -103,13 +102,13 @@ class SummaryPage : public Gtk::HBox {
 			std::ostringstream s;
 			s << "Total RFI ratio = " << rfiRatioValue << "%\n";
 			s << "Standard deviation amplitude = ";
-			addValues(stdDev, polarizationCount, s);
+			addValues(&stdDev[0], polarizationCount, s);
 			s << " Jy\nDifferential stddev amplitude = ";
-			addValues(dStdDev, polarizationCount, s);
+			addValues(&dStdDev[0], polarizationCount, s);
 			s << " Jy\nVariance amplitude = ";
-			addValues(variance, polarizationCount, s);
+			addValues(&variance[0], polarizationCount, s);
 			s << " Jy\nDifferential variance amplitude = ";
-			addValues(dVariance, polarizationCount, s);
+			addValues(&dVariance[0], polarizationCount, s);
 			s << " Jy\n";
 			buffer->insert(buffer->end(), s.str());
 		}
@@ -118,8 +117,10 @@ class SummaryPage : public Gtk::HBox {
 		{
 			const BaselineStatisticsMap &map = _statCollection->BaselineStatistics();
 			std::vector<std::pair <unsigned, unsigned> > list = map.BaselineList();
-			double totalStdDev[map.PolarizationCount()], totalSNR[map.PolarizationCount()];
-			size_t count[map.PolarizationCount()];
+			std::vector<double>
+				totalStdDev(map.PolarizationCount()),
+				totalSNR(map.PolarizationCount());
+			std::vector<size_t> count(map.PolarizationCount());
 			for(size_t p=0;p<map.PolarizationCount();++p)
 			{
 				totalStdDev[p] = 0.0;
@@ -152,9 +153,9 @@ class SummaryPage : public Gtk::HBox {
 				totalSNR[p] /= (double) count[p];
 			}
 			s << "Average standard deviation = ";
-			addValues(totalStdDev, map.PolarizationCount(), s);
+			addValues(&totalStdDev[0], map.PolarizationCount(), s);
 			s << " Jy\nAverage signal to noise ratio = ";
-			addValues(totalSNR, map.PolarizationCount(), s);
+			addValues(&totalSNR[0], map.PolarizationCount(), s);
 			s << " Jy\n(calculated with BaselineMean/BaselineDStdDev)\n";
 		}
 
