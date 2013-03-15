@@ -1448,7 +1448,7 @@ void RFIStatistics::saveStations(const std::string &filename)
 	
 }
 
-long double RFIStatistics::FitScore(Image2DCPtr image, Image2DCPtr fit, Mask2DCPtr mask)
+/*long double RFIStatistics::FitScore(Image2DCPtr image, Image2DCPtr fit, Mask2DCPtr mask)
 {
 	long double summedError = 0.0L;
 	unsigned count = 0;
@@ -1469,36 +1469,7 @@ long double RFIStatistics::FitScore(Image2DCPtr image, Image2DCPtr fit, Mask2DCP
 	//long double avgError = summedError / (image->Width()*image->Height());
 	//return 1.0L/(summedError + avgError * 2.0L * (long double) count);
 	return procentData/averageError;
-}
-
-num_t RFIStatistics::DataQuality(Image2DCPtr image, Image2DCPtr model, Mask2DCPtr mask, unsigned startX, unsigned endX)
-{
-	unsigned count = 0;
-	double sum = 0;
-	for(unsigned y=0;y<image->Height();++y)
-	{
-		for(unsigned x=startX;x<endX;++x)
-		{
-			if(!mask->Value(x, y) && std::isfinite(image->Value(x, y)) && std::isfinite(model->Value(x,y)))
-			{
-				num_t noise = fabsn(image->Value(x, y) - model->Value(x, y));
-				num_t signal = fabsn(model->Value(x, y));
-				if(signal != 0.0)
-				{
-					if(noise <= 1e-50) noise = 1e-50;
-					num_t snr = logn(signal / noise);
-					sum += snr;
-
-					++count;
-				}
-			}
-		}
-	}
-	if(count == 0)
-		return 0;
-	else
-		return sum / (sqrtn(count) * sqrtn((endX-startX) * image->Height()));
-}
+}*/
 
 num_t RFIStatistics::FrequencySNR(Image2DCPtr image, Image2DCPtr model, Mask2DCPtr mask, unsigned channel)
 {

@@ -26,6 +26,7 @@
 #include <gtkmm/liststore.h>
 #include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
+#include <gtkmm/toolbar.h>
 
 #include "plot/plotwidget.h"
 
@@ -51,12 +52,19 @@ class PlotWindow : public Gtk::Window {
 			Gtk::TreeModelColumn<Glib::ustring> _name;
 		} _plotListColumns;
 		
+		void onSelectedPlotChange();
+		void onClearPlotsPressed();
+		
 		void handleUpdate();
+		
 		void updatePlotList();
 		
 		PlotWidget _plotWidget;
 		class PlotManager &_plotManager;
 		Gtk::HBox _hBox;
+		Gtk::VBox _sideBox;
+		Gtk::Toolbar _toolbar;
+		Gtk::ToolButton _clearButton;
 		Glib::RefPtr<Gtk::ListStore> _plotListStore;
 		Gtk::TreeView _plotListView;
 };

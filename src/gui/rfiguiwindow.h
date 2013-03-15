@@ -196,8 +196,6 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		void onPlotTimeScatterPressed();
 		void onPlotTimeScatterComparisonPressed();
 		void onPlotSingularValuesPressed();
-		void onPlotQuality25Pressed();
-		void onPlotQualityAllPressed();
 		void onEditStrategyPressed();
 		void onExecuteStrategyPressed();
 		void onGoToPressed();

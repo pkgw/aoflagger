@@ -47,8 +47,6 @@ class RFIGuiController
 		void PlotTimeScatter();
 		void PlotTimeScatterComparison();
 		void PlotSingularValues();
-		void PlotQuality25();
-		void PlotQualityAll();
 		
 		void OpenTestSet(unsigned index, bool gaussianTestSets);
 		

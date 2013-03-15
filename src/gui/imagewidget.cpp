@@ -353,7 +353,7 @@ void ImageWidget::update(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, un
 		guint8* rowpointer = data + rowStride * (endY - y - 1);
 		for(unsigned long x=startX;x<endX;++x) {
 			int xa = (x-startX) * 4;
-			char r,g,b,a;
+			unsigned char r,g,b,a;
 			if(_highlighting && highlightMask->Value(x, y) != 0) {
 				r = 255; g = 0; b = 0; a = 255;
 			} else if(originalActive && originalMask->Value(x, y)) {

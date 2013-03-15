@@ -59,7 +59,8 @@ void RFIGuiController::plotMeanSpectrum(bool weight)
 {
 	if(IsImageLoaded())
 	{
-		Plot2D &plot = _plotManager->NewPlot2D("Mean spectrum");
+		std::string title = weight ? "Sum spectrum" : "Mean spectrum";
+		Plot2D &plot = _plotManager->NewPlot2D(title);
 
 		TimeFrequencyData data = ActiveData();
 		Mask2DCPtr mask =
@@ -314,26 +315,6 @@ void RFIGuiController::PlotSingularValues()
 		Plot2D &plot = _plotManager->NewPlot2D("Singular values");
 
 		SVDMitigater::CreateSingularValueGraph(ActiveData(), plot);
-		_plotManager->Update();
-	}
-}
-
-void RFIGuiController::PlotQuality25()
-{
-	if(IsImageLoaded())
-	{
-		Plot2D &plot = _plotManager->NewPlot2D("Quality over 25");
-		RFIPlots::MakeQualityPlot(plot.StartLine(), ActiveData(), RevisedData(), 25);
-		_plotManager->Update();
-	}
-}
-
-void RFIGuiController::PlotQualityAll()
-{
-	if(IsImageLoaded())
-	{
-		Plot2D &plot = _plotManager->NewPlot2D("Quality over all");
-		RFIPlots::MakeQualityPlot(plot.StartLine(), ActiveData(), RevisedData(), RevisedData().ImageWidth());
 		_plotManager->Update();
 	}
 }

@@ -659,10 +659,6 @@ void RFIGuiWindow::createToolbar()
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotTimeScatterComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSingularValues", "Plot _singular values"),
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotSingularValuesPressed) );
-	_actionGroup->add( Gtk::Action::create("PlotQuality25", "Plot quality (25)"),
-  sigc::mem_fun(*this, &RFIGuiWindow::onPlotQuality25Pressed) );
-	_actionGroup->add( Gtk::Action::create("PlotQualityAll", "Plot quality (all)"),
-  sigc::mem_fun(*this, &RFIGuiWindow::onPlotQualityAllPressed) );
 	_actionGroup->add( Gtk::Action::create("ShowImagePlane", "_Show image plane"),
 		Gtk::AccelKey("<control>I"),
   sigc::mem_fun(*this, &RFIGuiWindow::onShowImagePlane) );
@@ -923,8 +919,6 @@ void RFIGuiWindow::createToolbar()
     "      <menuitem action='PlotPowerTime'/>"
     "      <menuitem action='PlotTimeScatter'/>"
     "      <menuitem action='PlotSingularValues'/>"
-    "      <menuitem action='PlotQuality25'/>"
-    "      <menuitem action='PlotQualityAll'/>"
 	  "    </menu>"
     "    <menu action='MenuGo'>"
     "      <menuitem action='LargeStepPrevious'/>"
@@ -1274,16 +1268,6 @@ void RFIGuiWindow::onPlotTimeScatterComparisonPressed()
 void RFIGuiWindow::onPlotSingularValuesPressed()
 {
 	_controller->PlotSingularValues();
-}
-
-void RFIGuiWindow::onPlotQuality25Pressed()
-{
-	_controller->PlotQuality25();
-}
-
-void RFIGuiWindow::onPlotQualityAllPressed()
-{
-	_controller->PlotQualityAll();
 }
 
 void RFIGuiWindow::ShowHistogram(HistogramCollection& histogramCollection)

@@ -186,15 +186,15 @@ void RFIPlots::MakePowerTimePlot(Plot2DPointSet &pointSet, Image2DCPtr image, Ma
 	pointSet.SetXDesc("Time (s)");
 	pointSet.SetYDesc("Visibility");
 	bool useMeta;
-	if(metaData != 0 && metaData->HasObservationTimes())
-		useMeta = true;
-	else
-		useMeta = false;
 	double firstTimeStep;
-	if(useMeta)
+	if(metaData != 0 && metaData->HasObservationTimes()) {
+		useMeta = true;
 		firstTimeStep = metaData->ObservationTimes()[0];
-	else
+	}
+	else {
+		useMeta = false;
 		firstTimeStep = 0;
+	}
 	
 	size_t binSize = (size_t) ceil(image->Width() / 256.0L);
 
@@ -438,20 +438,6 @@ void RFIPlots::MakeScatterPlot(class MultiPlot &plot, const TimeFrequencyData &d
 			MakeScatterPlot(plot, startIndex+0, data.GetSingleImage(), data.GetSingleMask(), metaData);
 			plot.SetLegend(startIndex+0, data.Description());
 		break;
-	}
-}
-
-void RFIPlots::MakeQualityPlot(Plot2DPointSet &pointSet, const TimeFrequencyData &original, const TimeFrequencyData &model, size_t partCount)
-{
-	Image2DCPtr originalImg = original.GetSingleImage();
-	Image2DCPtr modelImg = model.GetSingleImage();
-	Mask2DCPtr mask = original.GetSingleMask();
-	for(unsigned p=0;p<=partCount;++p)
-	{
-		unsigned xStart = model.ImageWidth() * p / partCount;
-		unsigned xEnd = model.ImageWidth() * (p+1) / partCount;
-		double quality = RFIStatistics::DataQuality(originalImg, modelImg, mask, xStart, xEnd);
-		pointSet.PushDataPoint((xStart+xEnd)/2, quality);
 	}
 }
 
