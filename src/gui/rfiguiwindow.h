@@ -107,6 +107,7 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		
 		void onExecuteStrategyFinished();
 		void OpenPath(const std::string &path);
+		void ShowHistogram(class HistogramCollection &histogramCollection);
 	private:
 		rfiStrategy::Strategy &Strategy() { return *_strategy; }
 		void SetStrategy(rfiStrategy::Strategy *newStrategy);
@@ -120,7 +121,6 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		void onLoadLargeStepNext();
 		void onToggleFlags();
 		void onToggleImage();
-		void onCompress();
 		void onQuit() { hide(); }
 		void onActionFileOpen();
 		void onActionDirectoryOpen();
@@ -196,7 +196,6 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		void onPlotTimeScatterPressed();
 		void onPlotTimeScatterComparisonPressed();
 		void onPlotSingularValuesPressed();
-		void onPlotSNRToFitVariance();
 		void onPlotQuality25Pressed();
 		void onPlotQualityAllPressed();
 		void onEditStrategyPressed();
@@ -271,8 +270,6 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 			*_plotComplexPlaneWindow, *_imagePropertiesWindow,
 			*_antennaMapWindow;
 
-		class RFIStatistics *_statistics;
-		
 		rfiStrategy::ImageSet *_imageSet;
 		rfiStrategy::ImageSetIndex *_imageSetIndex;
 		rfiStrategy::Strategy *_strategy;

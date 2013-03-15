@@ -27,7 +27,6 @@
 #include <gtkmm/toolbar.h>
 
 #include "../msio/baselinematrixloader.h"
-#include "../msio/measurementset.h"
 #include "../msio/image2d.h"
 #include "../msio/timefrequencydata.h"
 #include "../msio/timefrequencymetadata.h"
@@ -45,13 +44,9 @@
 #include "../strategy/imagesets/spatialtimeimageset.h"
 
 #include "../strategy/algorithms/baselineselector.h"
-#include "../strategy/algorithms/mitigationtester.h"
 #include "../strategy/algorithms/morphology.h"
 #include "../strategy/algorithms/fringetestcreater.h"
-#include "../strategy/algorithms/fringestoppingfitter.h"
 #include "../strategy/algorithms/polarizationstatistics.h"
-#include "../strategy/algorithms/rfistatistics.h"
-#include "../strategy/algorithms/svdmitigater.h"
 #include "../strategy/algorithms/thresholdtools.h"
 #include "../strategy/algorithms/timefrequencystatistics.h"
 #include "../strategy/algorithms/vertevd.h"
@@ -60,15 +55,9 @@
 #include "../strategy/plots/frequencyflagcountplot.h"
 #include "../strategy/plots/frequencypowerplot.h"
 #include "../strategy/plots/iterationsplot.h"
-#include "../strategy/plots/rfiplots.h"
 #include "../strategy/plots/timeflagcountplot.h"
 
-#include "../util/compress.h"
-#include "../util/multiplot.h"
-
 #include "controllers/rfiguicontroller.h"
-
-#include "plot/plot2d.h"
 
 #include "antennamapwindow.h"
 #include "complexplaneplotwindow.h"
@@ -98,7 +87,7 @@ RFIGuiWindow::RFIGuiWindow() :
 	_imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0),
 	_gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0),
 	_imagePropertiesWindow(0), _antennaMapWindow(0),
-	_statistics(new RFIStatistics()),
+	//_statistics(new RFIStatistics()),
 	_imageSet(0),
 	_imageSetIndex(0),
 	_gaussianTestSets(true),
@@ -163,7 +152,7 @@ RFIGuiWindow::~RFIGuiWindow()
 	// The rfistrategy needs the lock to clean up
 	lock.unlock();
 	
-	delete _statistics;
+	//delete _statistics;
 	delete _strategy;
 	if(HasImageSet())
 	{
@@ -527,20 +516,7 @@ void RFIGuiWindow::SetImageSetIndex(rfiStrategy::ImageSetIndex *newImageSetIndex
 
 void RFIGuiWindow::openTestSet(unsigned index)
 {
-	unsigned width = 1024, height = 1024;
-	if(HasImage())
-	{
-		width = _timeFrequencyWidget.Image()->Width();
-		height = _timeFrequencyWidget.Image()->Height();
-	}
-	Mask2DPtr rfi = Mask2D::CreateSetMaskPtr<false>(width, height);
-	Image2DPtr testSetReal(MitigationTester::CreateTestSet(index, rfi, width, height, _gaussianTestSets));
-	Image2DPtr testSetImaginary(MitigationTester::CreateTestSet(2, rfi, width, height, _gaussianTestSets));
-	TimeFrequencyData data(SinglePolarisation, testSetReal, testSetImaginary);
-	data.SetGlobalMask(rfi);
-	
-	_timeFrequencyWidget.SetNewData(data, _timeFrequencyWidget.GetMetaData());
-	_timeFrequencyWidget.Update();
+	_controller->OpenTestSet(index, _gaussianTestSets);
 }
 
 void RFIGuiWindow::createToolbar()
@@ -636,8 +612,6 @@ void RFIGuiWindow::createToolbar()
 	sigc::mem_fun(*this, &RFIGuiWindow::onSetToOnePlusI) );
 	_actionGroup->add( Gtk::Action::create("MultiplyData", "Multiply data..."),
 	sigc::mem_fun(*this, &RFIGuiWindow::onMultiplyData) );
-	_actionGroup->add( Gtk::Action::create("Compress", "Compress"),
-	sigc::mem_fun(*this, &RFIGuiWindow::onCompress) );
 	_actionGroup->add( Gtk::Action::create("Quit", Gtk::Stock::QUIT),
 		Gtk::AccelKey("<control>Q"),
 		sigc::mem_fun(*this, &RFIGuiWindow::onQuit) );
@@ -685,8 +659,6 @@ void RFIGuiWindow::createToolbar()
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotTimeScatterComparisonPressed) );
 	_actionGroup->add( Gtk::Action::create("PlotSingularValues", "Plot _singular values"),
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotSingularValuesPressed) );
-	_actionGroup->add( Gtk::Action::create("PlotSNRToFitVariance", "Plot SNR to fit variance"),
-  sigc::mem_fun(*this, &RFIGuiWindow::onPlotSNRToFitVariance) );
 	_actionGroup->add( Gtk::Action::create("PlotQuality25", "Plot quality (25)"),
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotQuality25Pressed) );
 	_actionGroup->add( Gtk::Action::create("PlotQualityAll", "Plot quality (all)"),
@@ -916,7 +888,6 @@ void RFIGuiWindow::createToolbar()
 		"        <menuitem action='SetToOnePlusI'/>"
 		"        <menuitem action='MultiplyData'/>"
 		"      </menu>"
-    "      <menuitem action='Compress'/>"
     "      <menuitem action='Quit'/>"
     "    </menu>"
 	  "    <menu action='MenuView'>"
@@ -952,7 +923,6 @@ void RFIGuiWindow::createToolbar()
     "      <menuitem action='PlotPowerTime'/>"
     "      <menuitem action='PlotTimeScatter'/>"
     "      <menuitem action='PlotSingularValues'/>"
-    "      <menuitem action='PlotSNRToFitVariance'/>"
     "      <menuitem action='PlotQuality25'/>"
     "      <menuitem action='PlotQualityAll'/>"
 	  "    </menu>"
@@ -1243,48 +1213,12 @@ void RFIGuiWindow::onShowStats()
 
 void RFIGuiWindow::onPlotDistPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Distribution");
-
-		TimeFrequencyData activeData = GetActiveData();
-		Image2DCPtr image = activeData.GetSingleImage();
-		Mask2DPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(image->Width(), image->Height());
-		Plot2DPointSet &totalSet = plot.StartLine("Total");
-		RFIPlots::MakeDistPlot(totalSet, image, mask);
-
-		Plot2DPointSet &uncontaminatedSet = plot.StartLine("Uncontaminated");
-		mask = Mask2D::CreateCopy(activeData.GetSingleMask());
-		RFIPlots::MakeDistPlot(uncontaminatedSet, image, mask);
-
-		mask->Invert();
-		Plot2DPointSet &rfiSet = plot.StartLine("RFI");
-		RFIPlots::MakeDistPlot(rfiSet, image, mask);
-
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotDist();
 }
 
 void RFIGuiWindow::onPlotLogLogDistPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		TimeFrequencyData activeData = GetActiveData();
-		HistogramCollection histograms(activeData.PolarisationCount());
-		for(unsigned p=0;p!=activeData.PolarisationCount();++p)
-		{
-			TimeFrequencyData *polData = activeData.CreateTFDataFromPolarisationIndex(p);
-			Image2DCPtr image = polData->GetSingleImage();
-			Mask2DCPtr mask = Mask2D::CreateCopy(polData->GetSingleMask());
-			histograms.Add(0, 1, p, image, mask);
-		}
-		if(_histogramWindow == 0)
-			_histogramWindow = new HistogramWindow(histograms);
-		else
-			_histogramWindow->SetStatistics(histograms);
-		_histogramWindow->show();
-	}
+	_controller->PlotLogLogDist();
 }
 
 void RFIGuiWindow::onPlotComplexPlanePressed()
@@ -1299,346 +1233,66 @@ void RFIGuiWindow::onPlotComplexPlanePressed()
 
 void RFIGuiWindow::onPlotPowerSpectrumPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Power spectrum");
-		plot.SetLogarithmicYAxis(true);
-
-		TimeFrequencyData data = _timeFrequencyWidget.GetActiveData();
-		Image2DCPtr image = data.GetSingleImage();
-		Mask2DPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(image->Width(), image->Height());
-		Plot2DPointSet &beforeSet = plot.StartLine("Before");
-		RFIPlots::MakePowerSpectrumPlot(beforeSet, image, mask, _timeFrequencyWidget.GetMetaData());
-
-		mask = Mask2D::CreateCopy(data.GetSingleMask());
-		if(!mask->AllFalse())
-		{
-			Plot2DPointSet &afterSet = plot.StartLine("After");
-			RFIPlots::MakePowerSpectrumPlot(afterSet, image, mask, _timeFrequencyWidget.GetMetaData());
-		}
-		
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerSpectrum();
 }
 
 void RFIGuiWindow::onPlotPowerSpectrumComparisonPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Power spectrum comparison");
-
-		TimeFrequencyData data = _timeFrequencyWidget.OriginalData();
-		Image2DCPtr image = data.GetSingleImage();
-		Mask2DCPtr mask = data.GetSingleMask();
-		Plot2DPointSet &originalSet = plot.StartLine("Original");
-		RFIPlots::MakePowerSpectrumPlot(originalSet, image, mask, _timeFrequencyWidget.GetMetaData());
-
-		data = _timeFrequencyWidget.ContaminatedData();
-		image = data.GetSingleImage();
-		mask = data.GetSingleMask();
-		Plot2DPointSet &alternativeSet = plot.StartLine("Alternative");
-		RFIPlots::MakePowerSpectrumPlot(alternativeSet, image, mask, _timeFrequencyWidget.GetMetaData());
-	
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerSpectrumComparison();
 }
 
 void RFIGuiWindow::onPlotPowerRMSPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Spectrum RMS");
-		plot.SetLogarithmicYAxis(true);
-
-		Mask2DPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(_timeFrequencyWidget.Image()->Width(), _timeFrequencyWidget.Image()->Height());
-		Plot2DPointSet &beforeSet = plot.StartLine("Before");
-		RFIPlots::MakeRMSSpectrumPlot(beforeSet, _timeFrequencyWidget.Image(), mask);
-
-		mask = Mask2D::CreateCopy(_timeFrequencyWidget.GetActiveData().GetSingleMask());
-		if(!mask->AllFalse())
-		{
-			Plot2DPointSet &afterSet = plot.StartLine("After");
-			RFIPlots::MakeRMSSpectrumPlot(afterSet, _timeFrequencyWidget.Image(), mask);
-	
-			//mask->Invert();
-			//Plot2DPointSet &rfiSet = plot.StartLine("RFI");
-			//RFIPlots::MakeRMSSpectrumPlot(rfiSet, _timeFrequencyWidget.Image(), mask);
-		}
-
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerRMS();
 }
 
 void RFIGuiWindow::onPlotPowerSNRPressed()
 {
-	Image2DCPtr
-		image = _timeFrequencyWidget.GetActiveData().GetSingleImage(),
-		model = _timeFrequencyWidget.RevisedData().GetSingleImage();
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("SNR spectrum");
-		plot.SetLogarithmicYAxis(true);
-
-		Mask2DPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(image->Width(), image->Height());
-		Plot2DPointSet &totalPlot = plot.StartLine("Total");
-		RFIPlots::MakeSNRSpectrumPlot(totalPlot, image, model, mask);
-
-		mask = Mask2D::CreateCopy(_timeFrequencyWidget.GetActiveData().GetSingleMask());
-		if(!mask->AllFalse())
-		{
-			Plot2DPointSet &uncontaminatedPlot = plot.StartLine("Uncontaminated");
-			RFIPlots::MakeSNRSpectrumPlot(uncontaminatedPlot, image, model, mask);
-	
-			mask->Invert();
-			Plot2DPointSet &rfiPlot = plot.StartLine("RFI");
-			RFIPlots::MakeSNRSpectrumPlot(rfiPlot, image, model, mask);
-		}
-
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerSNR();
 }
 
 void RFIGuiWindow::onPlotPowerTimePressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Power over time");
-		plot.SetLogarithmicYAxis(true);
-
-		Mask2DPtr mask =
-			Mask2D::CreateSetMaskPtr<false>(_timeFrequencyWidget.Image()->Width(), _timeFrequencyWidget.Image()->Height());
-		Plot2DPointSet &totalPlot = plot.StartLine("Total");
-		RFIPlots::MakePowerTimePlot(totalPlot, _timeFrequencyWidget.Image(), mask, _timeFrequencyWidget.GetMetaData());
-
-		mask = Mask2D::CreateCopy(_timeFrequencyWidget.GetActiveData().GetSingleMask());
-		if(!mask->AllFalse())
-		{
-			Plot2DPointSet &uncontaminatedPlot = plot.StartLine("Uncontaminated");
-			RFIPlots::MakePowerTimePlot(uncontaminatedPlot, _timeFrequencyWidget.Image(), mask, _timeFrequencyWidget.GetMetaData());
-	
-			mask->Invert();
-			Plot2DPointSet &rfiPlot = plot.StartLine("RFI");
-			RFIPlots::MakePowerTimePlot(rfiPlot, _timeFrequencyWidget.Image(), mask, _timeFrequencyWidget.GetMetaData());
-		}
-
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerTime();
 }
 
 void RFIGuiWindow::onPlotPowerTimeComparisonPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Time comparison");
-
-		TimeFrequencyData data = _timeFrequencyWidget.OriginalData();
-		Mask2DCPtr mask = data.GetSingleMask();
-		Image2DCPtr image = data.GetSingleImage();
-		Plot2DPointSet &originalPlot = plot.StartLine("Original");
-		RFIPlots::MakePowerTimePlot(originalPlot, image, mask, _timeFrequencyWidget.GetMetaData());
-
-		data = _timeFrequencyWidget.ContaminatedData();
-		mask = data.GetSingleMask();
-		image = data.GetSingleImage();
-		Plot2DPointSet &alternativePlot = plot.StartLine("Original");
-		plot.StartLine("Alternative");
-		RFIPlots::MakePowerTimePlot(alternativePlot, image, mask, _timeFrequencyWidget.GetMetaData());
-
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotPowerTimeComparison();
 }
 
 void RFIGuiWindow::onPlotTimeScatterPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		MultiPlot plot(_controller->PlotManager().NewPlot2D("Time scatter"), 4);
-		RFIPlots::MakeScatterPlot(plot, GetActiveData(), _timeFrequencyWidget.GetMetaData());
-		plot.Finish();
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotTimeScatter();
 }
 
 void RFIGuiWindow::onPlotTimeScatterComparisonPressed()
 {
-	if(_timeFrequencyWidget.HasImage())
-	{
-		MultiPlot plot(_controller->PlotManager().NewPlot2D("Time scatter comparison"), 8);
-		RFIPlots::MakeScatterPlot(plot, GetOriginalData(), _timeFrequencyWidget.GetMetaData(), 0);
-		RFIPlots::MakeScatterPlot(plot, GetContaminatedData(), _timeFrequencyWidget.GetMetaData(), 4);
-		plot.Finish();
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotTimeScatterComparison();
 }
 
 void RFIGuiWindow::onPlotSingularValuesPressed()
 {
-	if(HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Singular values");
-
-		SVDMitigater::CreateSingularValueGraph(GetActiveData(), plot);
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotSingularValues();
 }
 
 void RFIGuiWindow::onPlotQuality25Pressed()
 {
-	if(HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Quality over 25");
-		RFIPlots::MakeQualityPlot(plot.StartLine(), GetActiveData(), _timeFrequencyWidget.RevisedData(), 25);
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotQuality25();
 }
 
 void RFIGuiWindow::onPlotQualityAllPressed()
 {
-	if(HasImage())
-	{
-		Plot2D &plot = _controller->PlotManager().NewPlot2D("Quality over all");
-		RFIPlots::MakeQualityPlot(plot.StartLine(), GetActiveData(), _timeFrequencyWidget.RevisedData(), _timeFrequencyWidget.RevisedData().ImageWidth());
-		_controller->PlotManager().Update();
-	}
+	_controller->PlotQualityAll();
 }
 
-void RFIGuiWindow::onPlotSNRToFitVariance()
+void RFIGuiWindow::ShowHistogram(HistogramCollection& histogramCollection)
 {
-	bool relative = false;
-
-	FringeStoppingFitter fitter;
-	fitter.SetMetaData(_timeFrequencyWidget.GetMetaData());
-	
-	Plot2D
-		&plotA = _controller->PlotManager().NewPlot2D("/tmp/snrplot-a.pdf"),
-		&plotB = _controller->PlotManager().NewPlot2D("/tmp/snrplot-b.pdf");
-	plotA.StartLine("Stddev", "SNR (dB)", "Error (sigma-epsilon)");
-	plotA.SetTitle("Fit errors");
-	plotA.SetLogarithmicYAxis(false);
-	plotB.StartLine("Stddev", "SNR (ratio, non-logarithmic)", "Error (sigma-epsilon)");
-	plotB.SetTitle("Fit errors");
-	plotB.SetLogarithmicYAxis(false);
-
-	const unsigned iterations = 2500;
-	std::vector<long double> medians, means, maxs, snrDbs, snrRatios;
-
-	long double start = 4.6;
-	long double stop = 0.0001;
-	if(relative)
-		stop = 0.01;
-
-	for(long double snr = start;snr>stop;snr *= 0.9) {
-		long double amplitudes[iterations], mean = 0, stddev = 0;
-		long double db = 10.0 * logl(snr) / logl(10.0L);
-		long double max = -100e10;
-		for(size_t i=0;i<iterations;++i)
-		{
-			unsigned width = 1024, height = 1;
-			if(HasImage())
-			{
-				width = _timeFrequencyWidget.OriginalData().ImageWidth();
-				//height = _timeFrequencyWidget.Image()->Height();
-			}
-			width /= 16;
-
-			Mask2DPtr rfi = Mask2D::CreateSetMaskPtr<false>(width, height);
-			Image2DPtr testSetReal(MitigationTester::CreateTestSet(2, rfi, width, height, _gaussianTestSets));
-			Image2DPtr testSetImaginary(MitigationTester::CreateTestSet(2, rfi, width, height, _gaussianTestSets));
-			TimeFrequencyData *data = new TimeFrequencyData(SinglePolarisation, testSetReal, testSetImaginary);
-	
-			TimeFrequencyMetaDataCPtr metaData = TimeFrequencyMetaData();
-			FringeTestCreater::AddStaticFringe(*data, metaData, snr);
-	
-			fitter.Initialize(*data);
-			amplitudes[i] =
-				fitter.GetAmplitude(height/2, height/2+1) - snr;
-			mean += amplitudes[i];
-	
-			delete data;
-		}
-		mean /= iterations;
-		for(size_t i=0;i<iterations;++i)
-		{
-			stddev += (amplitudes[i] - mean) * (amplitudes[i] - mean);
-			if(amplitudes[i] > max) max = amplitudes[i];
-		}
-		stddev = sqrtl(stddev / iterations);
-		unsigned medianIndex = iterations/2;
-		std::nth_element(amplitudes, amplitudes + medianIndex, amplitudes+iterations);
-		std::cout << "Snr: " << snr << " (=" << db << " dB), stddev: " << stddev << ", median: " << amplitudes[medianIndex] << ", max: " << max << std::endl;
-		if(relative)
-		{
-			plotA.PushDataPoint(db, stddev/snr);
-			plotB.PushDataPoint(snr, stddev/snr);
-		} else {
-			plotA.PushDataPoint(db, stddev);
-			plotB.PushDataPoint(snr, stddev);
-		}
-		medians.push_back(amplitudes[medianIndex]);
-		snrRatios.push_back(snr);
-		snrDbs.push_back(db);
-		means.push_back(mean);
-		maxs.push_back(max);
-	}
-	plotA.StartLine("median");
-	plotB.StartLine("median");
-	for(unsigned i=0;i<snrDbs.size();++i)
-	{
-		if(relative)
-		{
-			plotA.PushDataPoint(snrDbs[i], medians[i]/snrRatios[i]);
-			plotB.PushDataPoint(snrRatios[i], medians[i]/snrRatios[i]);
-		} else {
-			plotA.PushDataPoint(snrDbs[i], medians[i]);
-			plotB.PushDataPoint(snrRatios[i], medians[i]);
-		}
-	}
-	plotA.StartLine("mean");
-	plotB.StartLine("mean");
-	for(unsigned i=0;i<means.size();++i)
-	{
-		if(relative)
-		{
-			plotA.PushDataPoint(snrDbs[i], means[i]/snrRatios[i]);
-			plotB.PushDataPoint(snrRatios[i], means[i]/snrRatios[i]);
-		} else {
-			plotA.PushDataPoint(snrDbs[i], means[i]);
-			plotB.PushDataPoint(snrRatios[i], means[i]);
-		}
-	}
-	plotA.StartLine("max");
-	plotB.StartLine("max");
-	for(unsigned i=0;i<maxs.size();++i)
-	{
-		if(relative)
-		{
-			plotA.PushDataPoint(snrDbs[i], maxs[i]/snrRatios[i]);
-			plotB.PushDataPoint(snrRatios[i], maxs[i]/snrRatios[i]);
-		} else {
-			plotA.PushDataPoint(snrDbs[i], maxs[i]);
-			plotB.PushDataPoint(snrRatios[i], maxs[i]);
-		}
-	}
-	plotA.StartLine("snr=error");
-	plotB.StartLine("snr=error");
-	for(unsigned i=0;i<means.size();++i)
-	{
-		if(relative)
-		{
-			plotA.PushDataPoint(snrDbs[i], powl(10.0L, snrDbs[i]/10.0L)/snrRatios[i]);
-			plotB.PushDataPoint(snrRatios[i], 1);
-		} else {
-			if(powl(10.0L, snrDbs[i]/10.0L) < 0.45)
-			{
-				plotA.PushDataPoint(snrDbs[i], powl(10.0L, snrDbs[i]/10.0L));
-			}
-			plotB.PushDataPoint(snrRatios[i], snrRatios[i]);
-		}
-	}
-	_controller->PlotManager().Update();
+	if(_histogramWindow == 0)
+		_histogramWindow = new HistogramWindow(histogramCollection);
+	else
+		_histogramWindow->SetStatistics(histogramCollection);
+	_histogramWindow->show();
 }
 
 void RFIGuiWindow::onImagePropertiesPressed()
@@ -1938,12 +1592,6 @@ void RFIGuiWindow::loadDefaultModel(DefaultModels::Distortion distortion, bool w
 	
 	_timeFrequencyWidget.SetNewData(data, metaData);
 	_timeFrequencyWidget.Update();
-}
-
-void RFIGuiWindow::onCompress()
-{
-	Compress compress = Compress(GetActiveData());
-	compress.AllToStdOut();
 }
 
 void RFIGuiWindow::onShowAntennaMapWindow()

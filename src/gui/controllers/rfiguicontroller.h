@@ -47,13 +47,17 @@ class RFIGuiController
 		void PlotTimeScatter();
 		void PlotTimeScatterComparison();
 		void PlotSingularValues();
-		void PlotSNRToFitVariance();
 		void PlotQuality25();
 		void PlotQualityAll();
+		
+		void OpenTestSet(unsigned index, bool gaussianTestSets);
 		
 		bool IsImageLoaded() const;
 		
 		TimeFrequencyData ActiveData() const;
+		TimeFrequencyData OriginalData() const;
+		TimeFrequencyData RevisedData() const;
+		TimeFrequencyData ContaminatedData() const;
 		
 		TimeFrequencyMetaDataCPtr MetaData() const;
 		
