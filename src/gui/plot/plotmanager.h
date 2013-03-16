@@ -31,6 +31,10 @@
 class PlotManager
 {
 	public:
+		~PlotManager()
+		{
+			Clear();
+		}
 		Plot2D &NewPlot2D(const std::string &plotTitle)
 		{
 			std::string title = plotTitle;
@@ -61,6 +65,8 @@ class PlotManager
 		
 		void Clear()
 		{
+			for(std::vector<Plot2D*>::const_iterator i=_items.begin(); i!=_items.end(); ++i)
+				delete *i;
 			_items.clear();
 			Update();
 		}

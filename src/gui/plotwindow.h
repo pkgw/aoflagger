@@ -37,9 +37,7 @@ class PlotWindow : public Gtk::Window {
 	public:
 		PlotWindow(class PlotManager &plotManager);
 		
-		~PlotWindow()
-		{
-		}
+		~PlotWindow();
 		
 	private:
 		class PlotListColumns : public Gtk::TreeModel::ColumnRecord
@@ -54,6 +52,8 @@ class PlotWindow : public Gtk::Window {
 		
 		void onSelectedPlotChange();
 		void onClearPlotsPressed();
+		void onEditPlottingPropertiesPressed();
+		void onPlotPropertiesChanged();
 		
 		void handleUpdate();
 		
@@ -64,9 +64,10 @@ class PlotWindow : public Gtk::Window {
 		Gtk::HBox _hBox;
 		Gtk::VBox _sideBox;
 		Gtk::Toolbar _toolbar;
-		Gtk::ToolButton _clearButton;
+		Gtk::ToolButton _clearButton, _editButton;
 		Glib::RefPtr<Gtk::ListStore> _plotListStore;
 		Gtk::TreeView _plotListView;
+		class PlotPropertiesWindow *_plotPropertiesWindow;
 };
 
 #endif
