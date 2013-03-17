@@ -20,24 +20,54 @@
 
 #include "gui/quality/aoqplotwindow.h"
 
-#include <gtkmm.h>
+#include <gtkmm/main.h>
+#include <gtkmm/filechooserdialog.h>
 
 int main(int argc, char *argv[])
 {
 	Gtk::Main kit(argc, argv);
 	AOQPlotWindow window;
-	if(argc>1)
+	bool wantHelp = false;
+	for(int i=1;i<argc;++i)
 	{
-		window.Open(argv[1]);
-		kit.run();
-	} else {
-		std::cout << "Syntax: aoqplot <observation>\n\n"
+		if(argv[i][0]=='-') wantHelp = true;
+	}
+	if(wantHelp)
+	{
+		std::cout << "Syntax: aoqplot [<observation>]\n\n"
 			"If your observation consists of a single observation, specify a measurement\n"
 			"set. To get statistics for a (remote) observation consisting of multiple measurement\n"
 			"sets, specify a measurement set specifier instead (generally a .ref, .vds\n"
 			".gvds or .gds file).\n\n"
 			"aoqplot is part of the AOFlagger software package, written\n"
 			"by André Offringa (offringa@gmail.com).\n";
+	} 
+	else {
+		if(argc>1)
+		{
+			window.Open(argv[1]);
+		} else {
+			Gtk::FileChooserDialog fileDialog(window, "Open observation set");
+			
+			fileDialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+			fileDialog.add_button("Open", Gtk::RESPONSE_OK);
+			
+			Gtk::FileFilter filter;
+			filter.set_name("Observation sets (*.{vds,gds,ref,MS})");
+			filter.add_pattern("*.vds");
+			filter.add_pattern("*.gds");
+			filter.add_pattern("*.gvds");
+			filter.add_pattern("*.ref");
+			filter.add_pattern("*.MS");
+			fileDialog.add_filter(filter);
+			
+			if(fileDialog.run() == Gtk::RESPONSE_OK)
+			{
+				window.Open(fileDialog.get_filename());
+			}
+			else return 0;
+		}
+		kit.run();
 	}
 	return 0;
 }
