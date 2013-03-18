@@ -27,20 +27,6 @@
 */
 class StokesImager{
 	public:
-		StokesImager();
-		~StokesImager();
-
-		const class Image2D &StokesI() const throw() { return *_stokesI; }
-		const class Image2D &StokesQ() const throw() { return *_stokesQ; }
-		const class Image2D &StokesU() const throw() { return *_stokesU; }
-		const class Image2D &StokesV() const throw() { return *_stokesV; }
-
-		void Image(const TimeFrequencyImager &timeFreq) {
-			Image(*timeFreq.RealXX(), *timeFreq.ImaginaryXX(), *timeFreq.RealXY(), *timeFreq.ImaginaryXY(), *timeFreq.RealYY(), *timeFreq.ImaginaryYY());
-		}
-
-		void Image(const Image2D &realXX, const Image2D &imaginaryXX, const Image2D &realXY, const Image2D &imaginaryXY, const Image2D &realYY, const Image2D &imaginaryYY); 
-		
 		static Image2DPtr CreateSum(Image2DCPtr left, Image2DCPtr right);
 		static Image2DPtr CreateDifference(Image2DCPtr left, Image2DCPtr right);
 		static Image2DPtr CreateNegatedSum(Image2DCPtr left, Image2DCPtr right);
@@ -51,8 +37,8 @@ class StokesImager{
 
 		static Image2DPtr CreateAvgPhase(Image2DCPtr xx, Image2DCPtr yy);
 	private:
-
-		Image2D *_stokesI, *_stokesQ, *_stokesU, *_stokesV;
+		StokesImager() { }
+		~StokesImager() { }
 };
 
 #endif
