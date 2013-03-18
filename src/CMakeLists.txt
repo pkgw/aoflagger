@@ -123,7 +123,6 @@ set(MSIO_FILES
   msio/spatialtimeloader.cpp
   msio/stokesimager.cpp
   msio/timefrequencydata.cpp
-  msio/timefrequencyimager.cpp
   msio/timestepaccessor.cpp)
   
 set(QUALITY_FILES
