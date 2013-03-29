@@ -87,7 +87,9 @@ void ProgressWindow::UpdateProgress()
 	{
 		_exceptionOccured = false;
 		Gtk::MessageDialog dialog(*this, std::string("An exception was thrown of type '") + _exceptionType + ("': ") + _exceptionDescription, false, Gtk::MESSAGE_ERROR);
+		lock.unlock();
 		dialog.run();
+		lock.lock();
 	}
 
 	if(_tasks.size() == 0)
