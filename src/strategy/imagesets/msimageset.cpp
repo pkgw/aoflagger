@@ -147,14 +147,8 @@ namespace rfiStrategy {
 		const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex &>(index);
 		// StartIndex(msIndex), EndIndex(msIndex)
 		unsigned sequenceId = _sequences[msIndex._sequenceIndex].sequenceId;
-		std::map<double, size_t> obsTimesMap = _reader->ObservationTimes(sequenceId);
-		std::vector<double> obs(obsTimesMap.size());
-		std::vector<double>::iterator obsIter = obs.begin();
-		for(std::map<double, size_t>::const_iterator i=obsTimesMap.begin(); i!=obsTimesMap.end(); ++i)
-		{
-			*obsIter = i->first;
-			++obsIter;
-		}
+		const std::set<double> &obsTimesSet = _reader->Set().GetObservationTimesSet(sequenceId);
+		std::vector<double> obs(obsTimesSet.begin(), obsTimesSet.end());
 		return obs;
 	}
 			

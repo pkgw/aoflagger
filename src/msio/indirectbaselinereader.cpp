@@ -49,6 +49,9 @@ IndirectBaselineReader::~IndirectBaselineReader()
 	if(_reorderedFlagFilesHaveChanged)
 		updateOriginalMSFlags();
 	removeTemporaryFiles();
+	
+	delete _seqIndexTable;
+	_filePositions.clear();
 }
 
 void IndirectBaselineReader::PerformReadRequests()
@@ -231,12 +234,12 @@ void IndirectBaselineReader::reorderFull()
 	AOLogger::Debug << "Opening temporary files.\n";
 	ReorderInfo reorderInfo;
 	preAllocate(DataFilename(), fileSize*sizeof(float)*2);
-	reorderInfo.dataFile.reset(new std::ofstream(DataFilename(), std::ofstream::binary));
+	reorderInfo.dataFile.reset(new std::ofstream(DataFilename(), std::ofstream::binary | std::ios_base::in | std::ios_base::out));
 	if(reorderInfo.dataFile->fail())
 		throw std::runtime_error("Error: failed to open temporary data files for writing! Check access rights and free disk space.");
 	
 	preAllocate(FlagFilename(), fileSize*sizeof(bool));
-	reorderInfo.flagFile.reset(new std::ofstream(FlagFilename(), std::ofstream::binary));
+	reorderInfo.flagFile.reset(new std::ofstream(FlagFilename(), std::ofstream::binary | std::ios_base::in | std::ios_base::out));
 	if(reorderInfo.flagFile->fail())
 		throw std::runtime_error("Error: failed to open temporary data files for writing! Check access rights and free disk space.");
 
@@ -401,7 +404,7 @@ void IndirectBaselineReader::performFlagWriteTask(std::vector<Mask2DCPtr> flags,
 	const size_t width = flags[0]->Width();
 	const size_t bufferSize = Set().FrequencyCount(spw) * PolarizationCount();
 	
-	std::ofstream flagFile(FlagFilename(), std::ofstream::binary);
+	std::ofstream flagFile(FlagFilename(), std::ofstream::binary | std::ios_base::in | std::ios_base::out);
 	size_t index = _seqIndexTable->Value(antenna1, antenna2, spw, sequenceId);
 	size_t filePos = _filePositions[index];
 	flagFile.seekp(filePos*(sizeof(bool)), std::ios_base::beg);
@@ -446,20 +449,10 @@ void IndirectBaselineReader::updateOriginalMS()
 	std::vector<size_t> dataIdToSpw;
 	Set().GetDataDescToBandVector(dataIdToSpw);
 	
-	size_t
-		antennaCount = Set().AntennaCount(),
-		polarizationCount = PolarizationCount(),
-		bandCount = Set().BandCount(),
-		sequencesPerBaselineCount = Set().SequenceCount();
+	size_t polarizationCount = PolarizationCount();
 
 	AOLogger::Debug << "Opening updated files\n";
 	UpdateInfo updateInfo;
-	SeqIndexLookupTable seqIndexTable(antennaCount, bandCount, sequencesPerBaselineCount);
-	for(size_t i=0; i<sequences.size(); ++i)
-	{
-		const MeasurementSet::Sequence &s = sequences[i];
-		seqIndexTable.Value(s.antenna1, s.antenna2, s.spw, s.sequenceId) = i;
-	}
 	
 	if(UpdateData)
 	{
@@ -498,7 +491,7 @@ void IndirectBaselineReader::updateOriginalMS()
 		size_t antenna2 = antenna2Column(rowIndex);
 		size_t spw = dataIdToSpw[dataDescIdColumn(rowIndex)];
 		size_t channelCount = Set().FrequencyCount(spw);
-		size_t arrayIndex = seqIndexTable.Value(antenna1, antenna2, spw, sequenceId);
+		size_t arrayIndex = _seqIndexTable->Value(antenna1, antenna2, spw, sequenceId);
 		size_t sampleCount = channelCount * polarizationCount;
 		size_t &filePos = updatedFilePos[arrayIndex];
 		size_t &timePos = timePositions[arrayIndex];
@@ -506,7 +499,8 @@ void IndirectBaselineReader::updateOriginalMS()
 		casa::IPosition shape(2, polarizationCount, channelCount);
 		
 		// Skip over samples in the temporary files that are missing in the measurement set
-		while(timePos != timeIndex)
+		++timePos;
+		while(timePos < timeIndex)
 		{
 			filePos += sampleCount;
 			++timePos;
@@ -548,9 +542,6 @@ void IndirectBaselineReader::updateOriginalMS()
 
 	delete dataColumn;
 	
-	delete _seqIndexTable;
-	_filePositions.clear();
-
 	if(UpdateData)
 		AOLogger::Debug << "Done updating measurement set data\n";
 	if(UpdateFlags)

@@ -300,8 +300,6 @@ void MemoryBaselineReader::writeFlags()
 		timeColumn(table, casa::MeasurementSet::columnName(MSMainEnums::TIME));
 	ArrayColumn<bool>
 		flagColumn(table, casa::MeasurementSet::columnName(MSMainEnums::FLAG));
-	const std::map<double, size_t>
-		&observationTimes = ObservationTimes(0 /* TODO */);
 	std::vector<size_t> dataIdToSpw;
 	Set().GetDataDescToBandVector(dataIdToSpw);
 	
@@ -315,22 +313,23 @@ void MemoryBaselineReader::writeFlags()
 	size_t prevFieldId = size_t(-1), sequenceId = size_t(-1);
 	for(unsigned rowIndex = 0;rowIndex < rowCount;++rowIndex)
 	{
+		size_t fieldId = fieldIdColumn(rowIndex);
+		if(fieldId != prevFieldId)
+		{
+			prevFieldId = fieldId;
+			sequenceId++;
+			prevTime = -1.0;
+		}
 		double time = timeColumn(rowIndex);
 		if(time != prevTime)
 		{
-			timeIndex = observationTimes.find(time)->second;
+			timeIndex = ObservationTimes(sequenceId).find(time)->second;
 			prevTime = time;
 		}
 		
 		size_t ant1 = ant1Column(rowIndex);
 		size_t ant2 = ant2Column(rowIndex);
 		size_t spw = dataIdToSpw[dataDescIdColumn(rowIndex)];
-		size_t fieldId = fieldIdColumn(rowIndex);
-		if(fieldId != prevFieldId)
-		{
-			prevFieldId = fieldId;
-			sequenceId++;
-		}
 		if(ant1 > ant2) std::swap(ant1, ant2);
 		
 		size_t frequencyCount = Set().FrequencyCount(spw);
@@ -344,7 +343,8 @@ void MemoryBaselineReader::writeFlags()
 		baselineID.antenna2 = ant2;
 		baselineID.spw = spw;
 		baselineID.sequenceId = sequenceId;
-		Result *result = _baselines.find(baselineID)->second;
+		std::map<BaselineID, Result*>::iterator resultIter = _baselines.find(baselineID);
+		Result *result = resultIter->second;
 		
 		Array<bool>::contiter flagPtr = flagArray.cbegin();
 		

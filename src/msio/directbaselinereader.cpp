@@ -43,6 +43,7 @@ DirectBaselineReader::~DirectBaselineReader()
 
 void DirectBaselineReader::initBaselineCache()
 {
+	AOLogger::Debug << "Determining sequence positions within file for direct baseline reader...\n";
 	// Pass one time through the entire measurement set and store the rownumbers of
 	// the baselines.
 	if(_baselineCache.empty())
@@ -153,7 +154,7 @@ void DirectBaselineReader::PerformReadRequests()
 		if(endIndex > timeCount)
 		{
 			endIndex = timeCount;
-			AOLogger::Warn << "endIndex > timeCount\n";
+			AOLogger::Warn << "endIndex (" << endIndex << ") > timeCount (" << timeCount << ")\n";
 		}
 
 		size_t width = endIndex-startIndex;
@@ -323,7 +324,7 @@ void DirectBaselineReader::PerformFlagWriteRequests()
 		size_t rowIndex = i->first;
 		FlagWriteRequest &request = _writeRequests[i->second];
 		double time = timeColumn(rowIndex);
-		size_t timeIndex = ObservationTimes(0 /*fieldId : TODO*/).find(time)->second;
+		size_t timeIndex = ObservationTimes(request.sequenceId).find(time)->second;
 		if(timeIndex >= request.startIndex + request.leftBorder && timeIndex < request.endIndex - request.rightBorder)
 		{
 			casa::Array<bool> flag = flagColumn(rowIndex);
