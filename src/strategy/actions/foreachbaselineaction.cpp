@@ -103,11 +103,8 @@ namespace rfiStrategy {
 					_hasInitAntennae = false;
 			}
 			_artifacts = &artifacts;
-			if(msImageSet != 0)
-				_initPartIndex = msImageSet->GetPart(*artifacts.ImageSetIndex());
-			else
-				_initPartIndex = 0;
-
+			
+			_initPartIndex = 0;
 			_finishedBaselines = false;
 			_baselineCount = 0;
 			_baselineProgress = 0;
@@ -202,7 +199,7 @@ namespace rfiStrategy {
 			case AutoCorrelationsOfCurrentAntennae:
 				if(!_hasInitAntennae)
 					throw BadUsageException("For each baseline over 'AutoCorrelationsOfCurrentAntennae' with no current baseline");
-				return a1id == a2id && (_initAntenna1.id == a1id || _initAntenna2.id == a1id) && _initPartIndex == static_cast<MSImageSet*>(imageSet)->GetPart(index);
+				return a1id == a2id && (_initAntenna1.id == a1id || _initAntenna2.id == a1id);
 			default:
 				return false;
 		}

@@ -219,11 +219,28 @@ public:
 
 class FieldInfo {
 public:
+	FieldInfo() { }
+	FieldInfo(const FieldInfo &source) :
+		fieldId(source.fieldId),
+		delayDirectionRA(source.delayDirectionRA),
+		delayDirectionDec(source.delayDirectionDec),
+		name(source.name)
+	{ }
+	FieldInfo &operator=(const FieldInfo &source)
+	{
+		fieldId = source.fieldId;
+		delayDirectionRA = source.delayDirectionRA;
+		delayDirectionDec = source.delayDirectionDec;
+		name = source.name;
+		return *this;
+	}
+	
 	unsigned fieldId;
 	num_t delayDirectionRA;
 	num_t delayDirectionDec;
-	num_t delayDirectionDecNegSin;
-	num_t delayDirectionDecNegCos;
+	//num_t delayDirectionDecNegSin;
+	//num_t delayDirectionDecNegCos;
+	std::string name;
 };
 
 class Baseline {

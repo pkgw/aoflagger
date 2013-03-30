@@ -20,7 +20,7 @@
 #ifndef STOKESIMAGER_H
 #define STOKESIMAGER_H
 
-#include "timefrequencyimager.h"
+#include "image2d.h"
 
 /**
 	@author A.R. Offringa <offringa@astro.rug.nl>

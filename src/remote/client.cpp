@@ -216,7 +216,7 @@ void Client::handleReadAntennaTables(unsigned dataSize)
 		
 		// Serialize the antennae info
 		MeasurementSet ms(options.msFilename);
-		size_t polarizationCount = ms.GetPolarizationCount();
+		size_t polarizationCount = ms.PolarizationCount();
 		size_t antennas = ms.AntennaCount();
 		Serializable::SerializeToUInt32(buffer, polarizationCount);
 		Serializable::SerializeToUInt32(buffer, antennas);

@@ -106,7 +106,7 @@ RFIGuiWindow::RFIGuiWindow() :
 	_timeFrequencyWidget.show();
 
 	_mainVBox.pack_end(_statusbar, Gtk::PACK_SHRINK);
-	_statusbar.push("Ready. For suggestions, contact offringa@astro.rug.nl .");
+	_statusbar.push("Ready. For suggestions, contact offringa@gmail.com .");
 	_statusbar.show();
 
 	add(_mainVBox);

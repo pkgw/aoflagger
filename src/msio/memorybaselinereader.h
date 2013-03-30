@@ -48,7 +48,7 @@ class MemoryBaselineReader : public BaselineReader {
 		
 		virtual void PerformFlagWriteRequests();
 		
-		virtual void PerformDataWriteTask(std::vector<Image2DCPtr> /*_realImages*/, std::vector<Image2DCPtr> /*_imaginaryImages*/, int /*antenna1*/, int /*antenna2*/, int /*spectralWindow*/)
+		virtual void PerformDataWriteTask(std::vector<Image2DCPtr> /*_realImages*/, std::vector<Image2DCPtr> /*_imaginaryImages*/, int /*antenna1*/, int /*antenna2*/, int /*spectralWindow*/, unsigned /*sequenceId*/)
 		{
 			throw std::runtime_error("The full mem reader can not write data back to file: use the indirect reader");
 		}
@@ -66,7 +66,7 @@ class MemoryBaselineReader : public BaselineReader {
 		class BaselineID
 		{
 		public:
-			unsigned antenna1, antenna2, spw;
+			unsigned antenna1, antenna2, spw, sequenceId;
 			
 			bool operator<(const BaselineID &other) const
 			{
@@ -74,13 +74,18 @@ class MemoryBaselineReader : public BaselineReader {
 				else if(antenna1==other.antenna1)
 				{
 					if(antenna2<other.antenna2) return true;
-					else if(antenna2==other.antenna2) return spw < other.spw;
+					else if(antenna2==other.antenna2)
+					{
+						if(spw < other.spw) return true;
+						else if(spw==other.spw)
+							return sequenceId < other.sequenceId;
+					}
 				}
 				return false;
 			}
 		};
 		
-		std::map<BaselineID, BaselineReader::Result> _baselines;
+		std::map<BaselineID, BaselineReader::Result*> _baselines;
 };
 
 #endif // DIRECTBASELINEREADER_H

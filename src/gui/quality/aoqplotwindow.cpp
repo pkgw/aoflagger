@@ -159,7 +159,7 @@ void AOQPlotWindow::readStatistics(bool downsampleTime, bool downsampleFreq, siz
 	}
 	else {
 		MeasurementSet *ms = new MeasurementSet(_filename);
-		const unsigned polarizationCount = ms->GetPolarizationCount();
+		const unsigned polarizationCount = ms->PolarizationCount();
 		unsigned antennaCount = ms->AntennaCount();
 		_antennas.clear();
 		for(unsigned a=0;a<antennaCount;++a)

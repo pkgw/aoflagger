@@ -32,228 +32,125 @@
 
 #include "../strategy/control/strategywriter.h"
 
-MeasurementSet::MeasurementSet(const std::string &newLocation, const MeasurementSet &formatExample)
-	: _location(newLocation), _maxSpectralBandIndex(-1),
-	_maxFrequencyIndex(-1), _maxScanIndex(-1), _cacheInitialized(false)
-{
-	casa::Table *table = formatExample.OpenTable(false);
-	table->copy(newLocation, casa::Table::New, true);
-	delete table;
-}
-
 MeasurementSet::~MeasurementSet()
 {
-}
-
-casa::Table *MeasurementSet::OpenTable(bool update) const
-{
-	std::string tableLocation = _location;
-	casa::Table *table;
-	if(update)
-		table = new casa::Table(tableLocation, casa::Table::Update);
-	else
-		table = new casa::Table(tableLocation);
-	return table;
-}
-
-size_t MeasurementSet::MaxSpectralBandIndex()
-{
-	if(_maxSpectralBandIndex==-1) {
-		casa::Table *table = OpenTable();
-		casa::ROScalarColumn<int> windowColumn(*table, "DATA_DESC_ID");
-		ScalarColumnIterator<int> windowIter = ScalarColumnIterator<int>::First(windowColumn);
-		for(size_t i=0;i<table->nrow();++i,++windowIter) {
-			if((*windowIter) > _maxSpectralBandIndex)
-				_maxSpectralBandIndex = (*windowIter);
-		}
-		delete table;
-	}
-	return _maxSpectralBandIndex;
-}
-
-size_t MeasurementSet::FrequencyCount()
-{
-	if(_maxFrequencyIndex==-1) {
-		casa::Table *table = OpenTable();
-		casa::ROArrayColumn<casa::Complex> dataColumn(*table, "DATA");
-		if(table->nrow() > 0) {
-			const casa::IPosition &shape = dataColumn.shape(0);
-			if(shape.nelements() > 1)
-				_maxFrequencyIndex = shape[1];
-			else
-				_maxFrequencyIndex = 0;
-		} else 
-			_maxFrequencyIndex = 0;
-		delete table;
-	}
-	return _maxFrequencyIndex;
 }
 
 size_t MeasurementSet::BandCount(const std::string &location)
 {
 	casa::MeasurementSet ms(location);
-	casa::Table spwTable = ms.spectralWindow();
-	size_t count = spwTable.nrow();
-	return count;
+	return ms.spectralWindow().nrow();
 }
 
-void MeasurementSet::CalculateScanCounts()
+void MeasurementSet::initializeOtherData()
 {
-	if(_maxScanIndex==-1) {
-		casa::Table *table = OpenTable();
-		casa::ROScalarColumn<int> scanColumn(*table, "SCAN_NUMBER");
-		ScalarColumnIterator<int> scanIter = ScalarColumnIterator<int>::First(scanColumn);
-		for(size_t i=0;i<table->nrow();++i,++scanIter) {
-			if((*scanIter) + 1 > _maxScanIndex)
-				_maxScanIndex = (*scanIter) + 1;
-			if((*scanIter) + 1 < _minScanIndex)
-				_minScanIndex = (*scanIter) + 1;
-		}
-		delete table;
-	}
+	casa::MeasurementSet ms(_path);
+	initializeAntennas(ms);
+	initializeBands(ms);
+	initializeFields(ms);
 }
 
-void MeasurementSet::DataMerge(const MeasurementSet &source)
+void MeasurementSet::initializeAntennas(casa::MeasurementSet &ms)
 {
-	casa::Table *sourceTable = source.OpenTable();
-
-	unsigned newRows = sourceTable->nrow();
-	unsigned sourceCols = sourceTable->tableDesc().ncolumn();
-
-	casa::Table *destTable = OpenTable(true);
-	unsigned rowIndex = destTable->nrow();
-
-	AOLogger::Debug << "Adding " << newRows << " new rows...\n";
-	destTable->addRow (newRows, false);
-
-	AOLogger::Debug << "Copying cells " << rowIndex << "-" << (newRows+rowIndex) << " for all columns ...\n";
-
-	for(unsigned i=0;i<sourceCols;++i)
-	{
-		const std::string name = sourceTable->tableDesc().columnNames()[i];
-		if(name != "FLAG_CATEGORY" && name != "WEIGHT_SPECTRUM") {
-			if(i>0)
-				AOLogger::Debug << ",";
-			AOLogger::Debug << name;
-			casa::ROTableColumn sourceColumn = casa::ROTableColumn(*sourceTable, name);
-			casa::TableColumn destColumn = casa::TableColumn(*destTable, name);
-			for(unsigned j=0;j<newRows;++j)
-				destColumn.put(rowIndex+j, sourceColumn, j);
-		}
-	}
-	AOLogger::Debug << '\n';
-
-	delete destTable;
-	delete sourceTable;
-}
-
-size_t MeasurementSet::AntennaCount()
-{
-	casa::MeasurementSet ms(_location);
 	casa::Table antennaTable = ms.antenna();
 	size_t count = antennaTable.nrow();
-	return count;
-}
-
-class AntennaInfo MeasurementSet::GetAntennaInfo(unsigned antennaId)
-{
-	casa::MeasurementSet ms(_location);
-	casa::Table antennaTable = ms.antenna();
-	unsigned count = antennaTable.nrow();
-	if(antennaId >= count) {
-		throw std::runtime_error("Antenna id not found in GetAntennaInfo()");
-	}
 	casa::ROArrayColumn<double> positionCol(antennaTable, "POSITION"); 
 	casa::ROScalarColumn<casa::String> nameCol(antennaTable, "NAME");
 	casa::ROScalarColumn<double> diameterCol(antennaTable, "DISH_DIAMETER");
 	casa::ROScalarColumn<casa::String> mountCol(antennaTable, "MOUNT");
 	casa::ROScalarColumn<casa::String> stationCol(antennaTable, "STATION");
 
-	ROArrayColumnIterator<double> p = ROArrayColumnIterator<double>::First(positionCol);
-	ScalarColumnIterator<casa::String> n = ScalarColumnIterator<casa::String>::First(nameCol);
-	ScalarColumnIterator<double> d = ScalarColumnIterator<double>::First(diameterCol);
-	ScalarColumnIterator<casa::String> m = ScalarColumnIterator<casa::String>::First(mountCol);
-	ScalarColumnIterator<casa::String> s = ScalarColumnIterator<casa::String>::First(stationCol);
-	unsigned index = 0;
-	while(index != antennaId)
+	_antennas.resize(count);
+	for(size_t row=0; row!=count; ++row)
 	{
-		++index; ++p; ++n; ++d; ++m; ++s;
+		AntennaInfo info;
+		info.diameter = diameterCol(row);
+		info.id = row;
+		info.name = nameCol(row);
+		casa::Array<double> position = positionCol(row);
+		casa::Array<double>::iterator i = position.begin();
+		info.position.x = *i;
+		++i;
+		info.position.y = *i;
+		++i;
+		info.position.z = *i;
+		info.mount = mountCol(row);
+		info.station = stationCol(row);
+		_antennas[row] = info;
 	}
-	AntennaInfo info;
-	info.diameter = *d;
-	info.id = antennaId;
-	info.name = *n;
-	casa::Array<double> position = *p;
-	casa::Array<double>::iterator i = position.begin();
-	info.position.x = *i;
-	++i;
-	info.position.y = *i;
-	++i;
-	info.position.z = *i;
-	info.mount = *m;
-	info.station = *s;
-
-	return info;
 }
 
-BandInfo MeasurementSet::GetBandInfo(const std::string &filename, unsigned bandIndex)
+void MeasurementSet::initializeBands(casa::MeasurementSet &ms)
 {
-	BandInfo band;
-	casa::MeasurementSet ms(filename);
 	casa::Table spectralWindowTable = ms.spectralWindow();
 	casa::ROScalarColumn<int> numChanCol(spectralWindowTable, "NUM_CHAN");
 	casa::ROArrayColumn<double> frequencyCol(spectralWindowTable, "CHAN_FREQ");
 
-	band.windowIndex = bandIndex;
-	size_t channelCount = numChanCol(bandIndex);
+	_bands.resize(spectralWindowTable.nrow());
+	for(size_t bandIndex=0; bandIndex!=spectralWindowTable.nrow(); ++bandIndex)
+	{
+		BandInfo band;
+		band.windowIndex = bandIndex;
+		size_t channelCount = numChanCol(bandIndex);
 
-	const casa::Array<double> &frequencies = frequencyCol(bandIndex);
-	casa::Array<double>::const_iterator frequencyIterator = frequencies.begin();
+		const casa::Array<double> &frequencies = frequencyCol(bandIndex);
+		casa::Array<double>::const_iterator frequencyIterator = frequencies.begin();
 
-	for(unsigned channel=0;channel<channelCount;++channel) {
-		ChannelInfo channelInfo;
-		channelInfo.frequencyIndex = channel;
-		channelInfo.frequencyHz = frequencies(casa::IPosition(1, channel));
-		channelInfo.channelWidthHz = 0.0;
-		channelInfo.effectiveBandWidthHz = 0.0;
-		channelInfo.resolutionHz = 0.0;
-		band.channels.push_back(channelInfo);
+		for(unsigned channel=0;channel<channelCount;++channel) {
+			ChannelInfo channelInfo;
+			channelInfo.frequencyIndex = channel;
+			channelInfo.frequencyHz = frequencies(casa::IPosition(1, channel));
+			channelInfo.channelWidthHz = 0.0;
+			channelInfo.effectiveBandWidthHz = 0.0;
+			channelInfo.resolutionHz = 0.0;
+			band.channels.push_back(channelInfo);
 
-		++frequencyIterator;
+			++frequencyIterator;
+		}
+
+		_bands[bandIndex] = band;
 	}
-
-	return band;
 }
 
-size_t MeasurementSet::FieldCount()
+void MeasurementSet::initializeFields(casa::MeasurementSet &ms)
 {
-	casa::MeasurementSet ms(_location);
-	casa::Table fieldTable = ms.field();
-	size_t fieldCount = fieldTable.nrow();
-	return fieldCount;
+	casa::MSField fieldTable = ms.field();
+	casa::ROArrayColumn<double> delayDirectionCol(fieldTable, fieldTable.columnName(casa::MSFieldEnums::DELAY_DIR) );
+	casa::ROScalarColumn<casa::String> nameCol(fieldTable, fieldTable.columnName(casa::MSFieldEnums::NAME) );
+
+	_fields.resize(fieldTable.nrow());
+	for(size_t row=0; row!=fieldTable.nrow(); ++row)
+	{
+		const casa::Array<double> &delayDirection = delayDirectionCol(row);
+		casa::Array<double>::const_iterator delayDirectionIterator = delayDirection.begin();
+	
+		FieldInfo field;
+		field.fieldId = row;
+		field.delayDirectionRA = *delayDirectionIterator;
+		++delayDirectionIterator;
+		field.delayDirectionDec = *delayDirectionIterator;
+		field.name = nameCol(row);
+
+		_fields[row] = field;
+	}
 }
 
-class FieldInfo MeasurementSet::GetFieldInfo(unsigned fieldIndex)
+void MeasurementSet::GetDataDescToBandVector(std::vector<size_t>& dataDescToBand)
 {
-	casa::MeasurementSet ms(_location);
-	casa::Table fieldTable = ms.field();
-	casa::ROArrayColumn<double> delayDirectionCol(fieldTable, "DELAY_DIR");
-	const casa::Array<double> &delayDirection = delayDirectionCol(fieldIndex);
-	casa::Array<double>::const_iterator delayDirectionIterator = delayDirection.begin();
-
-	FieldInfo field;
-	field.delayDirectionRA = *delayDirectionIterator;
-	++delayDirectionIterator;
-	field.delayDirectionDec = *delayDirectionIterator;
-	field.delayDirectionDecNegCos = cosn(-field.delayDirectionDec);
-	field.delayDirectionDecNegSin = sinn(-field.delayDirectionDec);
-
-	return field;
+	casa::MeasurementSet ms(_path);
+	casa::MSDataDescription dataDescTable = ms.dataDescription();
+	casa::ScalarColumn<int>
+		spwIdCol(dataDescTable, dataDescTable.columnName(casa::MSDataDescriptionEnums::SPECTRAL_WINDOW_ID));
+	dataDescToBand.resize(dataDescTable.nrow());
+	for(size_t dataDescId=0;dataDescId!=dataDescTable.nrow();++dataDescId)
+	{
+		dataDescToBand[dataDescId] = spwIdCol(dataDescId);
+	}
 }
 
 MSIterator::MSIterator(class MeasurementSet &ms, bool hasCorrectedData) : _row(0)
 {
-	_table = ms.OpenTable(false);
+	_table = new casa::MeasurementSet(ms.Path());
 	_antenna1Col = new casa::ROScalarColumn<int>(*_table, "ANTENNA1");
 	_antenna2Col = new casa::ROScalarColumn<int>(*_table, "ANTENNA2");
 	_dataCol = new casa::ROArrayColumn<casa::Complex>(*_table, "DATA");
@@ -285,47 +182,59 @@ MSIterator::~MSIterator()
 	delete _windowCol;
 }
 
-void MeasurementSet::InitCacheData()
+void MeasurementSet::initializeMainTableData()
 {
-	if(!_cacheInitialized)
+	if(!_isMainTableDataInitialized)
 	{
 		AOLogger::Debug << "Initializing ms cache data...\n"; 
+		// we use a ptr to last, for faster insertion
 		std::set<double>::iterator obsTimePos = _observationTimes.end();
 		MSIterator iterator(*this, false);
-		size_t antenna1=0xFFFFFFFF, antenna2 = 0xFFFFFFFF;
-		double time = nan("");
+		double time = -1.0;
 		std::set<std::pair<size_t, size_t> > baselineSet;
+		std::set<Sequence> sequenceSet;
+		size_t prevFieldId = size_t(-1), sequenceId = size_t(-1);
 		for(size_t row=0;row<iterator.TotalRows();++row)
 		{
-			size_t cur_a1 = iterator.Antenna1();
-			size_t cur_a2 = iterator.Antenna2();
+			size_t a1 = iterator.Antenna1();
+			size_t a2 = iterator.Antenna2();
+			size_t fieldId = iterator.Field();
+			size_t spw = iterator.Window();
 			double cur_time = iterator.Time();
-			if(cur_a1 != antenna1 || cur_a2 != antenna2)
+			
+			if(fieldId != prevFieldId)
 			{
-				baselineSet.insert(std::pair<size_t,size_t>(cur_a1, cur_a2));
-				antenna1 = cur_a1;
-				antenna2 = cur_a2;
+				prevFieldId = fieldId;
+				sequenceId++;
+				_observationTimesPerSequence.push_back(std::set<double>());
 			}
 			if(cur_time != time)
 			{
 				obsTimePos = _observationTimes.insert(obsTimePos, cur_time);
+				_observationTimesPerSequence[sequenceId].insert(cur_time);
 				time = cur_time;
 			}
+			
+			baselineSet.insert(std::pair<size_t,size_t>(a1, a2));
+			sequenceSet.insert(Sequence(a1, a2, spw, sequenceId, fieldId));
+			
 			++iterator;
 		}
 		for(std::set<std::pair<size_t, size_t> >::const_iterator i=baselineSet.begin(); i!=baselineSet.end(); ++i)
 			_baselines.push_back(*i);
+		for(std::set<Sequence>::const_iterator i=sequenceSet.begin(); i!=sequenceSet.end(); ++i)
+			_sequences.push_back(*i);
+		
+		_isMainTableDataInitialized = true;
 	}
-	
-	_cacheInitialized = true;
 }
 
-size_t MeasurementSet::GetPolarizationCount()
+size_t MeasurementSet::PolarizationCount()
 {
-	return GetPolarizationCount(Location());
+	return PolarizationCount(Path());
 }
 
-size_t MeasurementSet::GetPolarizationCount(const std::string &filename)
+size_t MeasurementSet::PolarizationCount(const std::string &filename)
 {
 	casa::MeasurementSet ms(filename);
 	casa::Table polTable = ms.polarization();
@@ -342,7 +251,7 @@ size_t MeasurementSet::GetPolarizationCount(const std::string &filename)
 
 bool MeasurementSet::HasRFIConsoleHistory()
 {
-	casa::MeasurementSet ms(_location);
+	casa::MeasurementSet ms(_path);
 	casa::Table histtab(ms.history());
 	casa::ROScalarColumn<casa::String> application (histtab, "APPLICATION");
 	for(unsigned i=0;i<histtab.nrow();++i)
@@ -355,7 +264,7 @@ bool MeasurementSet::HasRFIConsoleHistory()
 
 void MeasurementSet::GetAOFlaggerHistory(std::ostream &stream)
 {
-	casa::MeasurementSet ms(_location);
+	casa::MeasurementSet ms(_path);
 	casa::Table histtab(ms.history());
 	casa::ROScalarColumn<double>       time        (histtab, "TIME");
 	casa::ROScalarColumn<casa::String> application (histtab, "APPLICATION");
@@ -383,7 +292,7 @@ void MeasurementSet::GetAOFlaggerHistory(std::ostream &stream)
 void MeasurementSet::AddAOFlaggerHistory(const rfiStrategy::Strategy &strategy, const std::string &commandline)
 {
 	// This has been copied from MSWriter.cc of NDPPP and altered (thanks, Ger!)
-	casa::MeasurementSet ms(_location);
+	casa::MeasurementSet ms(_path);
 	casa::Table histtab(ms.keywordSet().asTable("HISTORY"));
 	histtab.reopenRW();
 	casa::ScalarColumn<double>       time        (histtab, "TIME");
@@ -444,7 +353,7 @@ void MeasurementSet::AddAOFlaggerHistory(const rfiStrategy::Strategy &strategy, 
 
 std::string MeasurementSet::GetStationName() const
 {
-	casa::MeasurementSet ms(_location);
+	casa::MeasurementSet ms(_path);
 	casa::Table antennaTable(ms.antenna());
 	if(antennaTable.nrow() == 0)
 		throw std::runtime_error("GetStationName() : no rows in Antenna table");
@@ -452,7 +361,7 @@ std::string MeasurementSet::GetStationName() const
 	return stationColumn(0);
 }
 
-bool MeasurementSet::ChannelZeroIsRubish()
+bool MeasurementSet::IsChannelZeroRubish()
 {
 	try
 	{

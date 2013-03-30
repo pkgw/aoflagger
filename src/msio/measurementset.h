@@ -96,84 +96,190 @@ class MSIterator {
 
 class MeasurementSet {
 	public:
-		MeasurementSet(const std::string &location) throw()
-			: _location(location), _maxSpectralBandIndex(-1),
-			_maxFrequencyIndex(-1), _maxScanIndex(-1), _cacheInitialized(false)
+		class Sequence;
+		
+		MeasurementSet(const std::string &path) throw()
+			: _path(path), _isMainTableDataInitialized(false)
 		{
+			initializeOtherData();
 		}
-		MeasurementSet(const std::string &newLocation, const MeasurementSet &formatExample);
+		
 		~MeasurementSet();
-		casa::Table *OpenTable(bool update = false) const;
-		size_t MaxSpectralBandIndex();
-		size_t FrequencyCount();
+		
+		size_t FrequencyCount(size_t bandIndex)
+		{
+			return _bands[bandIndex].channels.size();
+		}
+		
 		size_t TimestepCount()
 		{
-			if(_maxScanIndex==-1)
-				CalculateScanCounts();
-			return _maxScanIndex;
+			initializeMainTableData();
+			return _observationTimes.size();
 		}
-		size_t MaxScanIndex()
+		
+		size_t TimestepCount(size_t sequenceId)
 		{
-			if(_maxScanIndex==-1)
-				CalculateScanCounts();
-			return _maxScanIndex;
+			initializeMainTableData();
+			return _observationTimesPerSequence[sequenceId].size();
 		}
-		size_t MinScanIndex()
+		
+		size_t PolarizationCount();
+		
+		static size_t PolarizationCount(const std::string &filename);
+		
+		size_t AntennaCount()
 		{
-			if(_maxScanIndex==-1)
-				CalculateScanCounts();
-			return _minScanIndex;
+			return _antennas.size();
 		}
-		size_t GetPolarizationCount();
-		static size_t GetPolarizationCount(const std::string &filename);
-		static class BandInfo GetBandInfo(const std::string &filename, unsigned bandIndex);
-		size_t AntennaCount();
-		size_t FieldCount();
-		size_t BandCount() { return BandCount(_location); }
+		
+		size_t BandCount()
+		{ 
+			return _bands.size();
+		}
+		
+		size_t FieldCount()
+		{
+			return _fields.size();
+		}
+		
 		static size_t BandCount(const std::string &filename);
-		class AntennaInfo GetAntennaInfo(unsigned antennaId);
-		class BandInfo GetBandInfo(unsigned bandIndex) {return GetBandInfo(_location, bandIndex);}
-		class FieldInfo GetFieldInfo(unsigned fieldIndex);
-		void DataMerge(const MeasurementSet &source);
-		std::string Location() const throw() { return _location; }
+		
+		/**
+		 * Get number of sequences. A sequence is a contiguous number of scans
+		 * on the same field. Thus, the next sequence starts as soon as the
+		 * fieldId changes (possibly to a previous field)
+		 */
+		size_t SequenceCount()
+		{
+			initializeMainTableData();
+			return _observationTimesPerSequence.size();
+		}
+		
+		AntennaInfo GetAntennaInfo(unsigned antennaId)
+		{
+			return _antennas[antennaId];
+		}
+		
+		static BandInfo GetBandInfo(const std::string &filename, unsigned bandIndex);
+		
+		BandInfo GetBandInfo(unsigned bandIndex)
+		{
+			return _bands[bandIndex];
+		}
+		
+		FieldInfo GetFieldInfo(unsigned fieldIndex)
+		{
+			return _fields[fieldIndex];
+		}
+		
+		void GetDataDescToBandVector(std::vector<size_t>& dataDescToBand);
+		
+		std::string Path() const { return _path; }
+		
 		void GetBaselines(std::vector<std::pair<size_t,size_t> > &baselines)
 		{
-			if(!_cacheInitialized)
-				InitCacheData();
+			initializeMainTableData();
 			baselines = _baselines;
 		}
+		
+		const std::vector<Sequence> &GetSequences()
+		{
+			initializeMainTableData();
+			return _sequences;
+		}
+		
 		const std::set<double> &GetObservationTimesSet()
 		{
-			if(!_cacheInitialized)
-				InitCacheData();
+			initializeMainTableData();
 			return _observationTimes;
 		}
+		const std::set<double> &GetObservationTimesSet(size_t sequenceId)
+		{
+			initializeMainTableData();
+			return _observationTimesPerSequence[sequenceId];
+		}
+		
 		std::vector<double> *CreateObservationTimesVector()
 		{
-			if(!_cacheInitialized)
-				InitCacheData();
+			initializeMainTableData();
 			std::vector<double> *times = new std::vector<double>();
 			for(std::set<double>::const_iterator i=_observationTimes.begin();i!=_observationTimes.end();++i)
 				times->push_back(*i);
 			return times;
 		}
+		
 		bool HasRFIConsoleHistory();
+		
 		void GetAOFlaggerHistory(std::ostream &stream);
+		
 		void AddAOFlaggerHistory(const class rfiStrategy::Strategy &strategy, const std::string &commandline);
+		
 		std::string GetStationName() const;
-		bool ChannelZeroIsRubish();
+		
+		bool IsChannelZeroRubish();
+		
+		class Sequence
+		{
+			public:
+				Sequence(unsigned _antenna1, unsigned _antenna2, unsigned _spw, unsigned _sequenceId, unsigned _fieldId) :
+					antenna1(_antenna1), antenna2(_antenna2),
+					spw(_spw), sequenceId(_sequenceId),
+					fieldId(_fieldId)
+					{ }
+				unsigned antenna1, antenna2;
+				unsigned spw;
+				unsigned sequenceId;
+				unsigned fieldId;
+				
+				bool operator<(const Sequence &rhs) const
+				{
+					if(antenna1 < rhs.antenna1) return true;
+					else if(antenna1 == rhs.antenna1)
+					{
+						if(antenna2 < rhs.antenna2) return true;
+						else if(antenna2 == rhs.antenna2)
+						{
+							if(spw < rhs.spw) return true;
+							else if(spw == rhs.spw)
+							{
+								return sequenceId < rhs.sequenceId;
+							}
+						}
+					}
+					return false;
+				}
+				bool operator==(const Sequence &rhs) const
+				{
+					return antenna1==rhs.antenna1 && antenna2==rhs.antenna2 &&
+						spw==rhs.spw && sequenceId==rhs.sequenceId;
+				}
+		};
 	private:
-		void InitCacheData();
-		void CalculateScanCounts();
+		void initializeMainTableData();
+		
+		void initializeOtherData();
+		
+		void initializeAntennas(casa::MeasurementSet &ms);
+		void initializeBands(casa::MeasurementSet &ms);
+		void initializeFields(casa::MeasurementSet &ms);
 
-		const std::string _location;
-		int _maxSpectralBandIndex;
-		int _maxFrequencyIndex;
-		int _maxScanIndex, _minScanIndex;
-
-		bool _cacheInitialized;
+		const std::string _path;
+		
+		bool _isMainTableDataInitialized;
+		
 		std::vector<std::pair<size_t,size_t> > _baselines;
+		
 		std::set<double> _observationTimes;
+		
+		std::vector<std::set<double> > _observationTimesPerSequence;
+
+		std::vector<AntennaInfo> _antennas;
+		
+		std::vector<BandInfo> _bands;
+		
+		std::vector<FieldInfo> _fields;
+		
+		std::vector<Sequence> _sequences;
 };
 
 #endif

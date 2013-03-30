@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	
 	std::cout << "Opening " << filename << "...\n";
 	
-	const unsigned polarizationCount = MeasurementSet::GetPolarizationCount(filename);
+	const unsigned polarizationCount = MeasurementSet::PolarizationCount(filename);
 	const BandInfo band = MeasurementSet::GetBandInfo(filename, 0);
 	
 	const unsigned antennaIndex = 0;

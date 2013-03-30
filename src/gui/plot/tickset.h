@@ -42,6 +42,8 @@ class NumericTickSet : public TickSet
 	public:
 		NumericTickSet(double min, double max, unsigned sizeRequest) : _min(min), _max(max), _sizeRequest(sizeRequest)
 		{
+			if(!std::isfinite(min) || !std::isfinite(max))
+				throw std::runtime_error("Invalid (non-finite) range in NumericTickSet");
 			set(sizeRequest);
 		}
 		
@@ -151,6 +153,8 @@ class LogarithmicTickSet : public TickSet
 	public:
 		LogarithmicTickSet(double min, double max, unsigned sizeRequest) : _min(min), _minLog10(log10(min)), _max(max), _maxLog10(log10(max)), _sizeRequest(sizeRequest)
 		{
+			if(!std::isfinite(min) || !std::isfinite(max))
+				throw std::runtime_error("Invalid (non-finite) range in LogarithmicTickSet");
 			set(sizeRequest);
 		}
 		
@@ -306,6 +310,8 @@ class TimeTickSet : public TickSet
 	public:
 		TimeTickSet(double minTime, double maxTime, unsigned sizeRequest) : _min(minTime), _max(maxTime), _sizeRequest(sizeRequest)
 		{
+			if(!std::isfinite(minTime) || !std::isfinite(maxTime))
+				throw std::runtime_error("Invalid (non-finite) range in TimeTickSet");
 			set(sizeRequest);
 		}
 		
@@ -340,8 +346,8 @@ class TimeTickSet : public TickSet
 			{
 				if(sizeRequest == 0)
 					return;
-			double tickWidth = calculateTickWidth((_max - _min) / (double) sizeRequest);
-				if(tickWidth == 0.0)
+				double tickWidth = calculateTickWidth((_max - _min) / (double) sizeRequest);
+				if(tickWidth == 0.0 || !std::isfinite(tickWidth))
 					tickWidth = 1.0;
 				double
 					pos = roundUpToNiceNumber(_min, tickWidth);
@@ -357,6 +363,9 @@ class TimeTickSet : public TickSet
 		
 		double calculateTickWidth(double lowerLimit) const
 		{
+			if(!std::isfinite(lowerLimit))
+				return lowerLimit;
+			
 			// number is in units of seconds
 			
 			// In days?
@@ -421,7 +430,7 @@ class TimeTickSet : public TickSet
 			else
 			{
 				double factor = 1.0;
-				while(lowerLimit < 0.1)
+				while(lowerLimit < 0.1 && std::isfinite(lowerLimit))
 				{
 					factor *= 0.1;
 					lowerLimit *= 10.0;

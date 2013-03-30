@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <string>
 
 #include <libgen.h>
 
@@ -182,7 +183,7 @@ int main(int argc, char **argv)
 		}
 		else if(flag == "column")
 		{
-			string columnStr(argv[parameterIndex+1]);
+			std::string columnStr(argv[parameterIndex+1]);
 			parameterIndex+=2;
 			dataColumn = columnStr; 
 		}

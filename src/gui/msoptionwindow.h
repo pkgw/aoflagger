@@ -41,7 +41,6 @@ class MSOptionWindow : public Gtk::Window {
 	private:
 		void initDataTypeButtons();
 		void initPolarisationButtons();
-		void initPartitioningButtons();
 
 		class RFIGuiWindow &_rfiGuiWindow;
 		const std::string _filename;
@@ -50,14 +49,12 @@ class MSOptionWindow : public Gtk::Window {
 		Gtk::VBox _leftVBox;
 		Gtk::HBox _topHBox;
 		Gtk::Button _openButton;
-		Gtk::Frame _dataKindFrame, _polarisationFrame, _partitioningFrame;
-		Gtk::VBox _dataKindBox, _polarisationBox, _partitioningBox;
+		Gtk::Frame _dataKindFrame, _polarisationFrame;
+		Gtk::VBox _dataKindBox, _polarisationBox;
 		Gtk::HBox _otherColumnBox;
 		Gtk::RadioButton _observedDataButton, _correctedDataButton, _modelDataButton, _residualDataButton, _otherColumnButton;
 		Gtk::Entry _otherColumnEntry;
 		Gtk::RadioButton _allDipolePolarisationButton, _autoDipolePolarisationButton, _stokesIPolarisationButton;
-		Gtk::RadioButton _noPartitioningButton, _max2500ScansButton, _max10000ScansButton, _max25000ScansButton,
-			_max100000ScansButton;
 		Gtk::RadioButton _directReadButton, _indirectReadButton, _memoryReadButton;
 		Gtk::CheckButton _readUVWButton;
 };

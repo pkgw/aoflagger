@@ -25,8 +25,6 @@
 
 #include "msoptionwindow.h"
 
-#include "../msio/timefrequencyimager.h"
-
 #include "../strategy/imagesets/msimageset.h"
 
 #include "rfiguiwindow.h"
@@ -38,17 +36,11 @@ MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &fi
 	_openButton(Gtk::Stock::OPEN),
 	_dataKindFrame("Columns to read"),
 	_polarisationFrame("Polarisation to read"),
-	_partitioningFrame("Partitioning"),
 	_observedDataButton("Observed"), _correctedDataButton("Corrected"), _modelDataButton("Model"), _residualDataButton("Residual"),
 	_otherColumnButton("Other:"),
 	_allDipolePolarisationButton("Dipole (xx,xy,yx,yy separately)"),
 	_autoDipolePolarisationButton("Dipole auto-correlations (xx and yy)"),
 	_stokesIPolarisationButton("Stokes I"),
-	_noPartitioningButton("No partitioning"),
-	_max2500ScansButton("Split when >2.500 scans"),
-	_max10000ScansButton("Split when >10.000 scans"),
-	_max25000ScansButton("Split when >25.000 scans"),
-	_max100000ScansButton("Split when >100.000 scans"),
 	_directReadButton("Direct IO"),
 	_indirectReadButton("Indirect IO"),
 	_memoryReadButton("Memory-mode IO"),
@@ -77,8 +69,6 @@ MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &fi
 	_leftVBox.pack_start(_bottomButtonBox);
 
 	_topHBox.pack_start(_leftVBox);
-
-	initPartitioningButtons();
 
 	add(_topHBox);
 	show_all();
@@ -124,32 +114,6 @@ void MSOptionWindow::initPolarisationButtons()
 	_leftVBox.pack_start(_polarisationFrame);
 }
 
-void MSOptionWindow::initPartitioningButtons()
-{
-	Gtk::RadioButton::Group group = _noPartitioningButton.get_group();
-	_max2500ScansButton.set_group(group);
-	_max10000ScansButton.set_group(group);
-	_max25000ScansButton.set_group(group);
-	_max100000ScansButton.set_group(group);
-
-	_partitioningBox.pack_start(_noPartitioningButton);
-	_partitioningBox.pack_start(_max2500ScansButton);
-	_partitioningBox.pack_start(_max10000ScansButton);
-	_partitioningBox.pack_start(_max25000ScansButton);
-	_partitioningBox.pack_start(_max100000ScansButton);
-
-	_partitioningFrame.add(_partitioningBox);
-	_topHBox.pack_start(_partitioningFrame);
-
-	_noPartitioningButton.show();
-	_max2500ScansButton.show();
-	_max10000ScansButton.show();
-	_max25000ScansButton.show();
-	_max100000ScansButton.show();
-	_partitioningBox.show();
-	_partitioningFrame.show();
-}
-
 void MSOptionWindow::onOpen()
 {
 	std::cout << "Opening " << _filename << std::endl;
@@ -185,16 +149,6 @@ void MSOptionWindow::onOpen()
 			else
 				msImageSet->SetReadStokesI();
 	
-			if(_max2500ScansButton.get_active())
-				msImageSet->SetMaxScanCounts(2500);
-			else if(_max10000ScansButton.get_active())
-				msImageSet->SetMaxScanCounts(10000);
-			else if(_max25000ScansButton.get_active())
-				msImageSet->SetMaxScanCounts(25000);
-			else if(_max100000ScansButton.get_active())
-				msImageSet->SetMaxScanCounts(100000);
-			else
-				msImageSet->SetMaxScanCounts(0);
 			msImageSet->SetReadUVW(readUVW);
 		}
 		imageSet->Initialize();

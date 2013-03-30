@@ -11,7 +11,7 @@
 BaselineMatrixLoader::BaselineMatrixLoader(MeasurementSet &measurementSet)
 	: _sortedTable(0), _tableIter(0), _currentIterIndex(0), _measurementSet(measurementSet), _timeIndexCount(0), _metaData(0)
 {
-	casa::Table *rawTable = _measurementSet.OpenTable();
+	casa::Table *rawTable = new casa::Table(_measurementSet.Path());
 	casa::Block<casa::String> names(4);
 	names[0] = "DATA_DESC_ID";
 	names[1] = "TIME";
@@ -29,7 +29,7 @@ BaselineMatrixLoader::BaselineMatrixLoader(MeasurementSet &measurementSet)
 		iter.next();
 		++_timeIndexCount;
 	}
-	_frequencyCount = _measurementSet.FrequencyCount();
+	_frequencyCount = _measurementSet.FrequencyCount(0);
 
 	_tableIter = new casa::TableIterator(*_sortedTable, selectionNames, casa::TableIterator::Ascending, casa::TableIterator::NoSort);
 }

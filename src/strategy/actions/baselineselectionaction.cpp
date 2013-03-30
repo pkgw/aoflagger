@@ -118,16 +118,16 @@ namespace rfiStrategy {
 		BaselineReaderPtr reader = dynamic_cast<MSImageSet&>(*imageSet).Reader();
 
 		size_t scans = reader->Set().GetObservationTimesSet().size();
-		size_t frequencyCount = reader->Set().FrequencyCount();
-		Mask2DPtr flaggedMask = Mask2D::CreateSetMaskPtr<true>(scans, frequencyCount);
-		std::vector<Mask2DCPtr> masks;
-		for(size_t i=0;i<reader->PolarizationCount();++i)
-			masks.push_back(flaggedMask);
 
 		for(std::vector<BaselineSelector::SingleBaselineInfo>::const_iterator i=baselines.begin();
 			i!=baselines.end();++i)
 		{
-			reader->AddWriteTask(masks, i->antenna1, i->antenna2, i->band);
+			size_t frequencyCount = reader->Set().FrequencyCount(i->band);
+			Mask2DPtr flaggedMask = Mask2D::CreateSetMaskPtr<true>(scans, frequencyCount);
+			std::vector<Mask2DCPtr> masks;
+			for(size_t p=0;p<reader->PolarizationCount();++p)
+				masks.push_back(flaggedMask);
+			reader->AddWriteTask(masks, i->antenna1, i->antenna2, i->band, i->sequenceId);
 		}
 		reader->PerformFlagWriteRequests();
 	}

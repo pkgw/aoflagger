@@ -78,7 +78,7 @@ void UVImager::Empty()
 
 void UVImager::Image(class MeasurementSet &measurementSet, unsigned band)
 {
-	unsigned frequencyCount = measurementSet.FrequencyCount();
+	unsigned frequencyCount = measurementSet.FrequencyCount(band);
 	IntegerDomain frequencies(0, frequencyCount);
 	_measurementSet = &measurementSet;
 	_band = _measurementSet->GetBandInfo(band);
@@ -121,7 +121,7 @@ void UVImager::Image(const IntegerDomain &frequencies)
  */
 void UVImager::Image(const IntegerDomain &frequencies, const IntegerDomain &antenna1Domain, const IntegerDomain &antenna2Domain)
 {
-	_scanCount = _measurementSet->MaxScanIndex()+1;
+	_scanCount = _measurementSet->TimestepCount();
 	std::cout << "Requesting " << frequencies.ValueCount() << " x " << antenna1Domain.ValueCount() << " x " << antenna2Domain.ValueCount() << " x "
 		<< _scanCount << " x " << sizeof(SingleFrequencySingleBaselineData) << " = "
 		<< (frequencies.ValueCount() * antenna1Domain.ValueCount() * antenna2Domain.ValueCount() * _scanCount * sizeof(SingleFrequencySingleBaselineData) / (1024*1024))
@@ -464,6 +464,7 @@ void UVImager::GetUVPosition(num_t &u, num_t &v, const SingleFrequencySingleBase
 {
 	unsigned field = data.field;
 	num_t pointingLattitude = _fields[field].delayDirectionRA;
+	num_t pointingLongitude = _fields[field].delayDirectionDec;
 
 	//calcTimer.Start();
 	num_t earthLattitudeAngle = Date::JDToHourOfDay(Date::AipsMJDToJD(data.time))*M_PIn/12.0L;
@@ -478,8 +479,8 @@ void UVImager::GetUVPosition(num_t &u, num_t &v, const SingleFrequencySingleBase
 	num_t dxProjected = tmpCos*cache.dx - tmpSin*cache.dy;
 	num_t tmpdy = tmpSin*cache.dx + tmpCos*cache.dy;
 
-	tmpCos = _fields[field].delayDirectionDecNegCos; // cosn(-pointingLongitude);
-	tmpSin = _fields[field].delayDirectionDecNegSin; //sinn(-pointingLongitude);
+	tmpCos = cosn(-pointingLongitude);
+	tmpSin = sinn(-pointingLongitude);
 	num_t dyProjected = tmpCos*tmpdy - tmpSin*cache.dz;
 	// long double dzProjected = tmpSin*tmpdy + tmpCos*dzAnt; // we don't need it
 
@@ -525,9 +526,9 @@ num_t UVImager::GetFringeCount(size_t timeIndexStart, size_t timeIndexEnd, unsig
 	return -(metaData->UVW()[timeIndexEnd].w - metaData->UVW()[timeIndexStart].w) * metaData->Band().channels[channelIndex].frequencyHz / 299792458.0L;
 }
 
-void UVImager::InverseImage(class MeasurementSet &prototype, unsigned /*band*/, const Image2D &/*uvReal*/, const Image2D &/*uvImaginary*/, unsigned antenna1Index, unsigned antenna2Index)
+void UVImager::InverseImage(class MeasurementSet &prototype, unsigned band, const Image2D &/*uvReal*/, const Image2D &/*uvImaginary*/, unsigned antenna1Index, unsigned antenna2Index)
 {
-	_timeFreq = Image2D::CreateZeroImage(prototype.MaxScanIndex()+1, prototype.FrequencyCount());
+	_timeFreq = Image2D::CreateZeroImage(prototype.TimestepCount(), prototype.FrequencyCount(band));
 	AntennaInfo antenna1, antenna2;
 	antenna1 = prototype.GetAntennaInfo(antenna1Index);
 	antenna2 = prototype.GetAntennaInfo(antenna2Index);

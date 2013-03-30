@@ -74,7 +74,7 @@ namespace rfiStrategy {
 			}
 			virtual std::string File()
 			{
-				return _set.Location(); 
+				return _set.Path(); 
 			}
 			virtual TimeFrequencyData *LoadData(const ImageSetIndex &index)
 			{

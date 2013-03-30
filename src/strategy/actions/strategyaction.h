@@ -26,7 +26,6 @@
 
 #include <boost/thread.hpp>
 
-#include "../../msio/timefrequencyimager.h"
 #include "../../msio/timefrequencydata.h"
 
 #include "action.h"

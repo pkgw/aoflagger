@@ -38,66 +38,45 @@ namespace rfiStrategy {
 	{
 		AOLogger::Debug << "Initializing image set...\n";
 		AOLogger::Debug << "Antenna's: " << _set.AntennaCount() << '\n';
-		_set.GetBaselines(_baselines);
-		AOLogger::Debug << "Unique baselines: " << _baselines.size() << '\n';
+		_sequences = _set.GetSequences();
+		AOLogger::Debug << "Unique sequences: " << _sequences.size() << '\n';
+		if(_sequences.empty())
+			throw std::runtime_error("Trying to open a measurement set with no sequences");
 		initReader();
-		_reader->PartInfo(_maxScanCounts-_scanCountPartOverlap, _timeScanCount, _partCount);
-		AOLogger::Debug << "Unique time stamps: " << _timeScanCount << '\n';
-		_bandCount = _set.MaxSpectralBandIndex()+1;
+		_bandCount = _set.BandCount();
+		_fieldCount = _set.FieldCount();
+		_sequencesPerBaselineCount = _set.SequenceCount();
 		AOLogger::Debug << "Bands: " << _bandCount << '\n';
-		AOLogger::Debug << "Number of parts: " << _partCount << '\n';
 	}
 	
 	void MSImageSetIndex::Previous()
 	{
-		if(_partIndex > 0)
-			--_partIndex;
+		if(_sequenceIndex > 0)
+			--_sequenceIndex;
 		else {
-			_partIndex = static_cast<class MSImageSet&>(imageSet()).PartCount() - 1;
-
-			if(_baselineIndex > 0)
-				--_baselineIndex;
-			else {
-				_baselineIndex = static_cast<class MSImageSet&>(imageSet()).Baselines().size() - 1;
-				LargeStepPrevious();
-			}
+			_sequenceIndex = static_cast<class MSImageSet&>(imageSet())._sequences.size() - 1;
+			_isValid = false;
 		}
 	}
 	
 	void MSImageSetIndex::Next()
 	{
-		++_partIndex;
-		if(_partIndex >= static_cast<class MSImageSet&>(imageSet()).PartCount() )
+		++_sequenceIndex;
+		if( _sequenceIndex >= static_cast<class MSImageSet&>(imageSet())._sequences.size() )
 		{
-			_partIndex = 0;
-
-			++_baselineIndex;
-			if( _baselineIndex >= static_cast<class MSImageSet&>(imageSet()).Baselines().size() )
-			{
-				_baselineIndex = 0;
-				LargeStepNext();
-			}
+			_sequenceIndex = 0;
+			_isValid = false;
 		}
 	}
 	
 	void MSImageSetIndex::LargeStepPrevious()
 	{
-		if(_band > 0)
-			--_band;
-		else {
-			_band = static_cast<class MSImageSet&>(imageSet()).BandCount() - 1;
-			_isValid = false;
-		}
+		_isValid = false;
 	}
 	
 	void MSImageSetIndex::LargeStepNext()
 	{
-		++_band;
-		if(_band >= static_cast<class MSImageSet&>(imageSet()).BandCount())
-		{
-			_band = 0;
-			_isValid = false;
-		}
+		_isValid = false;
 	}
 
 	void MSImageSet::initReader()
@@ -133,59 +112,60 @@ namespace rfiStrategy {
 
 	size_t MSImageSet::StartIndex(const MSImageSetIndex &index)
 	{
-		size_t startIndex =
-			(_timeScanCount * index._partIndex) / _partCount - LeftBorder(index);
-		return startIndex;
+		//size_t startIndex =
+		//	(_timeScanCount * index._partIndex) / _partCount - LeftBorder(index);
+		//return startIndex;
+		return 0;
 	}
 
 	size_t MSImageSet::EndIndex(const MSImageSetIndex &index)
 	{
-		size_t endIndex =
-			(_timeScanCount * (index._partIndex+1)) / _partCount + RightBorder(index);
-		return endIndex;
+		//size_t endIndex =
+		//	(_timeScanCount * (index._partIndex+1)) / _partCount + RightBorder(index);
+		//return endIndex;
+		return _reader->Set().GetObservationTimesSet(GetSequenceId(index)).size();
 	}
 
 	size_t MSImageSet::LeftBorder(const MSImageSetIndex &index)
 	{
-		if(index._partIndex > 0)
-			return _scanCountPartOverlap/2;
-		else
+		//if(index._partIndex > 0)
+		//	return _scanCountPartOverlap/2;
+		//else
 			return 0;
 	}
 
 	size_t MSImageSet::RightBorder(const MSImageSetIndex &index)
 	{
-		if(index._partIndex + 1 < _partCount)
-			return _scanCountPartOverlap/2 + _scanCountPartOverlap%2;
-		else
+		//if(index._partIndex + 1 < _partCount)
+		//	return _scanCountPartOverlap/2 + _scanCountPartOverlap%2;
+		//else
 			return 0;
 	}
 
-	class TimeFrequencyData *MSImageSet::LoadData(const ImageSetIndex &index)
+	std::vector<double> MSImageSet::ObservationTimesVector(const ImageSetIndex &index)
 	{
-		const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex&>(index);
-		initReader();
-		size_t a1 = _baselines[msIndex._baselineIndex].first;
-		size_t a2 = _baselines[msIndex._baselineIndex].second;
-		size_t
-			startIndex = StartIndex(msIndex),
-			endIndex = EndIndex(msIndex);
-		AOLogger::Debug << "Loading baseline " << a1 << "x" << a2 << ", t=" << startIndex << "-" << endIndex << '\n';
-		_reader->AddReadRequest(a1, a2, msIndex._band, startIndex, endIndex);
-		_reader->PerformReadRequests();
-		std::vector<UVW> uvw;
-		TimeFrequencyData data = _reader->GetNextResult(uvw);
-		return new TimeFrequencyData(data);
+		const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex &>(index);
+		// StartIndex(msIndex), EndIndex(msIndex)
+		unsigned sequenceId = _sequences[msIndex._sequenceIndex].sequenceId;
+		std::map<double, size_t> obsTimesMap = _reader->ObservationTimes(sequenceId);
+		std::vector<double> obs(obsTimesMap.size());
+		std::vector<double>::iterator obsIter = obs.begin();
+		for(std::map<double, size_t>::const_iterator i=obsTimesMap.begin(); i!=obsTimesMap.end(); ++i)
+		{
+			*obsIter = i->first;
+			++obsIter;
+		}
+		return obs;
 	}
-
+			
 	TimeFrequencyMetaDataCPtr MSImageSet::createMetaData(const ImageSetIndex &index, std::vector<UVW> &uvw)
 	{
 		const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex&>(index);
 		TimeFrequencyMetaData *metaData = new TimeFrequencyMetaData();
 		metaData->SetAntenna1(_set.GetAntennaInfo(GetAntenna1(msIndex)));
 		metaData->SetAntenna2(_set.GetAntennaInfo(GetAntenna2(msIndex)));
-		metaData->SetBand(_set.GetBandInfo(msIndex._band));
-		metaData->SetField(_set.GetFieldInfo(msIndex._field));
+		metaData->SetBand(_set.GetBandInfo(GetBand(msIndex)));
+		metaData->SetField(_set.GetFieldInfo(GetField(msIndex)));
 		metaData->SetObservationTimes(ObservationTimesVector(msIndex));
 		if(_reader != 0)
 		{
@@ -197,32 +177,41 @@ namespace rfiStrategy {
 	std::string MSImageSetIndex::Description() const
 	{
 		std::stringstream sstream;
+		const MeasurementSet::Sequence &sequence = static_cast<class MSImageSet&>(imageSet())._sequences[_sequenceIndex];
 		size_t
-			antenna1 = static_cast<class MSImageSet&>(imageSet()).Baselines()[_baselineIndex].first,
-			antenna2 = static_cast<class MSImageSet&>(imageSet()).Baselines()[_baselineIndex].second;
+			antenna1 = sequence.antenna1,
+			antenna2 = sequence.antenna2,
+			band = sequence.spw,
+			sequenceId = sequence.sequenceId;
 		AntennaInfo info1 = static_cast<class MSImageSet&>(imageSet()).GetAntennaInfo(antenna1);
 		AntennaInfo info2 = static_cast<class MSImageSet&>(imageSet()).GetAntennaInfo(antenna2);
-		BandInfo bandInfo = static_cast<class MSImageSet&>(imageSet()).GetBandInfo(_band);
-		double bandStart = round(bandInfo.channels.front().frequencyHz/100000.0)/10.0;
-		double bandEnd = round(bandInfo.channels.back().frequencyHz/100000.0)/10.0;
 		sstream
 			<< info1.station << ' ' << info1.name << " x " << info2.station << ' ' << info2.name;
 		if(static_cast<class MSImageSet&>(imageSet()).BandCount() > 1)
 		{
+			BandInfo bandInfo = static_cast<class MSImageSet&>(imageSet()).GetBandInfo(band);
+			double bandStart = round(bandInfo.channels.front().frequencyHz/100000.0)/10.0;
+			double bandEnd = round(bandInfo.channels.back().frequencyHz/100000.0)/10.0;
 			sstream
-				<< ", spect window " << _band << " (" << bandStart
+				<< ", spw " << band << " (" << bandStart
 				<< "MHz -" << bandEnd << "MHz)";
+		}
+		if(static_cast<class MSImageSet&>(imageSet()).SequenceCount() > 1)
+		{
+			sstream
+				<< ", seq " << sequenceId;
 		}
 		return sstream.str();
 	}
 
-	size_t MSImageSet::FindBaselineIndex(size_t a1, size_t a2)
+	size_t MSImageSet::FindBaselineIndex(size_t antenna1, size_t antenna2, size_t band, size_t sequenceId)
 	{
 		size_t index = 0;
-		for(std::vector<std::pair<size_t,size_t> >::const_iterator i=_baselines.begin();
-			i != _baselines.end() ; ++i)
+		for(std::vector<MeasurementSet::Sequence>::const_iterator i=_sequences.begin();
+			i != _sequences.end() ; ++i)
 		{
-			if((i->first == a1 && i->second == a2) || (i->first == a2 && i->second == a1))
+			bool antennaMatch = (i->antenna1 == antenna1 && i->antenna2 == antenna2) || (i->antenna1 == antenna2 && i->antenna2 == antenna1);
+			if(antennaMatch && i->spw == band && i->sequenceId == sequenceId)
 			{
 				return index;
 			}
@@ -248,7 +237,7 @@ namespace rfiStrategy {
 		for(std::vector<BaselineData>::iterator i=_baselineData.begin();i!=_baselineData.end();++i)
 		{
 			MSImageSetIndex &index = static_cast<MSImageSetIndex&>(i->Index());
-			_reader->AddReadRequest(GetAntenna1(index), GetAntenna2(index), index._band, StartIndex(index), EndIndex(index));
+			_reader->AddReadRequest(GetAntenna1(index), GetAntenna2(index), GetBand(index), GetSequenceId(index), StartIndex(index), EndIndex(index));
 		}
 		
 		_reader->PerformReadRequests();
@@ -278,19 +267,11 @@ namespace rfiStrategy {
 	{
 		const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex&>(index);
 		initReader();
-		size_t a1 = _baselines[msIndex._baselineIndex].first;
-		size_t a2 = _baselines[msIndex._baselineIndex].second;
-		size_t b = msIndex._band;
-		size_t
-			startIndex = StartIndex(msIndex),
-			endIndex = EndIndex(msIndex);
+		size_t a1 = _sequences[msIndex._sequenceIndex].antenna1;
+		size_t a2 = _sequences[msIndex._sequenceIndex].antenna2;
+		size_t b = _sequences[msIndex._sequenceIndex].spw;
+		size_t s = _sequences[msIndex._sequenceIndex].sequenceId;
 
-		/*double ratio = 0.0;
-		for(std::vector<Mask2DCPtr>::const_iterator i=flags.begin();i!=flags.end();++i)
-		{
-			ratio += ((double) (*i)->GetCount<true>() / ((*i)->Width() * (*i)->Height() * flags.size()));
-		}*/
-			
 		std::vector<Mask2DCPtr> allFlags;
 		if(flags.size() > _reader->PolarizationCount())
 			throw std::runtime_error("Trying to write more polarizations to image set than available");
@@ -304,12 +285,7 @@ namespace rfiStrategy {
 		}
 		else allFlags = flags;
 		
-		//const AntennaInfo
-		//	a1Info = GetAntennaInfo(a1),
-		//	a2Info = GetAntennaInfo(a2);
-		//AOLogger::Info << "Baseline " << a1Info.name << " x " << a2Info.name << " has " << TimeFrequencyStatistics::FormatRatio(ratio) << " of bad data.\n";
-	
-		_reader->AddWriteTask(allFlags, a1, a2, b, startIndex, endIndex, LeftBorder(msIndex), RightBorder(msIndex));
+		_reader->AddWriteTask(allFlags, a1, a2, b, s);
 	}
 	
 	void MSImageSet::PerformWriteFlagsTask()

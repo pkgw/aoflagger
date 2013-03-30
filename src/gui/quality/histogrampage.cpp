@@ -189,7 +189,7 @@ void HistogramPage::readFromFile()
 	{
 		MeasurementSet set(_statFilename);
 		
-		const unsigned polarizationCount = set.GetPolarizationCount();
+		const unsigned polarizationCount = set.PolarizationCount();
 
 		_histograms = new HistogramCollection(polarizationCount);
 		_histograms->Load(histogramTables);

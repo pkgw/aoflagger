@@ -61,9 +61,9 @@ enum CollectingMode
 void actionCollect(const std::string &filename, enum CollectingMode mode, StatisticsCollection &statisticsCollection, HistogramCollection &histogramCollection, bool mwaChannels, size_t flaggedTimesteps, const std::set<size_t> &flaggedAntennae)
 {
 	MeasurementSet *ms = new MeasurementSet(filename);
-	const unsigned polarizationCount = ms->GetPolarizationCount();
+	const unsigned polarizationCount = ms->PolarizationCount();
 	const unsigned bandCount = ms->BandCount();
-	const bool ignoreChannelZero = ms->ChannelZeroIsRubish();
+	const bool ignoreChannelZero = ms->IsChannelZeroRubish();
 	const std::string stationName = ms->GetStationName();
 	BandInfo *bands = new BandInfo[bandCount];
 	double **frequencies = new double*[bandCount];
@@ -316,7 +316,7 @@ void printStatistics(const DefaultStatistics &statistics)
 void actionQueryGlobalStat(const std::string &kindName, const std::string &filename)
 {
 	MeasurementSet *ms = new MeasurementSet(filename);
-	const unsigned polarizationCount = ms->GetPolarizationCount();
+	const unsigned polarizationCount = ms->PolarizationCount();
 	const BandInfo band = ms->GetBandInfo(0);
 	delete ms;
 	
@@ -343,7 +343,7 @@ void actionQueryGlobalStat(const std::string &kindName, const std::string &filen
 void actionQueryBaselines(const std::string &kindName, const std::string &filename)
 {
 	MeasurementSet *ms = new MeasurementSet(filename);
-	const unsigned polarizationCount = ms->GetPolarizationCount();
+	const unsigned polarizationCount = ms->PolarizationCount();
 	delete ms;
 	
 	const QualityTablesFormatter::StatisticKind kind = QualityTablesFormatter::NameToKind(kindName);
@@ -373,7 +373,7 @@ void actionQueryBaselines(const std::string &kindName, const std::string &filena
 
 void actionQueryTime(const std::string &kindName, const std::string &filename)
 {
-	const unsigned polarizationCount = MeasurementSet::GetPolarizationCount(filename);
+	const unsigned polarizationCount = MeasurementSet::PolarizationCount(filename);
 	const QualityTablesFormatter::StatisticKind kind = QualityTablesFormatter::NameToKind(kindName);
 	
 	QualityTablesFormatter formatter(filename);
@@ -414,7 +414,7 @@ void actionSummarize(const std::string &filename)
 	}
 	else {
 		MeasurementSet *ms = new MeasurementSet(filename);
-		const unsigned polarizationCount = ms->GetPolarizationCount();
+		const unsigned polarizationCount = ms->PolarizationCount();
 		delete ms;
 		
 		statisticsCollection.SetPolarizationCount(polarizationCount);
@@ -447,7 +447,7 @@ void actionSummarize(const std::string &filename)
 void actionSummarizeRFI(const std::string &filename)
 {
 	MeasurementSet *ms = new MeasurementSet(filename);
-	const unsigned polarizationCount = ms->GetPolarizationCount();
+	const unsigned polarizationCount = ms->PolarizationCount();
 	const BandInfo band = ms->GetBandInfo(0);
 	delete ms;
 	
@@ -533,7 +533,7 @@ void printRFISlopeForHistogram(const std::map<HistogramCollection::AntennaPair, 
 void actionHistogram(const std::string &filename, const std::string &query, bool mwaChannels)
 {
 	HistogramTablesFormatter histogramFormatter(filename);
-	const unsigned polarizationCount = MeasurementSet::GetPolarizationCount(filename);
+	const unsigned polarizationCount = MeasurementSet::PolarizationCount(filename);
 	if(query == "rfislope")
 	{
 		HistogramCollection collection(polarizationCount);

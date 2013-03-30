@@ -35,7 +35,7 @@ class TimeFrequencyMetaData
 {
 	public:
 		TimeFrequencyMetaData()
-			: _antenna1(0), _antenna2(0), _band(0), _field(0), _observationTimes(0), _uvw(0), _valueDescription("Visibility"), _valueUnits("Jy")
+			: _antenna1(0), _antenna2(0), _band(0), _sequenceId(0), _field(0), _observationTimes(0), _uvw(0), _valueDescription("Visibility"), _valueUnits("Jy")
 		{
 		}
 		TimeFrequencyMetaData(const AntennaInfo &antenna1, const AntennaInfo &antenna2, const BandInfo &band, const FieldInfo &field, const std::vector<double> &observationTimes)
@@ -43,6 +43,7 @@ class TimeFrequencyMetaData
 			_antenna1(new AntennaInfo(antenna1)),
 			_antenna2(new AntennaInfo(antenna2)),
 			_band(new BandInfo(band)),
+			_sequenceId(0),
 			_field(new FieldInfo(field)),
 			_observationTimes(new std::vector<double>(observationTimes)),
 			_uvw(0),
@@ -51,7 +52,7 @@ class TimeFrequencyMetaData
 		{
 		}
 		TimeFrequencyMetaData(const TimeFrequencyMetaData &source)
-			: _antenna1(0), _antenna2(0), _band(0), _field(0), _observationTimes(0), _uvw(0),
+			: _antenna1(0), _antenna2(0), _band(0), _sequenceId(source._sequenceId), _field(0), _observationTimes(0), _uvw(0),
 			_valueDescription(source._valueDescription),
 			_valueUnits(source._valueUnits)
 		{
@@ -159,7 +160,10 @@ class TimeFrequencyMetaData
 			_observationTimes = new std::vector<double>(times);
 		}
 		bool HasObservationTimes() const { return _observationTimes != 0; }
-
+		
+		unsigned SequenceId() const { return _sequenceId; }
+		void SetSequenceId(unsigned sequenceId) { _sequenceId = sequenceId; }
+		
 		const std::vector<class UVW> &UVW() const { return *_uvw; }
 		void ClearUVW()
 		{
@@ -200,6 +204,7 @@ class TimeFrequencyMetaData
 		AntennaInfo *_antenna1;
 		AntennaInfo *_antenna2;
 		BandInfo *_band;
+		unsigned _sequenceId;
 		FieldInfo *_field;
 		std::vector<double> *_observationTimes;
 		std::vector<class UVW> *_uvw;

@@ -39,13 +39,12 @@ BaselineReader::BaselineReader(const std::string &msFile)
 	_polarizationCount(0)
 {
 	AOLogger::Debug << "Baselinereader constructed.\n";
-	_frequencyCount = _measurementSet.FrequencyCount();
 	try {
-		_table = _measurementSet.OpenTable(true);
+		_table = new casa::MeasurementSet(_measurementSet.Path(), casa::MeasurementSet::Update);
 	} catch(std::exception &e)
 	{
 		AOLogger::Warn << "Read-write opening of file " << msFile << " failed, trying read-only...\n";
-		_table = _measurementSet.OpenTable(false);
+		_table = new casa::MeasurementSet(_measurementSet.Path());
 		AOLogger::Warn << "Table opened in read-only: writing not possible.\n";
 	}
 }
@@ -60,22 +59,27 @@ void BaselineReader::initObservationTimes()
 	if(_observationTimes.size() == 0)
 	{
 		AOLogger::Debug << "Initializing observation times...\n";
-		const std::set<double> &times = _measurementSet.GetObservationTimesSet();
-		unsigned index = 0;
-		for(std::set<double>::const_iterator i=times.begin();i!=times.end();++i)
+		size_t sequenceCount = _measurementSet.SequenceCount();
+		_observationTimes.resize(sequenceCount);
+		for(size_t sequenceId=0; sequenceId!=sequenceCount; ++sequenceId)
 		{
-			_observationTimes.insert(std::pair<double,size_t>(*i, index));
-			_observationTimesVector.push_back(*i);
-			++index;
+			const std::set<double> &times = _measurementSet.GetObservationTimesSet(sequenceId);
+			unsigned index = 0;
+			for(std::set<double>::const_iterator i=times.begin();i!=times.end();++i)
+			{
+				_observationTimes[sequenceId].insert(std::pair<double,size_t>(*i, index));
+				_observationTimesVector.push_back(*i);
+				++index;
+			}
 		}
 	}
 }
 
-void BaselineReader::AddReadRequest(size_t antenna1, size_t antenna2, size_t spectralWindow)
+void BaselineReader::AddReadRequest(size_t antenna1, size_t antenna2, size_t spectralWindow, size_t sequenceId)
 {
 	initObservationTimes();
 	
-	addReadRequest(antenna1, antenna2, spectralWindow, 0, _observationTimes.size());
+	addReadRequest(antenna1, antenna2, spectralWindow, sequenceId, 0, _observationTimes[sequenceId].size());
 }
 
 TimeFrequencyData BaselineReader::GetNextResult(std::vector<class UVW> &uvw)
@@ -116,26 +120,11 @@ TimeFrequencyData BaselineReader::GetNextResult(std::vector<class UVW> &uvw)
 	return data;
 }
 
-void BaselineReader::PartInfo(size_t maxTimeScans, size_t &timeScanCount, size_t &partCount)
-{
-	initObservationTimes();
-
-	timeScanCount = _observationTimes.size();
-	if(maxTimeScans == 0)
-		partCount = 1;
-	else
-	{
-		partCount = (timeScanCount + maxTimeScans - 1) / maxTimeScans;
-		if(partCount == 0)
-			partCount = 1;
-	}
-}
-
 void BaselineReader::initializePolarizations()
 {
 	if(_polarizationCount == 0)
 	{
-		casa::MeasurementSet ms(_measurementSet.Location());
+		casa::MeasurementSet ms(_measurementSet.Path());
 		casa::Table polTable = ms.polarization();
 		casa::ROArrayColumn<int> corTypeColumn(polTable, "CORR_TYPE"); 
 		casa::Array<int> corType = corTypeColumn(0);
@@ -165,34 +154,4 @@ void BaselineReader::initializePolarizations()
 		}
 		_polarizationCount = polarizationCount;
 	}
-}
-
-void BaselineReader::clearTableCaches()
-{
-	/*
-	try {
-		casa::ROTiledStManAccessor accessor(*Table(), "LofarStMan");
-		accessor.clearCaches();
-		AOLogger::Debug << "LofarStMan Caches cleared with ROTiledStManAccessor.\n";
-	} catch(std::exception &e)
-	{
-		try {
-			AOLogger::Debug << e.what() << '\n';
-			casa::ROStandardStManAccessor accessor(*Table(), "LofarStMan");
-			accessor.clearCache();
-			AOLogger::Debug << "LofarStMan Caches cleared with ROStandardStManAccessor.\n";
-		} catch(std::exception &e)
-		{
-			try {
-				AOLogger::Debug << e.what() << '\n';
-				casa::ROIncrementalStManAccessor accessor(*Table(), "LofarStMan");
-				accessor.clearCache();
-				AOLogger::Debug << "LofarStMan Caches cleared with ROIncrementalStManAccessor.\n";
-			} catch(std::exception &e)
-			{
-				AOLogger::Debug << e.what() << '\n';
-				AOLogger::Debug << "Could not clear LofarStMan caches; don't know how to access it.\n";
-			}
-		}
-	}*/
 }

@@ -110,8 +110,8 @@ std::pair<TimeFrequencyData, TimeFrequencyMetaDataPtr> Model::SimulateObservatio
 	FieldInfo field;
 	field.fieldId = 0;
 	field.delayDirectionDec = delayDirectionDEC;
-	field.delayDirectionDecNegCos = -cos(delayDirectionDEC);
-	field.delayDirectionDecNegSin = -sin(delayDirectionDEC);
+	//field.delayDirectionDecNegCos = -cos(delayDirectionDEC);
+	//field.delayDirectionDecNegSin = -sin(delayDirectionDEC);
 	field.delayDirectionRA = delayDirectionRA;
 	metaData->SetField(field);
 

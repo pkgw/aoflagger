@@ -40,18 +40,20 @@ class DirectBaselineReader : public BaselineReader {
 
 		virtual void PerformReadRequests();
 		virtual void PerformFlagWriteRequests();
-		virtual void PerformDataWriteTask(std::vector<Image2DCPtr> /*_realImages*/, std::vector<Image2DCPtr> /*_imaginaryImages*/, int /*antenna1*/, int /*antenna2*/, int /*spectralWindow*/)
+		virtual void PerformDataWriteTask(std::vector<Image2DCPtr> /*_realImages*/, std::vector<Image2DCPtr> /*_imaginaryImages*/, int /*antenna1*/, int /*antenna2*/, int /*spectralWindow*/, unsigned /*sequenceId*/)
 		{
 			throw std::runtime_error("The direct baseline reader can not write data back to file: use the indirect reader");
 		}
-		std::vector<UVW> ReadUVW(unsigned antenna1, unsigned antenna2, unsigned spectralWindow);
+		std::vector<UVW> ReadUVW(unsigned antenna1, unsigned antenna2, unsigned spectralWindow, unsigned sequenceId);
 		void ShowStatistics();
 	private:
 		struct BaselineCacheItem
 		{
 			BaselineCacheItem() { }
-			BaselineCacheItem(const BaselineCacheItem &source)
-			: antenna1(source.antenna1), antenna2(source.antenna2), spectralWindow(source.spectralWindow), rows(source.rows)
+			BaselineCacheItem(const BaselineCacheItem &source) :
+				antenna1(source.antenna1), antenna2(source.antenna2),
+				spectralWindow(source.spectralWindow), sequenceId(source.sequenceId),
+				rows(source.rows)
 			{
 			}
 			void operator=(const BaselineCacheItem &source)
@@ -59,18 +61,19 @@ class DirectBaselineReader : public BaselineReader {
 				antenna1 = source.antenna1;
 				antenna2 = source.antenna2;
 				spectralWindow = source.spectralWindow;
+				sequenceId = source.sequenceId;
 				rows = source.rows;
 			}
 			
-			int antenna1, antenna2, spectralWindow;
+			int antenna1, antenna2, spectralWindow, sequenceId;
 			std::vector<size_t> rows;
 		};
 		
 		void initBaselineCache();
 		
 		void addRequestRows(ReadRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows);
-		void addRequestRows(WriteRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows);
-		void addRowToBaselineCache(int antenna1, int antenna2, int spectralWindow, size_t row);
+		void addRequestRows(FlagWriteRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows);
+		void addRowToBaselineCache(int antenna1, int antenna2, int spectralWindow, int sequenceId, size_t row);
 		void readUVWData();
 
 		void readTimeData(size_t requestIndex, size_t xOffset, int frequencyCount, const casa::Array<casa::Complex> data, const casa::Array<casa::Complex> *model);

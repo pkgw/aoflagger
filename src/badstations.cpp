@@ -53,7 +53,7 @@ void checkStations(const std::string &filename)
 	}
 	else {
 		MeasurementSet *ms = new MeasurementSet(filename);
-		const unsigned polarizationCount = ms->GetPolarizationCount();
+		const unsigned polarizationCount = ms->PolarizationCount();
 		
 		statisticsCollection.SetPolarizationCount(polarizationCount);
 		QualityTablesFormatter qualityData(filename);

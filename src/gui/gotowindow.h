@@ -46,9 +46,10 @@ class GoToWindow : public Gtk::Window {
 		Gtk::HButtonBox _buttonBox;
 		Gtk::VBox _vBox;
 		Gtk::HBox _hBox;
-		Gtk::Frame _antenna1Frame, _antenna2Frame, _bandFrame;
-		Gtk::TreeView _antenna1View, _antenna2View, _bandView;
-		Gtk::ScrolledWindow _antenna1Scroll, _antenna2Scroll, _bandScroll;
+		Gtk::VBox _bandFrameBox;
+		Gtk::Frame _antenna1Frame, _antenna2Frame, _bandFrame, _sequenceFrame;
+		Gtk::TreeView _antenna1View, _antenna2View, _bandView, _sequenceView;
+		Gtk::ScrolledWindow _antenna1Scroll, _antenna2Scroll, _bandScroll, _sequenceScroll;
 		Gtk::Button _loadButton;
 
 		class AntennaModelColumns : public Gtk::TreeModelColumnRecord
@@ -71,10 +72,21 @@ class GoToWindow : public Gtk::Window {
 			Gtk::TreeModelColumn<Glib::ustring> bandDescription;
 		};
 
+		class SequenceModelColumns : public Gtk::TreeModelColumnRecord
+		{
+		public:
+			SequenceModelColumns()
+				{ add(sequenceIndex); add(sequenceDescription); }
+		
+			Gtk::TreeModelColumn<size_t> sequenceIndex;
+			Gtk::TreeModelColumn<Glib::ustring> sequenceDescription;
+		};
+
 		AntennaModelColumns _antennaModelColumns;
 		BandModelColumns _bandModelColumns;
+		SequenceModelColumns _sequenceModelColumns;
 
-		Glib::RefPtr<Gtk::ListStore> _antennaeStore, _bandStore;
+		Glib::RefPtr<Gtk::ListStore> _antennaeStore, _bandStore, _sequenceStore;
 
 		RFIGuiWindow &_rfiGuiWindow;
 		rfiStrategy::MSImageSet *_imageSet;

@@ -41,6 +41,7 @@ void BaselineSelector::Add(Mask2DCPtr mask, TimeFrequencyMetaDataCPtr metaData)
 		baseline.antenna1Name = metaData->Antenna1().name;
 		baseline.antenna2Name = metaData->Antenna2().name;
 		baseline.band = metaData->Band().windowIndex;
+		baseline.sequenceId = metaData->SequenceId();
 
 		baseline.rfiCount = mask->GetCount<true>();
 		baseline.totalCount = mask->Width() * mask->Height();
@@ -60,6 +61,7 @@ void BaselineSelector::Add(DefaultStatistics &baselineStat, AntennaInfo &antenna
 		baseline.antenna1Name = antenna1.name;
 		baseline.antenna2Name = antenna2.name;
 		baseline.band = 0;
+		baseline.sequenceId = 0;
 		
 		const DefaultStatistics singleStat = baselineStat.ToSinglePolarization();
 		

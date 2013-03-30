@@ -44,7 +44,7 @@ namespace rfiStrategy {
 		public:
 			friend class MSImageSet;
 			
-			MSImageSetIndex(class rfiStrategy::ImageSet &set) : ImageSetIndex(set), _baselineIndex(0), _band(0), _field(0), _partIndex(0), _isValid(true) { }
+			MSImageSetIndex(class rfiStrategy::ImageSet &set) : ImageSetIndex(set), _sequenceIndex(0), _isValid(true) { }
 			
 			virtual void Previous();
 			virtual void Next();
@@ -55,15 +55,12 @@ namespace rfiStrategy {
 			virtual MSImageSetIndex *Copy() const
 			{
 				MSImageSetIndex *index = new MSImageSetIndex(imageSet());
-				index->_baselineIndex = _baselineIndex;
-				index->_band = _band;
-				index->_field = _field;
-				index->_partIndex = _partIndex;
+				index->_sequenceIndex = _sequenceIndex;
 				index->_isValid = _isValid;
 				return index;
 			}
 		private:
-			size_t _baselineIndex, _band, _field, _partIndex;
+			size_t _sequenceIndex;
 			bool _isValid;
 	};
 	
@@ -77,7 +74,6 @@ namespace rfiStrategy {
 				_readDipoleAutoPolarisations(true),
 				_readDipoleCrossPolarisations(true),
 				_readStokesI(false),
-				_maxScanCounts(0),
 				_scanCountPartOverlap(100),
 				_readFlags(true),
 				_readUVW(false),
@@ -91,7 +87,7 @@ namespace rfiStrategy {
 
 			virtual MSImageSet *Copy()
 			{
-				MSImageSet *newSet = new MSImageSet(_set.Location(), _ioMode);
+				MSImageSet *newSet = new MSImageSet(_set.Path(), _ioMode);
 				newSet->_reader = _reader;
 				newSet->_dataColumnName = _dataColumnName;
 				newSet->_subtractModel = _subtractModel;
@@ -99,20 +95,18 @@ namespace rfiStrategy {
 				newSet->_readDipoleCrossPolarisations = _readDipoleCrossPolarisations;
 				newSet->_readStokesI = _readStokesI;
 				newSet->_readFlags = _readFlags;
-				newSet->_baselines = _baselines;
+				newSet->_sequences = _sequences;
 				newSet->_bandCount = _bandCount;
-				newSet->_maxScanCounts = _maxScanCounts;
-				newSet->_partCount = _partCount;
-				newSet->_timeScanCount = _timeScanCount;
+				newSet->_fieldCount = _fieldCount;
 				newSet->_scanCountPartOverlap = _scanCountPartOverlap;
 				newSet->_ioMode = _ioMode;
 				newSet->_readUVW = _readUVW;
 				return newSet;
 			}
 	
-			virtual std::string Name() { return _set.Location(); }
-			virtual std::string File() { return _set.Location(); }
-			virtual TimeFrequencyData *LoadData(const ImageSetIndex &index);
+			virtual std::string Name() { return _set.Path(); }
+			virtual std::string File() { return _set.Path(); }
+			//virtual TimeFrequencyData *LoadData(const ImageSetIndex &index);
 			
 			virtual void AddReadRequest(const ImageSetIndex &index);
 			virtual void PerformReadRequests();
@@ -123,27 +117,28 @@ namespace rfiStrategy {
 
 			virtual void Initialize();
 	
-			virtual size_t GetAntenna1(const ImageSetIndex &index) {
-				return _baselines[static_cast<const MSImageSetIndex&>(index)._baselineIndex].first;
+			size_t GetAntenna1(const ImageSetIndex &index) {
+				return _sequences[static_cast<const MSImageSetIndex&>(index)._sequenceIndex].antenna1;
 			}
-			virtual size_t GetAntenna2(const ImageSetIndex &index) {
-				return _baselines[static_cast<const MSImageSetIndex&>(index)._baselineIndex].second;
+			size_t GetAntenna2(const ImageSetIndex &index) {
+				return _sequences[static_cast<const MSImageSetIndex&>(index)._sequenceIndex].antenna2;
 			}
 			size_t GetBand(const ImageSetIndex &index) {
-				return static_cast<const MSImageSetIndex&>(index)._band;
+				return _sequences[static_cast<const MSImageSetIndex&>(index)._sequenceIndex].spw;
 			}
-			virtual size_t GetPart(const ImageSetIndex &index) {
-				return static_cast<const MSImageSetIndex&>(index)._partIndex;
+			size_t GetField(const ImageSetIndex &index) {
+				return _sequences[static_cast<const MSImageSetIndex&>(index)._sequenceIndex].fieldId;
 			}
-
+			size_t GetSequenceId(const ImageSetIndex &index) {
+				return _sequences[static_cast<const MSImageSetIndex&>(index)._sequenceIndex].sequenceId;
+			}
 	
 			virtual ImageSetIndex *StartIndex() { return new MSImageSetIndex(*this); }
 
-			MSImageSetIndex *Index(size_t a1, size_t a2, size_t b)
+			MSImageSetIndex *Index(size_t a1, size_t a2, size_t b, size_t s)
 			{
 				MSImageSetIndex *index = new MSImageSetIndex(*this);
-				index->_baselineIndex = FindBaselineIndex(a1, a2);
-				index->_band = b;
+				index->_sequenceIndex = FindBaselineIndex(a1, a2, b, s);
 				return index;
 			}
 			
@@ -185,10 +180,6 @@ namespace rfiStrategy {
 				_readDipoleAutoPolarisations = false;
 				_readDipoleCrossPolarisations = false;
 			}
-			void SetMaxScanCounts(size_t maxScanCounts) throw()
-			{
-				_maxScanCounts = maxScanCounts;
-			}
 
 			size_t AntennaCount() { return _set.AntennaCount(); }
 			class ::AntennaInfo GetAntennaInfo(unsigned antennaIndex) { return _set.GetAntennaInfo(antennaIndex); }
@@ -196,39 +187,34 @@ namespace rfiStrategy {
 			{
 				return _set.GetBandInfo(bandIndex);
 			}
-			/*const std::set<double> &GetObservationTimesSet(const ImageSetIndex &index)
+			class ::FieldInfo GetFieldInfo(unsigned fieldIndex)
 			{
-				const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex &>(index);
-				return _reader->ObservationTimes(StartIndex(index), EndIndex(index));
-			}*/
-			std::vector<double> ObservationTimesVector(const ImageSetIndex &index)
-			{
-				const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex &>(index);
-				return _reader->ObservationTimes(StartIndex(msIndex), EndIndex(msIndex));
+				return _set.GetFieldInfo(fieldIndex);
 			}
-			const std::vector<std::pair<size_t,size_t> > &Baselines() const { return _baselines; }
+			std::vector<double> ObservationTimesVector(const ImageSetIndex &index);
 			size_t BandCount() const { return _bandCount; }
+			size_t FieldCount() const { return _fieldCount; }
+			size_t SequenceCount() const { return _sequencesPerBaselineCount; }
 			virtual void WriteFlags(const ImageSetIndex &index, TimeFrequencyData &data);
-			size_t PartCount() const { return _partCount; }
 			void SetReadFlags(bool readFlags) { _readFlags = readFlags; }
 			BaselineReaderPtr Reader() { return _reader; }
 			virtual void PerformWriteDataTask(const ImageSetIndex &index, std::vector<Image2DCPtr> realImages, std::vector<Image2DCPtr> imaginaryImages)
 			{
 				const MSImageSetIndex &msIndex = static_cast<const MSImageSetIndex&>(index);
-				_reader->PerformDataWriteTask(realImages, imaginaryImages, GetAntenna1(msIndex), GetAntenna2(msIndex), msIndex._band);
+				_reader->PerformDataWriteTask(realImages, imaginaryImages, GetAntenna1(msIndex), GetAntenna2(msIndex), GetBand(msIndex), GetSequenceId(msIndex));
 			}
 			void SetReadUVW(bool readUVW)
 			{
 				_readUVW = readUVW;
 			}
 		private:
+			friend class MSImageSetIndex;
 			MSImageSet(const std::string &location, BaselineReaderPtr reader) :
 				_msFile(location), _set(location), _reader(reader),
 				_dataColumnName("DATA"), _subtractModel(false),
 				_readDipoleAutoPolarisations(true),
 				_readDipoleCrossPolarisations(true),
 				_readStokesI(false),
-				_maxScanCounts(0),
 				_scanCountPartOverlap(100),
 				_readFlags(true),
 				_readUVW(false),
@@ -239,7 +225,7 @@ namespace rfiStrategy {
 			size_t LeftBorder(const MSImageSetIndex &index);
 			size_t RightBorder(const MSImageSetIndex &index);
 			void initReader();
-			size_t FindBaselineIndex(size_t a1, size_t a2);
+			size_t FindBaselineIndex(size_t antenna1, size_t antenna2, size_t band, size_t sequenceId);
 			TimeFrequencyMetaDataCPtr createMetaData(const ImageSetIndex &index, std::vector<UVW> &uvw);
 
 			const std::string _msFile;
@@ -248,10 +234,8 @@ namespace rfiStrategy {
 			std::string _dataColumnName;
 			bool _subtractModel;
 			bool _readDipoleAutoPolarisations, _readDipoleCrossPolarisations, _readStokesI;
-			std::vector<std::pair<size_t,size_t> > _baselines;
-			size_t _bandCount;
-			size_t _maxScanCounts;
-			size_t _partCount, _timeScanCount;
+			std::vector<MeasurementSet::Sequence> _sequences;
+			size_t _bandCount, _fieldCount, _sequencesPerBaselineCount;
 			size_t _scanCountPartOverlap;
 			bool _readFlags, _readUVW;
 			BaselineIOMode _ioMode;

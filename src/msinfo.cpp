@@ -22,9 +22,10 @@
 #include <sstream>
 #include <vector>
 
+#include <ms/MeasurementSets/MeasurementSet.h>
+
 #include "msio/measurementset.h"
 #include "msio/antennainfo.h"
-#include "msio/timefrequencyimager.h"
 
 #include "strategy/algorithms/thresholdtools.h"
 
@@ -92,11 +93,11 @@ int main(int argc, char *argv[])
 		MeasurementSet set(measurementFile);
 		size_t antennaCount = set.AntennaCount();
 		cout << "Number of antennea: " << antennaCount << endl;
-		cout << "Number of time scans: " << (set.MaxScanIndex() - set.MinScanIndex()) << endl;
-		cout << "Number of frequencies: " << set.FrequencyCount() << endl;
+		cout << "Number of time scans: " << set.TimestepCount() << endl;
+		cout << "Number of channels/band: " << set.FrequencyCount(0) << endl;
 		cout << "Number of fields: " << set.FieldCount() << endl;
-		cout << "Last index of spectral band: " << set.MaxSpectralBandIndex() << endl;
-		casa::Table *table = set.OpenTable(false);
+		cout << "Number of bands: " << set.BandCount() << endl;
+		casa::Table *table = new casa::MeasurementSet(set.Path());
 		cout << "Has DATA column: " << BoolToStr(table->tableDesc().isColumn("DATA")) << "\n";
 		cout << "Has CORRECTED_DATA column: " << BoolToStr(table->tableDesc().isColumn("CORRECTED_DATA")) << "\n";
 		cout << "Has MODEL_DATA column: " << BoolToStr(table->tableDesc().isColumn("MODEL_DATA")) << "\n";
@@ -136,7 +137,7 @@ int main(int argc, char *argv[])
 			cout << (*i) << " ";
 		cout << endl;
 
-		for(unsigned i=0;i<=set.MaxSpectralBandIndex();++i) {
+		for(unsigned i=0;i<=set.BandCount();++i) {
 			cout << "== Spectral band index " << i << " ==" << endl;
 			BandInfo bandInfo = set.GetBandInfo(i);
 			cout << "Channel count: " << bandInfo.channels.size() << std::endl;

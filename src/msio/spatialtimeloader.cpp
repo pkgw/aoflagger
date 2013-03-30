@@ -13,7 +13,7 @@
 SpatialTimeLoader::SpatialTimeLoader(MeasurementSet &measurementSet)
 	:  _measurementSet(measurementSet), _sortedTable(0), _tableIter(0)
 {
-	casa::Table *rawTable = _measurementSet.OpenTable();
+	casa::Table *rawTable = new casa::Table(_measurementSet.Path());
 	casa::Block<casa::String> names(4);
 	names[0] = "DATA_DESC_ID";
 	names[1] = "TIME";
@@ -22,10 +22,10 @@ SpatialTimeLoader::SpatialTimeLoader(MeasurementSet &measurementSet)
 	_sortedTable = new casa::Table(rawTable->sort(names));
 	delete rawTable;
 
-	_channelCount = _measurementSet.FrequencyCount();
-	_timestepsCount = _measurementSet.MaxScanIndex();
+	_channelCount = _measurementSet.FrequencyCount(0);
+	_timestepsCount = _measurementSet.TimestepCount();
 	_antennaCount = _measurementSet.AntennaCount();
-	_polarizationCount = _measurementSet.GetPolarizationCount();
+	_polarizationCount = _measurementSet.PolarizationCount();
 
 	casa::Block<casa::String> selectionNames(1);
 	selectionNames[0] = "DATA_DESC_ID";

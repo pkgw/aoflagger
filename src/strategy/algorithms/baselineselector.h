@@ -47,6 +47,7 @@ namespace rfiStrategy {
 					antenna1Name(source.antenna1Name),
 					antenna2Name(source.antenna2Name),
 					band(source.band),
+					sequenceId(source.sequenceId),
 					length(source.length),
 					rfiCount(source.rfiCount),
 					totalCount(source.totalCount),
@@ -60,6 +61,7 @@ namespace rfiStrategy {
 					antenna1Name = source.antenna1Name;
 					antenna2Name = source.antenna2Name;
 					band = source.band;
+					sequenceId = source.sequenceId;
 					length = source.length;
 					rfiCount = source.rfiCount;
 					totalCount = source.totalCount;
@@ -73,6 +75,7 @@ namespace rfiStrategy {
 				int antenna1, antenna2;
 				std::string antenna1Name, antenna2Name;
 				int band;
+				unsigned sequenceId;
 				double length;
 				unsigned long rfiCount, totalCount;
 				bool marked;

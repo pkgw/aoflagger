@@ -22,8 +22,6 @@
 
 #include <gtkmm/messagedialog.h>
 
-#include "../msio/timefrequencyimager.h"
-
 #include "../strategy/imagesets/msimageset.h"
 #include "../strategy/imagesets/rspimageset.h"
 

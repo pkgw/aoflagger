@@ -47,24 +47,37 @@ void DirectBaselineReader::initBaselineCache()
 	// the baselines.
 	if(_baselineCache.empty())
 	{
+		std::vector<size_t> dataIdToSpw;
+		Set().GetDataDescToBandVector(dataIdToSpw);
+		
 		casa::ROScalarColumn<int> antenna1Column(*Table(), "ANTENNA1"); 
 		casa::ROScalarColumn<int> antenna2Column(*Table(), "ANTENNA2");
-		casa::ROScalarColumn<int> windowColumn(*Table(), "DATA_DESC_ID");
+		casa::ROScalarColumn<int> dataDescIdColumn(*Table(), "DATA_DESC_ID");
+		casa::ROScalarColumn<int> fieldIdColumn(*Table(), "FIELD_ID");
+		
+		int prevFieldId = -1, sequenceId = -1;
 		for(size_t i=0;i<Table()->nrow();++i) {
 			int
 				antenna1 = antenna1Column(i),
 				antenna2 = antenna2Column(i),
-				window = windowColumn(i);
-			addRowToBaselineCache(antenna1, antenna2, window, i);
+				dataDescId = dataDescIdColumn(i),
+				fieldId = fieldIdColumn(i);
+			if(fieldId != prevFieldId)
+			{
+				prevFieldId = fieldId;
+				sequenceId++;
+			}
+			int spectralWindow = dataIdToSpw[dataDescId];
+			addRowToBaselineCache(antenna1, antenna2, spectralWindow, sequenceId, i);
 		}
 	}
 }
 
-void DirectBaselineReader::addRowToBaselineCache(int antenna1, int antenna2, int spectralWindow, size_t row)
+void DirectBaselineReader::addRowToBaselineCache(int antenna1, int antenna2, int spectralWindow, int sequenceId, size_t row)
 {
 	for(std::vector<BaselineCacheItem>::iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
 	{
-		if(i->antenna1 == antenna1 && i->antenna2 == antenna2 && i->spectralWindow == spectralWindow)
+		if(i->antenna1 == antenna1 && i->antenna2 == antenna2 && i->spectralWindow == spectralWindow && i->sequenceId == sequenceId)
 		{
 			i->rows.push_back(row);
 			return;
@@ -74,6 +87,7 @@ void DirectBaselineReader::addRowToBaselineCache(int antenna1, int antenna2, int
 	newItem.antenna1 = antenna1;
 	newItem.antenna2 = antenna2;
 	newItem.spectralWindow = spectralWindow;
+	newItem.sequenceId = sequenceId;
 	newItem.rows.push_back(row);
 	_baselineCache.push_back(newItem);
 }
@@ -82,7 +96,7 @@ void DirectBaselineReader::addRequestRows(ReadRequest request, size_t requestInd
 {
 	for(std::vector<BaselineCacheItem>::const_iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
 	{
-		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow)
+		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow && i->sequenceId == (int) request.sequenceId)
 		{
 			for(std::vector<size_t>::const_iterator j=i->rows.begin();j!=i->rows.end();++j)
 				rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
@@ -91,11 +105,11 @@ void DirectBaselineReader::addRequestRows(ReadRequest request, size_t requestInd
 	}
 }
 
-void DirectBaselineReader::addRequestRows(WriteRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows)
+void DirectBaselineReader::addRequestRows(FlagWriteRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows)
 {
 	for(std::vector<BaselineCacheItem>::const_iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
 	{
-		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow)
+		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow && i->sequenceId == (int) request.sequenceId)
 		{
 			for(std::vector<size_t>::const_iterator j=i->rows.begin();j!=i->rows.end();++j)
 				rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
@@ -108,7 +122,7 @@ void DirectBaselineReader::PerformReadRequests()
 {
   Stopwatch stopwatch(true);
 	
-	initialize();
+	initializeMeta();
 	initBaselineCache();
 
 	// Each element contains (row number, corresponding request index)
@@ -118,8 +132,6 @@ void DirectBaselineReader::PerformReadRequests()
 		addRequestRows(_readRequests[i], i, rows);
 	std::sort(rows.begin(), rows.end());
 	
-	size_t timeCount = AllObservationTimes().size();
-
 	AOLogger::Debug << "Reading " << _readRequests.size() << " requests with " << rows.size() << " rows total, flags=" << ReadFlags() << ", " << PolarizationCount() << " polarizations.\n";
 	
 	_results.clear();
@@ -128,30 +140,34 @@ void DirectBaselineReader::PerformReadRequests()
 		_results.push_back(Result());
 		size_t
 			startIndex = _readRequests[i].startIndex,
-			endIndex = _readRequests[i].endIndex;
+			endIndex = _readRequests[i].endIndex,
+			band = _readRequests[i].spectralWindow,
+			channelCount = Set().FrequencyCount(band),
+			sequenceId = _readRequests[i].sequenceId,
+			timeCount = ObservationTimes(sequenceId).size();
 			
 		if(startIndex > timeCount)
 		{
-			std::cerr << "Warning: startIndex > timeCount" << std::endl;
+			AOLogger::Warn << "startIndex > timeCount\n";
 		}
 		if(endIndex > timeCount)
 		{
 			endIndex = timeCount;
-			std::cerr << "Warning: endIndex > timeCount" << std::endl;
+			AOLogger::Warn << "endIndex > timeCount\n";
 		}
 
 		size_t width = endIndex-startIndex;
 		for(size_t p=0;p<PolarizationCount();++p)
 		{
 			if(ReadData()) {
-				_results[i]._realImages.push_back(Image2D::CreateZeroImagePtr(width, FrequencyCount()));
-				_results[i]._imaginaryImages.push_back(Image2D::CreateZeroImagePtr(width, FrequencyCount()));
+				_results[i]._realImages.push_back(Image2D::CreateZeroImagePtr(width, channelCount));
+				_results[i]._imaginaryImages.push_back(Image2D::CreateZeroImagePtr(width, channelCount));
 			}
 			if(ReadFlags()) {
 				// The flags should be initialized to true, as a baseline might
 				// miss some time scans that other baselines do have, and these
 				// should be flagged.
-				_results[i]._flags.push_back(Mask2D::CreateSetMaskPtr<true>(width, FrequencyCount()));
+				_results[i]._flags.push_back(Mask2D::CreateSetMaskPtr<true>(width, channelCount));
 			}
 		}
 		_results[i]._uvw.resize(width);
@@ -180,23 +196,25 @@ void DirectBaselineReader::PerformReadRequests()
 		size_t requestIndex = i->second;
 		
 		double time = timeColumn(rowIndex);
+		const ReadRequest &request = _readRequests[requestIndex];
 		size_t
-			timeIndex = AllObservationTimes().find(time)->second,
-			startIndex = _readRequests[requestIndex].startIndex,
-			endIndex = _readRequests[requestIndex].endIndex;
+			timeIndex = ObservationTimes(request.sequenceId).find(time)->second,
+			startIndex = request.startIndex,
+			endIndex = request.endIndex,
+			band = request.spectralWindow;
 		bool timeIsSelected = timeIndex>=startIndex && timeIndex<endIndex;
 		if(ReadData() && timeIsSelected) {
 			if(DataKind() == WeightData)
-				readWeights(requestIndex, timeIndex-startIndex, FrequencyCount(), weightColumn(rowIndex));
+				readWeights(requestIndex, timeIndex-startIndex, Set().FrequencyCount(band), weightColumn(rowIndex));
 			else if(modelColumn == 0)
-				readTimeData(requestIndex, timeIndex-startIndex, FrequencyCount(), (*dataColumn)(rowIndex), 0);
+				readTimeData(requestIndex, timeIndex-startIndex, Set().FrequencyCount(band), (*dataColumn)(rowIndex), 0);
 			else {
 				const casa::Array<casa::Complex> model = (*modelColumn)(rowIndex); 
-				readTimeData(requestIndex, timeIndex-startIndex, FrequencyCount(), (*dataColumn)(rowIndex), &model);
+				readTimeData(requestIndex, timeIndex-startIndex, Set().FrequencyCount(band), (*dataColumn)(rowIndex), &model);
 			}
 		}
 		if(ReadFlags() && timeIsSelected) {
-			readTimeFlags(requestIndex, timeIndex-startIndex, FrequencyCount(), flagColumn(rowIndex));
+			readTimeFlags(requestIndex, timeIndex-startIndex, Set().FrequencyCount(band), flagColumn(rowIndex));
 		}
 		if(timeIsSelected) {
 			casa::Array<double> arr = uvwColumn(rowIndex);
@@ -216,14 +234,14 @@ void DirectBaselineReader::PerformReadRequests()
 	_readRequests.clear();
 }
 
-std::vector<UVW> DirectBaselineReader::ReadUVW(unsigned antenna1, unsigned antenna2, unsigned spectralWindow)
+std::vector<UVW> DirectBaselineReader::ReadUVW(unsigned antenna1, unsigned antenna2, unsigned spectralWindow, unsigned sequenceId)
 {
   Stopwatch stopwatch(true);
 	
-	initialize();
+	initializeMeta();
 	initBaselineCache();
 
-	const std::map<double, size_t> &allObservationTimes = AllObservationTimes();
+	const std::map<double, size_t> &observationTimes = ObservationTimes(sequenceId);
 
 	// Each element contains (row number, corresponding request index)
 	std::vector<std::pair<size_t, size_t> > rows;
@@ -231,12 +249,13 @@ std::vector<UVW> DirectBaselineReader::ReadUVW(unsigned antenna1, unsigned anten
 	request.antenna1 = antenna1;
 	request.antenna2 = antenna2;
 	request.spectralWindow = spectralWindow;
+	request.sequenceId = sequenceId;
 	request.startIndex = 0;
-	request.endIndex = allObservationTimes.size();
+	request.endIndex = observationTimes.size();
 	addRequestRows(request, 0, rows);
 	std::sort(rows.begin(), rows.end());
 	
-	size_t width = allObservationTimes.size();
+	size_t width = observationTimes.size();
 
 	casa::Table &table = *Table();
 	casa::ROScalarColumn<double> timeColumn(table, "TIME");
@@ -250,7 +269,7 @@ std::vector<UVW> DirectBaselineReader::ReadUVW(unsigned antenna1, unsigned anten
 		
 		double time = timeColumn(rowIndex);
 		size_t
-			timeIndex = allObservationTimes.find(time)->second;
+			timeIndex = observationTimes.find(time)->second;
 
 		casa::Array<double> arr = uvwColumn(rowIndex);
 		casa::Array<double>::const_iterator j = arr.begin();
@@ -270,7 +289,7 @@ void DirectBaselineReader::PerformFlagWriteRequests()
 {
 	Stopwatch stopwatch(true);
 
-	initialize();
+	initializeMeta();
 
 	initBaselineCache();
 
@@ -284,11 +303,12 @@ void DirectBaselineReader::PerformFlagWriteRequests()
 	casa::ROScalarColumn<double> timeColumn(*Table(), "TIME");
 	casa::ArrayColumn<bool> flagColumn(*Table(), "FLAG");
 
-	for(std::vector<WriteRequest>::iterator i=_writeRequests.begin();i!=_writeRequests.end();++i)
+	for(std::vector<FlagWriteRequest>::iterator i=_writeRequests.begin();i!=_writeRequests.end();++i)
 	{
-		if(FrequencyCount() != i->flags[0]->Height())
+		size_t band = i->spectralWindow;
+		if(Set().FrequencyCount(band) != i->flags[0]->Height())
 		{
-			std::cerr << "The frequency count in the measurement set (" << FrequencyCount() << ") does not match the image!" << std::endl;
+			std::cerr << "The frequency count in the measurement set (" << Set().FrequencyCount(band) << ") does not match the image!" << std::endl;
 		}
 		if(i->endIndex - i->startIndex != i->flags[0]->Width())
 		{
@@ -301,14 +321,14 @@ void DirectBaselineReader::PerformFlagWriteRequests()
 	for(std::vector<std::pair<size_t, size_t> >::const_iterator i=rows.begin();i!=rows.end();++i)
 	{
 		size_t rowIndex = i->first;
-		WriteRequest &request = _writeRequests[i->second];
+		FlagWriteRequest &request = _writeRequests[i->second];
 		double time = timeColumn(rowIndex);
-		size_t timeIndex = AllObservationTimes().find(time)->second;
+		size_t timeIndex = ObservationTimes(0 /*fieldId : TODO*/).find(time)->second;
 		if(timeIndex >= request.startIndex + request.leftBorder && timeIndex < request.endIndex - request.rightBorder)
 		{
 			casa::Array<bool> flag = flagColumn(rowIndex);
 			casa::Array<bool>::iterator j = flag.begin();
-			for(size_t f=0;f<(size_t) FrequencyCount();++f) {
+			for(size_t f=0;f<(size_t) Set().FrequencyCount(request.spectralWindow);++f) {
 				for(size_t p=0;p<PolarizationCount();++p)
 				{
 					*j = request.flags[p]->Value(timeIndex - request.startIndex, f);
