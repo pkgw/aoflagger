@@ -43,11 +43,11 @@ DirectBaselineReader::~DirectBaselineReader()
 
 void DirectBaselineReader::initBaselineCache()
 {
-	AOLogger::Debug << "Determining sequence positions within file for direct baseline reader...\n";
 	// Pass one time through the entire measurement set and store the rownumbers of
 	// the baselines.
 	if(_baselineCache.empty())
 	{
+		AOLogger::Debug << "Determining sequence positions within file for direct baseline reader...\n";
 		std::vector<size_t> dataIdToSpw;
 		Set().GetDataDescToBandVector(dataIdToSpw);
 		

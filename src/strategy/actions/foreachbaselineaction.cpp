@@ -236,12 +236,12 @@ namespace rfiStrategy {
 	
 	void ForEachBaselineAction::PerformFunction::operator()()
 	{
-		boost::mutex::scoped_lock lock(_action._mutex);
+		boost::mutex::scoped_lock ioLock(_action._artifacts->IOMutex());
 		ImageSet *privateImageSet = _action._artifacts->ImageSet()->Copy();
-		lock.unlock();
+		ioLock.unlock();
 
 		try {
-			lock.lock();
+			boost::mutex::scoped_lock lock(_action._mutex);
 			ArtifactSet newArtifacts(*_action._artifacts);
 			lock.unlock();
 			

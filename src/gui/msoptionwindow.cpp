@@ -54,21 +54,22 @@ MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &fi
 	_openButton.signal_clicked().connect(sigc::mem_fun(*this, &MSOptionWindow::onOpen));
 	_bottomButtonBox.pack_start(_openButton);
 
-	_leftVBox.pack_start(_directReadButton);
-	_leftVBox.pack_start(_indirectReadButton);
-	_leftVBox.pack_start(_memoryReadButton);
+	_rightVBox.pack_start(_directReadButton);
+	_rightVBox.pack_start(_indirectReadButton);
+	_rightVBox.pack_start(_memoryReadButton);
 	Gtk::RadioButton::Group group;
 	_directReadButton.set_group(group);
 	_indirectReadButton.set_group(group);
 	_memoryReadButton.set_group(group);
 	_directReadButton.set_active(true);
 
-	_leftVBox.pack_start(_readUVWButton);
+	_rightVBox.pack_start(_readUVWButton);
 	_readUVWButton.set_active(true);
 
-	_leftVBox.pack_start(_bottomButtonBox);
+	_rightVBox.pack_start(_bottomButtonBox);
 
 	_topHBox.pack_start(_leftVBox);
+	_topHBox.pack_start(_rightVBox);
 
 	add(_topHBox);
 	show_all();

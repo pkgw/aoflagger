@@ -46,7 +46,7 @@ class MSOptionWindow : public Gtk::Window {
 		const std::string _filename;
 
 		Gtk::HButtonBox _bottomButtonBox;
-		Gtk::VBox _leftVBox;
+		Gtk::VBox _leftVBox, _rightVBox;
 		Gtk::HBox _topHBox;
 		Gtk::Button _openButton;
 		Gtk::Frame _dataKindFrame, _polarisationFrame;

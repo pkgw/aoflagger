@@ -126,14 +126,8 @@ void MemoryBaselineReader::readSet()
 		// The actual reading of the data
 		AOLogger::Debug << "Reading the data...\n";
 		
-		std::vector<double> prevTime(sequenceCount);
-		std::vector<size_t> prevTimeIndex(sequenceCount), curTimeIndex(sequenceCount);
-		for(size_t s=0; s!=sequenceCount; ++s)
-		{
-			prevTime[s] = -1.0;
-			prevTimeIndex[s] = (size_t) (-1);
-			curTimeIndex[s] = 0;
-		}
+		double prevTime = -1.0;
+		size_t curTimeIndex = size_t(0);
 		unsigned rowCount = table.nrow();
 		
 		casa::Array<casa::Complex> dataArray;
@@ -146,22 +140,15 @@ void MemoryBaselineReader::readSet()
 			{
 				prevFieldId = fieldId;
 				sequenceId++;
+				prevTime = -1.0;
 			}
 			const std::map<double, size_t>
 				&observationTimes = ObservationTimes(sequenceId);
 			double time = timeColumn(rowIndex);
-			if(time != prevTime[sequenceId])
+			if(time != prevTime)
 			{
-				curTimeIndex[sequenceId] = observationTimes.find(time)->second;
-				if(curTimeIndex[sequenceId] != prevTimeIndex[sequenceId]+1)
-				{
-					// sanity check failed -- never seen this happen in a ms, but just for sure.
-					std::stringstream s;
-					s << "Error: time step " << prevTimeIndex[sequenceId] << " is followed by time step " << curTimeIndex[sequenceId];
-					throw std::runtime_error(s.str());
-				}
-				prevTime[sequenceId] = time;
-				prevTimeIndex[sequenceId] = curTimeIndex[sequenceId];
+				curTimeIndex = observationTimes.find(time)->second;
+				prevTime = time;
 			}
 			
 			size_t ant1 = ant1Column(rowIndex);
@@ -188,14 +175,13 @@ void MemoryBaselineReader::readSet()
 			dataArray = dataColumn.get(rowIndex);
 			flagArray = flagColumn.get(rowIndex);
 			
-			const size_t timeIndex = curTimeIndex[sequenceId];
 			Array<double> uvwArray = uvwColumn.get(rowIndex);
 			Array<double>::const_iterator uvwPtr = uvwArray.begin();
 			UVW uvw;
 			uvw.u = *uvwPtr; ++uvwPtr;
 			uvw.v = *uvwPtr; ++uvwPtr;
 			uvw.w = *uvwPtr;
-			result->_uvw[timeIndex] = uvw;
+			result->_uvw[curTimeIndex] = uvw;
 			
 			for(size_t p=0;p!=polarizationCount;++p)
 			{
@@ -207,9 +193,9 @@ void MemoryBaselineReader::readSet()
 				Mask2D *mask = &*result->_flags[p];
 				const size_t imgStride = real->Stride();
 				const size_t mskStride = mask->Stride();
-				num_t *realOutPtr = real->ValuePtr(timeIndex, 0);
-				num_t *imagOutPtr = imag->ValuePtr(timeIndex, 0);
-				bool *flagOutPtr = mask->ValuePtr(timeIndex, 0);
+				num_t *realOutPtr = real->ValuePtr(curTimeIndex, 0);
+				num_t *imagOutPtr = imag->ValuePtr(curTimeIndex, 0);
+				bool *flagOutPtr = mask->ValuePtr(curTimeIndex, 0);
 				
 				for(size_t i=0;i!=p;++i) {
 					++dataPtr;
