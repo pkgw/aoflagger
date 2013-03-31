@@ -210,6 +210,8 @@ void IndirectBaselineReader::preAllocate(const char *filename, size_t fileSize)
 
 void IndirectBaselineReader::reorderFull()
 {
+	Stopwatch watch(true);
+	
 	casa::Table &table = *Table();
 
 	casa::ROScalarColumn<double> timeColumn(*Table(), "TIME");
@@ -310,7 +312,8 @@ void IndirectBaselineReader::reorderFull()
 	
 	delete dataColumn;
 
-	AOLogger::Debug << "Done reordering data set\n";
+	uint64_t dataSetSize = (uint64_t) fileSize * (uint64_t) (sizeof(float)*2 + sizeof(bool));
+	AOLogger::Debug << "Done reordering data set of " << dataSetSize/(1024*1024) << " MB in " << watch.Seconds() << " s (" << (long double) dataSetSize/(1024.0L*1024.0L*watch.Seconds()) << " MB/s)\n";
 	_msIsReordered = true;
 	_removeReorderedFiles = true;
 	_reorderedDataFilesHaveChanged = false;

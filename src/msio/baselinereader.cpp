@@ -155,3 +155,28 @@ void BaselineReader::initializePolarizations()
 		_polarizationCount = polarizationCount;
 	}
 }
+
+uint64_t BaselineReader::MeasurementSetDataSize(const string& filename)
+{
+	casa::MeasurementSet ms(filename);
+	
+	casa::MSSpectralWindow spwTable = ms.spectralWindow();
+	
+	casa::ROScalarColumn<int> numChanCol(spwTable, casa::MSSpectralWindow::columnName(casa::MSSpectralWindowEnums::NUM_CHAN));
+	size_t channelCount = numChanCol.get(0);
+	if(channelCount == 0) throw std::runtime_error("No channels in set");
+	if(ms.nrow() == 0) throw std::runtime_error("Table has no rows (no data)");
+	
+	typedef float num_t;
+	typedef std::complex<num_t> complex_t;
+	casa::ROScalarColumn<int> ant1Column(ms, ms.columnName(casa::MSMainEnums::ANTENNA1));
+	casa::ROScalarColumn<int> ant2Column(ms, ms.columnName(casa::MSMainEnums::ANTENNA2));
+	casa::ROArrayColumn<complex_t> dataColumn(ms, ms.columnName(casa::MSMainEnums::DATA));
+	
+	casa::IPosition dataShape = dataColumn.shape(0);
+	unsigned polarizationCount = dataShape[0];
+	
+	return
+		(uint64_t) polarizationCount * (uint64_t) channelCount *
+		(uint64_t) ms.nrow() * (uint64_t) (sizeof(num_t) * 2 + sizeof(bool));
+}

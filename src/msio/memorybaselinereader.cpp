@@ -369,28 +369,7 @@ void MemoryBaselineReader::writeFlags()
 
 bool MemoryBaselineReader::IsEnoughMemoryAvailable(const std::string &filename)
 {
-	casa::MeasurementSet ms(filename);
-	
-	MSSpectralWindow spwTable = ms.spectralWindow();
-	
-	ROScalarColumn<int> numChanCol(spwTable, MSSpectralWindow::columnName(MSSpectralWindowEnums::NUM_CHAN));
-	size_t channelCount = numChanCol.get(0);
-	if(channelCount == 0) throw std::runtime_error("No channels in set");
-	if(ms.nrow() == 0) throw std::runtime_error("Table has no rows (no data)");
-	
-	typedef float num_t;
-	typedef std::complex<num_t> complex_t;
-	ROScalarColumn<int> ant1Column(ms, ms.columnName(MSMainEnums::ANTENNA1));
-	ROScalarColumn<int> ant2Column(ms, ms.columnName(MSMainEnums::ANTENNA2));
-	ROArrayColumn<complex_t> dataColumn(ms, ms.columnName(MSMainEnums::DATA));
-	
-	IPosition dataShape = dataColumn.shape(0);
-	unsigned polarizationCount = dataShape[0];
-	
-	uint64_t size =
-		(uint64_t) polarizationCount * (uint64_t) channelCount *
-		(uint64_t) ms.nrow() * (uint64_t) (sizeof(num_t) * 2 + sizeof(bool));
-		
+	uint64_t size = MeasurementSetDataSize(filename);
 	uint64_t totalMem = System::TotalMemory();
 	
 	if(size * 2 >= totalMem)

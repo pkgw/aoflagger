@@ -110,6 +110,8 @@ class BaselineReader {
 
 		virtual size_t GetMinRecommendedBufferSize(size_t threadCount) { return threadCount; }
 		virtual size_t GetMaxRecommendedBufferSize(size_t threadCount) { return 2*threadCount; }
+		
+		static uint64_t MeasurementSetDataSize(const std::string &filename);
 	protected:
 		struct ReadRequest {
 			int antenna1;
@@ -179,8 +181,8 @@ class BaselineReader {
 			initObservationTimes();
 			initializePolarizations();
 		}
-		casa::ROArrayColumn<casa::Complex> *CreateDataColumn(const std::string &columnName, class casa::Table &table);
-		casa::ArrayColumn<casa::Complex> *CreateDataColumnRW(const std::string &columnName, class casa::Table &table);
+		//casa::ROArrayColumn<casa::Complex> *CreateDataColumn(const std::string &columnName, class casa::Table &table);
+		//casa::ArrayColumn<casa::Complex> *CreateDataColumnRW(const std::string &columnName, class casa::Table &table);
 
 		std::vector<ReadRequest> _readRequests;
 		std::vector<FlagWriteRequest> _writeRequests;
