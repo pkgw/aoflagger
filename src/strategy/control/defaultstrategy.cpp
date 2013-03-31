@@ -53,6 +53,11 @@ namespace rfiStrategy {
 		}
 	}
 		
+	DefaultStrategy::TelescopeId DefaultStrategy::TelescopeIdFromName(const std::string &name)
+	{
+		
+	}
+	
 	Strategy *DefaultStrategy::CreateStrategy(enum TelescopeId telescopeId, unsigned flags, double frequency, double timeRes, double frequencyRes)
 	{
 		Strategy *strategy = new Strategy();

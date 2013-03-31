@@ -19,6 +19,8 @@
  ***************************************************************************/
 #include "indirectbaselinereader.h"
 
+#include <ms/MeasurementSets/MeasurementSet.h>
+
 #include <fstream>
 #include <set>
 #include <stdexcept>

@@ -70,7 +70,8 @@ namespace rfiStrategy {
 				_msFile(location),
 				_set(location),
 				_reader(),
-				_dataColumnName("DATA"), _subtractModel(false),
+				_dataColumnName("DATA"), 
+				_subtractModel(false),
 				_readDipoleAutoPolarisations(true),
 				_readDipoleCrossPolarisations(true),
 				_readStokesI(false),
@@ -91,16 +92,16 @@ namespace rfiStrategy {
 				newSet->_reader = _reader;
 				newSet->_dataColumnName = _dataColumnName;
 				newSet->_subtractModel = _subtractModel;
-				newSet->_readDipoleAutoPolarisations = _readDipoleAutoPolarisations;
-				newSet->_readDipoleCrossPolarisations = _readDipoleCrossPolarisations;
-				newSet->_readStokesI = _readStokesI;
-				newSet->_readFlags = _readFlags;
 				newSet->_sequences = _sequences;
 				newSet->_bandCount = _bandCount;
 				newSet->_fieldCount = _fieldCount;
+				newSet->_readDipoleAutoPolarisations = _readDipoleAutoPolarisations;
+				newSet->_readDipoleCrossPolarisations = _readDipoleCrossPolarisations;
+				newSet->_readStokesI = _readStokesI;
 				newSet->_scanCountPartOverlap = _scanCountPartOverlap;
-				newSet->_ioMode = _ioMode;
+				newSet->_readFlags = _readFlags;
 				newSet->_readUVW = _readUVW;
+				newSet->_ioMode = _ioMode;
 				return newSet;
 			}
 	

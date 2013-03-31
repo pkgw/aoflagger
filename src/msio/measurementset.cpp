@@ -45,6 +45,7 @@ size_t MeasurementSet::BandCount(const std::string &location)
 void MeasurementSet::initializeOtherData()
 {
 	casa::MeasurementSet ms(_path);
+	_rowCount = ms.nrow();
 	initializeAntennas(ms);
 	initializeBands(ms);
 	initializeFields(ms);
@@ -52,7 +53,7 @@ void MeasurementSet::initializeOtherData()
 
 void MeasurementSet::initializeAntennas(casa::MeasurementSet &ms)
 {
-	casa::Table antennaTable = ms.antenna();
+	casa::MSAntenna antennaTable = ms.antenna();
 	size_t count = antennaTable.nrow();
 	casa::ROArrayColumn<double> positionCol(antennaTable, "POSITION"); 
 	casa::ROScalarColumn<casa::String> nameCol(antennaTable, "NAME");
@@ -82,7 +83,7 @@ void MeasurementSet::initializeAntennas(casa::MeasurementSet &ms)
 
 void MeasurementSet::initializeBands(casa::MeasurementSet &ms)
 {
-	casa::Table spectralWindowTable = ms.spectralWindow();
+	casa::MSSpectralWindow spectralWindowTable = ms.spectralWindow();
 	casa::ROScalarColumn<int> numChanCol(spectralWindowTable, "NUM_CHAN");
 	casa::ROArrayColumn<double> frequencyCol(spectralWindowTable, "CHAN_FREQ");
 
@@ -171,8 +172,7 @@ MSIterator::~MSIterator()
 	delete _antenna1Col;
 	delete _antenna2Col;
 	delete _dataCol;
-	if(_correctedDataCol != 0)
-		delete _correctedDataCol;
+	delete _correctedDataCol;
 	delete _flagCol;
 	delete _timeCol;
 	delete _fieldCol;
@@ -194,7 +194,7 @@ void MeasurementSet::initializeMainTableData()
 		std::set<std::pair<size_t, size_t> > baselineSet;
 		std::set<Sequence> sequenceSet;
 		size_t prevFieldId = size_t(-1), sequenceId = size_t(-1);
-		for(size_t row=0;row<iterator.TotalRows();++row)
+		for(size_t row=0;row<_rowCount;++row)
 		{
 			size_t a1 = iterator.Antenna1();
 			size_t a2 = iterator.Antenna2();
@@ -265,7 +265,7 @@ bool MeasurementSet::HasRFIConsoleHistory()
 void MeasurementSet::GetAOFlaggerHistory(std::ostream &stream)
 {
 	casa::MeasurementSet ms(_path);
-	casa::Table histtab(ms.history());
+	casa::MSHistory histtab(ms.history());
 	casa::ROScalarColumn<double>       time        (histtab, "TIME");
 	casa::ROScalarColumn<casa::String> application (histtab, "APPLICATION");
 	casa::ROArrayColumn<casa::String>  cli         (histtab, "CLI_COMMAND");

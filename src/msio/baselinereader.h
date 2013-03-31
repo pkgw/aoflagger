@@ -60,7 +60,7 @@ class BaselineReader {
 			return _polarizationCount;
 		}
 
-		class casa::Table *Table() const { return _table; }
+		class casa::MeasurementSet *Table() const { return _table; }
 
 		MeasurementSet &Set() { return _measurementSet; }
 
@@ -204,7 +204,7 @@ class BaselineReader {
 		}
 
 		MeasurementSet _measurementSet;
-		class casa::Table *_table;
+		class casa::MeasurementSet *_table;
 		
 		std::string _dataColumnName;
 		bool _subtractModel;

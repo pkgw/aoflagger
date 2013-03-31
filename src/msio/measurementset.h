@@ -26,6 +26,7 @@
 #include <set>
 
 #include <ms/MeasurementSets/MSColumns.h>
+
 #include <tables/Tables/DataManager.h>
 
 #include "../strategy/control/types.h"
@@ -41,7 +42,7 @@ class MSIterator {
 		MSIterator(class MeasurementSet &ms, bool hasCorrectedData=true);
 		~MSIterator();
 		MSIterator &operator++() { _row++; return *this; }
-		size_t TotalRows() { return _table->nrow(); }
+		//size_t TotalRows() { return _table->nrow(); }
 
 		casa::Complex Data(unsigned frequencyIndex, unsigned polarisation)
 		{
@@ -91,7 +92,7 @@ class MSIterator {
 		casa::ROScalarColumn<int> *_scanNumberCol;
 		casa::ROArrayColumn<double> *_uvwCol;
 		casa::ROScalarColumn<int> *_windowCol;
-		casa::Table *_table;
+		casa::MeasurementSet *_table;
 };
 
 class MeasurementSet {
@@ -127,19 +128,24 @@ class MeasurementSet {
 		
 		static size_t PolarizationCount(const std::string &filename);
 		
-		size_t AntennaCount()
+		size_t AntennaCount() const
 		{
 			return _antennas.size();
 		}
 		
-		size_t BandCount()
+		size_t BandCount() const
 		{ 
 			return _bands.size();
 		}
 		
-		size_t FieldCount()
+		size_t FieldCount() const
 		{
 			return _fields.size();
+		}
+		
+		size_t RowCount() const
+		{
+			return _rowCount;
 		}
 		
 		static size_t BandCount(const std::string &filename);
@@ -264,6 +270,8 @@ class MeasurementSet {
 		void initializeFields(casa::MeasurementSet &ms);
 
 		const std::string _path;
+		
+		size_t _rowCount;
 		
 		bool _isMainTableDataInitialized;
 		

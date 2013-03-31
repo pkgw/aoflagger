@@ -24,6 +24,7 @@
 #include <stdexcept>
 
 #include <tables/Tables/TiledStManAccessor.h>
+#include <ms/MeasurementSets/MeasurementSet.h>
 
 #include "arraycolumniterator.h"
 #include "scalarcolumniterator.h"

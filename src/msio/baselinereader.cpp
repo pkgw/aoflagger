@@ -35,7 +35,7 @@
 #include "../util/aologger.h"
 
 BaselineReader::BaselineReader(const std::string &msFile)
-	: _measurementSet(msFile), _dataColumnName("DATA"), _subtractModel(false), _readData(true), _readFlags(true),
+	: _measurementSet(msFile), _table(0), _dataColumnName("DATA"), _subtractModel(false), _readData(true), _readFlags(true),
 	_polarizationCount(0)
 {
 	AOLogger::Debug << "Baselinereader constructed.\n";

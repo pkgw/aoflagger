@@ -30,6 +30,18 @@
 
 using namespace casa;
 
+void MemoryBaselineReader::clear()
+{
+	for(std::map<BaselineID, Result*>::iterator i=_baselines.begin(); i!=_baselines.end(); ++i)
+	{
+		// They don't all have to contain objects, but will be zero otherwise so safe to delete right away
+		delete i->second;
+	}
+	_baselines.clear();
+	_areFlagsChanged = false;
+	_isRead = false;
+}
+
 void MemoryBaselineReader::PerformReadRequests()
 {
 	readSet();

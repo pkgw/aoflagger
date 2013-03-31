@@ -55,6 +55,9 @@ namespace rfiStrategy {
 		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool includePolStatistics);
 
 		static std::string TelescopeName(DefaultStrategy::TelescopeId telescopeId);
+		
+		static DefaultStrategy::TelescopeId TelescopeIdFromName(const std::string &name);
+		
 		private:
 	};
 

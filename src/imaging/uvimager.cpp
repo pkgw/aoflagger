@@ -145,7 +145,7 @@ void UVImager::Image(const IntegerDomain &frequencies, const IntegerDomain &ante
 	std::cout << "Reading all data for " << frequencies.ValueCount() << " frequencies..." << std::flush;
 	Stopwatch stopwatch(true);
 	MSIterator iterator(*_measurementSet);
-	size_t rows = iterator.TotalRows();
+	size_t rows = _measurementSet->RowCount();
 	for(unsigned i=0;i<rows;++i,++iterator) {
 		unsigned a1 = iterator.Antenna1();
 		unsigned a2 = iterator.Antenna2();

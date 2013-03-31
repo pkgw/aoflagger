@@ -42,6 +42,7 @@ class MemoryBaselineReader : public BaselineReader {
 		~MemoryBaselineReader()
 		{
 			if(_areFlagsChanged) writeFlags();
+			clear();
 		}
 
 		virtual void PerformReadRequests();
@@ -60,6 +61,7 @@ class MemoryBaselineReader : public BaselineReader {
 	private:
 		void readSet();
 		void writeFlags();
+		void clear();
 		
 		bool _isRead, _areFlagsChanged;
 		
