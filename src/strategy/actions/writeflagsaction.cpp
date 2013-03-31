@@ -49,8 +49,10 @@ namespace rfiStrategy {
 		boost::mutex::scoped_lock lock(_mutex);
 		if(_flusher == 0)
 		{
-			_imageSet = artifacts.ImageSet()->Copy();
 			_ioMutex = &artifacts.IOMutex();
+			boost::mutex::scoped_lock iolock(*_ioMutex);
+			_imageSet = artifacts.ImageSet()->Copy();
+			iolock.unlock();
 			_isFinishing = false;
 			FlushFunction flushFunction;
 			flushFunction._parent = this;

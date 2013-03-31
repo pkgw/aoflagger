@@ -48,7 +48,7 @@ BaselineReader::BaselineReader(const std::string &msFile)
 		AOLogger::Warn << "Table opened in read-only: writing not possible.\n";
 	}
 }
-// 
+
 BaselineReader::~BaselineReader()
 {
 	delete _table;
