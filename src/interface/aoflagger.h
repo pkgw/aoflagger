@@ -24,13 +24,15 @@ namespace aoflagger {
 	enum TelescopeId {
 		/** @brief Most generic strategy. */
 		GENERIC_TELESCOPE,
-		/** @brief Default strategy for the LOFAR (Low-Frequency Array in Europe). */
+		/** @brief JVLA, the Jansky Very Large Array in New Mexico. */
+		JVLA_TELESCOPE,
+		/** @brief LOFAR. the Low-Frequency Array in Europe. */
 		LOFAR_TELESCOPE,
-		/** @brief Default strategy for the MWA (Murchison Widefield Array in Western Australia). */
+		/** @brief MWA, the Murchison Widefield Array in Western Australia. */
 		MWA_TELESCOPE,
-		/** @brief Default strategy for Parkes (single Dish, NSW). */
+		/** @brief Parkes, single Dish, NSW. */
 		PARKES_TELESCOPE,
-		/** @brief Default strategy for the WSRT (Westerbork Synthesis Radio Telescope in the Netherlands). */
+		/** @brief WSRT, the Westerbork Synthesis Radio Telescope in the Netherlands. */
 		WSRT_TELESCOPE
 	};
 

@@ -54,6 +54,7 @@ namespace rfiStrategy {
 		{
 			default:
 			case GENERIC_TELESCOPE: return "Generic";
+			case JVLA_TELESCOPE: return "JVLA";
 			case LOFAR_TELESCOPE: return "LOFAR";
 			case MWA_TELESCOPE: return "MWA";
 			case PARKES_TELESCOPE: return "Parkes";
@@ -70,8 +71,8 @@ namespace rfiStrategy {
 			return MWA_TELESCOPE;
 		else if(nameUpper == "PKS" || nameUpper == "ATPKSMB")
 			return PARKES_TELESCOPE;
-		else if(nameUpper == "EVLA")
-			return GENERIC_TELESCOPE; // As long as we do not have a VLA specific strategy
+		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
+			return JVLA_TELESCOPE;
 		else if(nameUpper == "WSRT")
 			return WSRT_TELESCOPE;
 		else
@@ -90,15 +91,24 @@ namespace rfiStrategy {
 		bool calPassband =
 			// Default MWA observations have strong frequency dependency
 			(telescopeId==MWA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
+			// JVLA observation I saw (around 1100 MHz) have steep band edges
+			(telescopeId==JVLA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// Other cases with large bandwidth
 			((flags&FLAG_LARGE_BANDWIDTH) != 0);
 		bool keepTransients = (flags&FLAG_TRANSIENTS) != 0;
+		// Don't remove edges because of channel selection
+		bool channelSelection = (telescopeId != JVLA_TELESCOPE);
 		bool changeResVertically = true;
 		// WSRT has automatic gain control, which strongly affect autocorrelations
 		if(((flags&FLAG_AUTO_CORRELATION) != 0) && telescopeId == WSRT_TELESCOPE)
 		{
 			changeResVertically = false;
 			keepTransients = true;
+		}
+		// JVLA observations I saw (around 1100 MHz) have steep band edges, so smooth very little
+		if(telescopeId == JVLA_TELESCOPE)
+		{
+			changeResVertically = false;
 		}
 		bool clearFlags =
 			((flags&FLAG_CLEAR_FLAGS) != 0) ||
@@ -118,10 +128,14 @@ namespace rfiStrategy {
 		bool onStokesIQ = ((flags&FLAG_FAST) != 0);
 		bool assembleStatistics = ((flags&FLAG_GUI_FRIENDLY)!=0) || telescopeId!=MWA_TELESCOPE;
 		
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics);
+		double verticalSmoothing = 5.0;
+		if(telescopeId == JVLA_TELESCOPE)
+			verticalSmoothing = 1.0;
+		
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics, double verticalSmoothing)
 	{
 		ActionBlock *current;
 
@@ -167,7 +181,8 @@ namespace rfiStrategy {
 		CombineFlagResults *cfr1 = new CombineFlagResults();
 		current->Add(cfr1);
 
-		cfr1->Add(new FrequencySelectionAction());
+		if(channelSelection)
+			cfr1->Add(new FrequencySelectionAction());
 		if(!keepTransients)
 			cfr1->Add(new TimeSelectionAction());
 	
@@ -196,7 +211,7 @@ namespace rfiStrategy {
 			hpAction->SetHKernelSigmaSq(2.5);
 			hpAction->SetWindowWidth(21);
 		}
-		hpAction->SetVKernelSigmaSq(5.0);
+		hpAction->SetVKernelSigmaSq(verticalSmoothing);
 		hpAction->SetWindowHeight(31);
 		if(!keepTransients || changeResVertically)
 			hpAction->SetMode(HighPassFilterAction::StoreRevised);
