@@ -86,7 +86,7 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 				rfiStrategy::DefaultStrategy::LoadFullStrategy(
 					*this,
 					telescopeId,
-					flags | rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY,
+					flags,
 					frequency,
 					timeResolution,
 					frequencyResolution
