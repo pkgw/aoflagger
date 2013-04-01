@@ -161,19 +161,19 @@ class MeasurementSet {
 			return _observationTimesPerSequence.size();
 		}
 		
-		AntennaInfo GetAntennaInfo(unsigned antennaId)
+		const AntennaInfo &GetAntennaInfo(unsigned antennaId) const
 		{
 			return _antennas[antennaId];
 		}
 		
-		static BandInfo GetBandInfo(const std::string &filename, unsigned bandIndex);
+		//static BandInfo GetBandInfo(const std::string &filename, unsigned bandIndex);
 		
-		BandInfo GetBandInfo(unsigned bandIndex)
+		const BandInfo &GetBandInfo(unsigned bandIndex) const
 		{
 			return _bands[bandIndex];
 		}
 		
-		FieldInfo GetFieldInfo(unsigned fieldIndex)
+		const FieldInfo &GetFieldInfo(unsigned fieldIndex) const
 		{
 			return _fields[fieldIndex];
 		}
@@ -224,6 +224,8 @@ class MeasurementSet {
 		
 		bool IsChannelZeroRubish();
 		
+		const std::string &TelescopeName() const { return _telescopeName; }
+		
 		class Sequence
 		{
 			public:
@@ -268,6 +270,7 @@ class MeasurementSet {
 		void initializeAntennas(casa::MeasurementSet &ms);
 		void initializeBands(casa::MeasurementSet &ms);
 		void initializeFields(casa::MeasurementSet &ms);
+		void initializeObservation(casa::MeasurementSet &ms);
 
 		const std::string _path;
 		
@@ -288,6 +291,8 @@ class MeasurementSet {
 		std::vector<FieldInfo> _fields;
 		
 		std::vector<Sequence> _sequences;
+		
+		std::string _telescopeName;
 };
 
 #endif

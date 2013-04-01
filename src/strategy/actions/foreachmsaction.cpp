@@ -26,6 +26,7 @@
 #include "strategyaction.h"
 
 #include "../control/artifactset.h"
+#include "../control/defaultstrategy.h"
 
 #include "../imagesets/imageset.h"
 #include "../imagesets/msimageset.h"
@@ -35,6 +36,10 @@
 
 namespace rfiStrategy {
 
+void ForEachMSAction::Initialize()
+{
+}
+	
 void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress)
 {
 	unsigned taskIndex = 0;
@@ -70,6 +75,27 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 				msImageSet->SetSubtractModel(_subtractModel);
 			}
 			imageSet->Initialize();
+			
+			if(_loadOptimizedStrategy)
+			{
+				rfiStrategy::DefaultStrategy::TelescopeId telescopeId;
+				unsigned flags;
+				double frequency, timeResolution, frequencyResolution;
+				rfiStrategy::DefaultStrategy::DetermineSettings(*imageSet, telescopeId, flags, frequency, timeResolution, frequencyResolution);
+				RemoveAll();
+				rfiStrategy::DefaultStrategy::LoadFullStrategy(
+					*this,
+					telescopeId,
+					flags | rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY,
+					frequency,
+					timeResolution,
+					frequencyResolution
+				);
+				
+				if(_threadCount != 0)
+					rfiStrategy::Strategy::SetThreadCount(*this, _threadCount);
+			}
+			
 			ImageSetIndex *index = imageSet->StartIndex();
 			artifacts.SetImageSet(imageSet);
 			artifacts.SetImageSetIndex(index);

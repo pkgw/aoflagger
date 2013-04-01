@@ -33,11 +33,11 @@ namespace rfiStrategy {
 			typedef std::vector<class Action*>::const_iterator const_iterator;
 			typedef std::vector<class Action*>::iterator iterator;
 
-			inline virtual ~ActionContainer();
-			inline void Add(class Action *newAction);
-			inline void RemoveAndDelete(class Action *action);
-			inline void RemoveWithoutDelete(class Action *action);
-			inline void RemoveAll();
+			virtual ~ActionContainer();
+			void Add(class Action *newAction);
+			void RemoveAndDelete(class Action *action);
+			void RemoveWithoutDelete(class Action *action);
+			void RemoveAll();
 			size_t GetChildCount() const throw() { return _childActions.size(); }
 			Action &GetChild(size_t index) const { return *_childActions[index]; }
 			Action &GetFirstChild() const { return *_childActions.front(); }
@@ -60,8 +60,8 @@ namespace rfiStrategy {
 					_childActions[childIndex+1] = movedAction;
 				}
 			}
-			inline void InitializeAll();
-			inline void FinishAll();
+			void InitializeAll();
+			void FinishAll();
 
 			iterator begin() { return _childActions.begin(); }
 			iterator end() { return _childActions.end(); }
@@ -70,71 +70,6 @@ namespace rfiStrategy {
 		private:
 			std::vector<class Action*> _childActions;
 	};
-}
-
-#include "../actions/action.h"
-
-#include "strategyiterator.h"
-
-namespace rfiStrategy {
-
-	ActionContainer::~ActionContainer()
-	{
-		for(std::vector<class Action*>::iterator i=_childActions.begin();i!=_childActions.end();++i)
-			delete *i;
-	}
-
-	void ActionContainer::RemoveAll()
-	{
-		for(std::vector<class Action*>::iterator i=_childActions.begin();i!=_childActions.end();++i)
-			delete *i;
-		_childActions.clear();
-	}
-
-	void ActionContainer::Add(class Action *newAction)
-	{
-		_childActions.push_back(newAction);
-		newAction->_parent = this;
-	}
-
-	void ActionContainer::RemoveWithoutDelete(class Action *action)
-	{
-		for(std::vector<class Action*>::iterator i=_childActions.begin();i!=_childActions.end();++i)
-			if(*i == action) {
-				_childActions.erase(i);
-				break;
-			}
-	}
-
-	void ActionContainer::RemoveAndDelete(class Action *action)
-	{
-		for(std::vector<class Action*>::iterator i=_childActions.begin();i!=_childActions.end();++i)
-			if(*i == action) {
-				_childActions.erase(i);
-				delete action;
-				break;
-			}
-	}
-
-	void ActionContainer::InitializeAll()
-	{
-		StrategyIterator i = StrategyIterator::NewStartIterator(*this);
-		while(!i.PastEnd())
-		{
-			i->Initialize();
-			++i;
-		}
-	}
-	
-	void ActionContainer::FinishAll()
-	{
-		StrategyIterator i = StrategyIterator::NewStartIterator(*this);
-		while(!i.PastEnd())
-		{
-			i->Finish();
-			++i;
-		}
-	}
 }
 
 #endif // RFIACTIONCONTAINER_H

@@ -25,13 +25,18 @@
 
 #include "msoptionwindow.h"
 
+#include "../strategy/actions/strategyaction.h"
+
 #include "../strategy/imagesets/msimageset.h"
+
+#include "../strategy/control/defaultstrategy.h"
 
 #include "rfiguiwindow.h"
 
-MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &filename) :
+MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, StrategyController &strategyController, const std::string &filename) :
 	Gtk::Window(),
 	_rfiGuiWindow(rfiGUiWindow),
+	_strategyController(strategyController),
 	_filename(filename),
 	_openButton(Gtk::Stock::OPEN),
 	_dataKindFrame("Columns to read"),
@@ -44,7 +49,8 @@ MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &fi
 	_directReadButton("Direct IO"),
 	_indirectReadButton("Indirect IO"),
 	_memoryReadButton("Memory-mode IO"),
-	_readUVWButton("Read UVW")
+	_readUVWButton("Read UVW"),
+	_loadOptimizedStrategy("Load optimized strategy")
 {
 	set_title("Options for opening a measurement set");
 
@@ -65,6 +71,9 @@ MSOptionWindow::MSOptionWindow(RFIGuiWindow &rfiGUiWindow, const std::string &fi
 
 	_rightVBox.pack_start(_readUVWButton);
 	_readUVWButton.set_active(true);
+
+	_rightVBox.pack_start(_loadOptimizedStrategy);
+	_loadOptimizedStrategy.set_active(true);
 
 	_rightVBox.pack_start(_bottomButtonBox);
 
@@ -153,6 +162,24 @@ void MSOptionWindow::onOpen()
 			msImageSet->SetReadUVW(readUVW);
 		}
 		imageSet->Initialize();
+		
+		if(_loadOptimizedStrategy.get_active())
+		{
+			rfiStrategy::DefaultStrategy::TelescopeId telescopeId;
+			unsigned flags;
+			double frequency, timeResolution, frequencyResolution;
+			rfiStrategy::DefaultStrategy::DetermineSettings(*imageSet, telescopeId, flags, frequency, timeResolution, frequencyResolution);
+			_strategyController.Strategy().RemoveAll();
+			rfiStrategy::DefaultStrategy::LoadStrategy(
+				_strategyController.Strategy(),
+				telescopeId,
+				flags | rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY,
+				frequency,
+				timeResolution,
+				frequencyResolution
+			);
+			_strategyController.NotifyChange();
+		}
 	
 		_rfiGuiWindow.SetImageSet(imageSet);
 	} catch(std::exception &e)

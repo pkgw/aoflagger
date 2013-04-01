@@ -34,7 +34,7 @@
 #include "strategy/plots/timeflagcountplot.h"
 
 #include "strategy/control/artifactset.h"
-#include "strategy/control/defaultstrategy.h"
+//#include "strategy/control/defaultstrategy.h"
 #include "strategy/control/strategyreader.h"
 
 #include "util/aologger.h"
@@ -62,7 +62,7 @@ class ConsoleProgressHandler : public ProgressListener {
 			for(size_t i=1;i<Depth();++i)
 				AOLogger::Progress << "+-";
 			
-			AOLogger::Progress << description << "... \n";
+			AOLogger::Progress << description << "...\n";
 		}
 		
 		virtual void OnEndTask(const rfiStrategy::Action &action)
@@ -214,31 +214,6 @@ int main(int argc, char **argv)
 
 		boost::mutex ioMutex;
 		
-		rfiStrategy::Strategy *subStrategy;
-		if(!strategyFile.IsSet())
-		{
-			subStrategy = new rfiStrategy::Strategy();
-			rfiStrategy::DefaultStrategy::LoadFullStrategy(*subStrategy, rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE, rfiStrategy::DefaultStrategy::FLAG_NONE);
-		} else {
-			rfiStrategy::StrategyReader reader;
-			try {
-				AOLogger::Debug << "Opening strategy file '" << strategyFile.Value() << "'\n";
-				subStrategy = reader.CreateStrategyFromFile(strategyFile);
-				AOLogger::Debug << "Strategy parsed succesfully.\n";
-			} catch(std::exception &e)
-			{
-				AOLogger::Error <<
-					"ERROR: Reading strategy file \"" << strategyFile.Value() << "\" failed! This\n"
-					"might be caused by a change in the file format of the strategy file after you\n"
-					"created the strategy file, as it is still rapidly changing.\n"
-					"Try recreating the file with rfistrategy.\n"
-					"\nThe thrown exception was:\n" << e.what() << "\n";
-				return RETURN_STRATEGY_PARSE_ERROR;
-			}
-		}
-		if(threadCount.IsSet())
-			rfiStrategy::Strategy::SetThreadCount(*subStrategy, threadCount);
-			
 		rfiStrategy::ForEachMSAction *fomAction = new rfiStrategy::ForEachMSAction();
 		if(readMode.IsSet())
 			fomAction->SetIOMode(readMode);
@@ -260,7 +235,35 @@ int main(int argc, char **argv)
 			AOLogger::Debug << "Adding '" << argv[i] << "'\n";
 			fomAction->Filenames().push_back(argv[i]);
 		}
-		fomAction->Add(subStrategy);
+		
+		if(!strategyFile.IsSet())
+		{
+			fomAction->SetLoadOptimizedStrategy(true);
+			fomAction->Add(new rfiStrategy::Strategy()); // This helps the progress reader to determine progress
+			if(threadCount.IsSet())
+				fomAction->SetLoadStrategyThreadCount(threadCount);
+		} else {
+			fomAction->SetLoadOptimizedStrategy(false);
+			rfiStrategy::StrategyReader reader;
+			rfiStrategy::Strategy *subStrategy;
+			try {
+				AOLogger::Debug << "Opening strategy file '" << strategyFile.Value() << "'\n";
+				subStrategy = reader.CreateStrategyFromFile(strategyFile);
+				AOLogger::Debug << "Strategy parsed succesfully.\n";
+			} catch(std::exception &e)
+			{
+				AOLogger::Error <<
+					"ERROR: Reading strategy file \"" << strategyFile.Value() << "\" failed! This\n"
+					"might be caused by a change in the file format of the strategy file after you\n"
+					"created the strategy file, as it is still rapidly changing.\n"
+					"Try recreating the file with rfistrategy.\n"
+					"\nThe thrown exception was:\n" << e.what() << "\n";
+				return RETURN_STRATEGY_PARSE_ERROR;
+			}
+			fomAction->Add(subStrategy);
+			if(threadCount.IsSet())
+				rfiStrategy::Strategy::SetThreadCount(*subStrategy, threadCount);
+		}
 		
 		rfiStrategy::Strategy overallStrategy;
 		overallStrategy.Add(fomAction);

@@ -92,11 +92,13 @@ int main(int argc, char *argv[])
 		cout << "Opening measurementset " << measurementFile << endl; 
 		MeasurementSet set(measurementFile);
 		size_t antennaCount = set.AntennaCount();
-		cout << "Number of antennea: " << antennaCount << endl;
-		cout << "Number of time scans: " << set.TimestepCount() << endl;
-		cout << "Number of channels/band: " << set.FrequencyCount(0) << endl;
-		cout << "Number of fields: " << set.FieldCount() << endl;
-		cout << "Number of bands: " << set.BandCount() << endl;
+		cout
+			<< "Telescope name: " << set.TelescopeName() << '\n'
+			<< "Number of antennea: " << antennaCount << '\n'
+			<< "Number of time scans: " << set.TimestepCount() << '\n'
+			<< "Number of channels/band: " << set.FrequencyCount(0) << '\n'
+			<< "Number of fields: " << set.FieldCount() << '\n'
+			<< "Number of bands: " << set.BandCount() << '\n';
 		casa::Table *table = new casa::MeasurementSet(set.Path());
 		cout << "Has DATA column: " << BoolToStr(table->tableDesc().isColumn("DATA")) << "\n";
 		cout << "Has CORRECTED_DATA column: " << BoolToStr(table->tableDesc().isColumn("CORRECTED_DATA")) << "\n";
@@ -137,7 +139,7 @@ int main(int argc, char *argv[])
 			cout << (*i) << " ";
 		cout << endl;
 
-		for(unsigned i=0;i<=set.BandCount();++i) {
+		for(unsigned i=0;i!=set.BandCount();++i) {
 			cout << "== Spectral band index " << i << " ==" << endl;
 			BandInfo bandInfo = set.GetBandInfo(i);
 			cout << "Channel count: " << bandInfo.channels.size() << std::endl;

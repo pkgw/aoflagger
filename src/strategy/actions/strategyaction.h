@@ -44,7 +44,7 @@ namespace rfiStrategy {
 
 			virtual std::string Description() { return "Strategy"; }
 
-			static void SetThreadCount(Strategy &strategy, size_t threadCount);
+			static void SetThreadCount(ActionContainer &strategy, size_t threadCount);
 			static void SetDataColumnName(Strategy &strategy, const std::string &dataColumnName);
 			
 			void StartPerformThread(const class ArtifactSet &artifacts, class ProgressListener &progress);

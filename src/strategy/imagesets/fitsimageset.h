@@ -106,6 +106,8 @@ namespace rfiStrategy {
 				throw BadUsageException("Not implemented");
 			}
 			
+			std::string ReadTelescopeName();
+			
 		private:
 			FitsImageSet(const FitsImageSet &source);
 			BaselineData loadData(const ImageSetIndex &index);

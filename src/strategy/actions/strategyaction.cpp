@@ -53,7 +53,7 @@ namespace rfiStrategy {
 		_strategy->Perform(*_artifacts, *_progress);
 	}
 
-	void Strategy::SetThreadCount(Strategy &strategy, size_t threadCount)
+	void Strategy::SetThreadCount(ActionContainer &strategy, size_t threadCount)
 	{
 		StrategyIterator i = StrategyIterator::NewStartIterator(strategy);
 		while(!i.PastEnd())

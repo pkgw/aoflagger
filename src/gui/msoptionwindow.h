@@ -35,7 +35,7 @@
 */
 class MSOptionWindow : public Gtk::Window {
 	public:
-		MSOptionWindow(class RFIGuiWindow &rfiGuiWindow, const std::string &filename);
+		MSOptionWindow(class RFIGuiWindow &rfiGuiWindow, class StrategyController &strategyController, const std::string &filename);
 		~MSOptionWindow();
 		void onOpen();
 	private:
@@ -43,6 +43,7 @@ class MSOptionWindow : public Gtk::Window {
 		void initPolarisationButtons();
 
 		class RFIGuiWindow &_rfiGuiWindow;
+		class StrategyController &_strategyController;
 		const std::string _filename;
 
 		Gtk::HButtonBox _bottomButtonBox;
@@ -56,7 +57,7 @@ class MSOptionWindow : public Gtk::Window {
 		Gtk::Entry _otherColumnEntry;
 		Gtk::RadioButton _allDipolePolarisationButton, _autoDipolePolarisationButton, _stokesIPolarisationButton;
 		Gtk::RadioButton _directReadButton, _indirectReadButton, _memoryReadButton;
-		Gtk::CheckButton _readUVWButton;
+		Gtk::CheckButton _readUVWButton, _loadOptimizedStrategy;
 };
 
 #endif

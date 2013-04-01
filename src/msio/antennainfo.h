@@ -280,9 +280,11 @@ public:
 	static std::string ToString(num_t value)
 	{
 		std::stringstream s;
-		if(value >= 1000000.0L)
+		if(fabs(value) >= 1000000000.0L)
+			s << round(value/10000000.0L)/100.0L << " GHz";
+		else if(fabs(value) >= 1000000.0L)
 			s << round(value/10000.0L)/100.0L << " MHz";
-		else if(value >= 1000.0L)
+		else if(fabs(value) >= 1000.0L)
 			s << round(value/10.0L)/100.0L << " KHz";
 		else
 			s << value << " Hz";

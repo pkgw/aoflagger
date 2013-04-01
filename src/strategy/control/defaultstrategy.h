@@ -5,10 +5,13 @@
 
 #include "../../interface/aoflagger.h"
 
+class MeasurementSet;
+
 namespace rfiStrategy {
 	
 	class Strategy;
 	class ActionBlock;
+	class ImageSet;
 	
 	class DefaultStrategy
 	{
@@ -58,7 +61,12 @@ namespace rfiStrategy {
 		
 		static DefaultStrategy::TelescopeId TelescopeIdFromName(const std::string &name);
 		
-		private:
+		static void DetermineSettings(ImageSet &measurementSet, enum TelescopeId &telescopeId, unsigned &flags, double &frequency, double &timeRes, double &frequencyRes);
+		
+		static void DetermineSettings(MeasurementSet &measurementSet, enum TelescopeId &telescopeId, unsigned &flags, double &frequency, double &timeRes, double &frequencyRes);
+		
+	private:
+		static void warnIfUnknownTelescope(enum TelescopeId &telescopeId, const std::string &telescopeName);
 	};
 
 

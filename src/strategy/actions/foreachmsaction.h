@@ -31,7 +31,8 @@ namespace rfiStrategy {
 
 	class ForEachMSAction  : public ActionBlock {
 		public:
-			ForEachMSAction() : _readUVW(false), _dataColumnName("DATA"), _subtractModel(false), _skipIfAlreadyProcessed(false), _baselineIOMode(AutoReadMode)
+			ForEachMSAction() : _readUVW(false), _dataColumnName("DATA"), _subtractModel(false), _skipIfAlreadyProcessed(false), _loadOptimizedStrategy(false), _baselineIOMode(AutoReadMode),
+			_threadCount(0)
 			{
 			}
 			~ForEachMSAction()
@@ -41,9 +42,7 @@ namespace rfiStrategy {
 			{
 				return "For each measurement set";
 			}
-			virtual void Initialize()
-			{
-			}
+			virtual void Initialize();
 			virtual void Perform(ArtifactSet &artifacts, ProgressListener &progress);
 			virtual ActionType Type() const { return ForEachMSActionType; }
 			virtual unsigned int Weight() const { return ActionBlock::Weight() * _filenames.size(); }
@@ -70,6 +69,12 @@ namespace rfiStrategy {
 			
 			bool SkipIfAlreadyProcessed() const { return _skipIfAlreadyProcessed; }
 			void SetSkipIfAlreadyProcessed(bool value) { _skipIfAlreadyProcessed = value; }
+			
+			bool LoadOptimizedStrategy() const { return _loadOptimizedStrategy; }
+			void SetLoadOptimizedStrategy(bool value) { _loadOptimizedStrategy = value; }
+			
+			size_t LoadStrategyThreadCount() const { return _threadCount; }
+			void SetLoadStrategyThreadCount(size_t threadCount) { _threadCount = threadCount; }
 		private:
 			std::vector<std::string> _filenames;
 			bool _readUVW;
@@ -77,7 +82,9 @@ namespace rfiStrategy {
 			bool _subtractModel;
 			std::string _commandLineForHistory;
 			bool _skipIfAlreadyProcessed;
+			bool _loadOptimizedStrategy;
 			BaselineIOMode _baselineIOMode;
+			size_t _threadCount;
 	};
 
 }

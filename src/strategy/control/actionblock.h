@@ -43,7 +43,10 @@ namespace rfiStrategy {
 				{
 					weight += (*i)->Weight();
 				}
-				return weight;
+				if(weight == 0)
+					return 1;
+				else
+					return weight;
 			}
 	};
 }

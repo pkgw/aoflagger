@@ -65,11 +65,11 @@ namespace rfiStrategy {
 
 	void FitsImageSet::Initialize()
 	{
-		AOLogger::Debug << "Keyword count: " << _file->GetKeywordCount() << '\n';
+		//AOLogger::Debug << "Keyword count: " << _file->GetKeywordCount() << '\n';
 		if(_file->HasGroups())
 		{
 			AOLogger::Debug << "This file has " << _file->GetGroupCount() << " groups with " << _file->GetParameterCount() << " parameters.\n";
-			AOLogger::Debug << "Group size: " << _file->GetGroupSize() << '\n';
+			//AOLogger::Debug << "Group size: " << _file->GetGroupSize() << '\n';
 			_file->MoveToHDU(1);
 			if(_file->GetCurrentHDUType() != FitsFile::ImageHDUType)
 				throw FitsIOException("Primary table is not a grouped image");
@@ -164,9 +164,9 @@ namespace rfiStrategy {
 		std::vector<double> observationTimes;
 		std::vector<UVW> uvws;
 
-		int keywordCount = _file->GetKeywordCount();
-		for(int i=1;i<=keywordCount;++i)
-			AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
+		//int keywordCount = _file->GetKeywordCount();
+		//for(int i=1;i<=keywordCount;++i)
+		//	AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
 
 		std::vector<long double> parameters(_file->GetParameterCount());
 		int baseline = _baselines[baselineIndex].first + (_baselines[baselineIndex].second<<8);
@@ -258,22 +258,22 @@ namespace rfiStrategy {
 
 	void FitsImageSet::ReadPrimarySingleTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData)
 	{
-		int keywordCount = _file->GetKeywordCount();
-		for(int i=1;i<=keywordCount;++i)
-			AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
+		//int keywordCount = _file->GetKeywordCount();
+		//for(int i=1;i<=keywordCount;++i)
+		//	AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
 	}
 	
 	void FitsImageSet::ReadTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData, size_t bandIndex)
 	{
-		AOLogger::Debug << "Row count: " << _file->GetRowCount() << '\n';
-		AOLogger::Debug << "Column count: " << _file->GetColumnCount() << '\n';
-		for(int i= 1;i <= _file->GetColumnCount(); ++i)
-		{
-			AOLogger::Debug << "Column type " << i << ": " << _file->GetColumnType(i) << '\n';
-		}
+		//AOLogger::Debug << "Row count: " << _file->GetRowCount() << '\n';
+		//AOLogger::Debug << "Column count: " << _file->GetColumnCount() << '\n';
+		//for(int i= 1;i <= _file->GetColumnCount(); ++i)
+		//{
+		//	AOLogger::Debug << "Column type " << i << ": " << _file->GetColumnType(i) << '\n';
+		//}
 		std::string extName = _file->GetKeywordValue("EXTNAME");
-		for(int i=1;i<=_file->GetKeywordCount();++i)
-			AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
+		//for(int i=1;i<=_file->GetKeywordCount();++i)
+		//	AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
 		if(extName == "AIPS AN")
 			ReadAntennaTable(metaData);
 		else if(extName == "AIPS FQ")
@@ -618,5 +618,17 @@ namespace rfiStrategy {
 	std::string FitsImageSet::File()
 	{
 		return _file->Filename();
+	}
+	
+	std::string FitsImageSet::ReadTelescopeName()
+	{
+		for(int hduIndex=2; hduIndex <= _file->GetHDUCount(); hduIndex++)
+		{
+			_file->MoveToHDU(hduIndex);
+			std::string extName = _file->GetKeywordValue("EXTNAME");
+			if(extName == "SINGLE DISH")
+				return _file->GetKeywordValue("TELESCOP");
+		}
+		return "";
 	}
 }

@@ -253,7 +253,7 @@ void RFIGuiWindow::OpenPath(const std::string &path)
 	}
 	else if(rfiStrategy::ImageSet::IsMSFile(path))
 	{
-		_optionWindow = new MSOptionWindow(*this, path);
+		_optionWindow = new MSOptionWindow(*this, *this, path);
 		_optionWindow->present();
 	}
 	else if(rfiStrategy::ImageSet::IsTimeFrequencyStatFile(path))
@@ -272,6 +272,22 @@ void RFIGuiWindow::OpenPath(const std::string &path)
 		rfiStrategy::ImageSet *imageSet = rfiStrategy::ImageSet::Create(path, DirectReadMode);
 		imageSet->Initialize();
 		lock.unlock();
+		
+		rfiStrategy::DefaultStrategy::TelescopeId telescopeId;
+		unsigned flags;
+		double frequency, timeResolution, frequencyResolution;
+		rfiStrategy::DefaultStrategy::DetermineSettings(*imageSet, telescopeId, flags, frequency, timeResolution, frequencyResolution);
+		Strategy().RemoveAll();
+		rfiStrategy::DefaultStrategy::LoadStrategy(
+			Strategy(),
+			telescopeId,
+			flags | rfiStrategy::DefaultStrategy::FLAG_GUI_FRIENDLY,
+			frequency,
+			timeResolution,
+			frequencyResolution
+		);
+		NotifyChange();
+		
 		SetImageSet(imageSet);
 	}
 }
