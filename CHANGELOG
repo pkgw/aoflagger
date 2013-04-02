@@ -1,3 +1,52 @@
+Version 2.4.0
+2013-04-03	André Offrnga <of...nga@gmail.com>
+
+This version took longer than usual, but this is reflected by many large changes, most prominently: improved (full!) E/JVLA compatibility due to multi-SPW and multi-field support, improved Parkes compatibility due to SDFITS fixes, automatic loading of a strategy that matches the telescope and observation properties and switching between plots in the RFIGui.
+
+Full list of changes:
+
+* Added a simple Parkes strategy ([tickets:#19]) -- not extensively optimized, but seems to do a reasonable job (...much better than simple thresholding)
+
+* Measurement sets with multiple spectral windows are now fully supported ([tickets:#11]). All reading modes will correctly read and write such measurement sets.
+
+* Measurement sets with multiple fields are now fully supported ([tickets:#18]). This and the previous feature has been requested many times, in particular to be able to easily flag JVLA data without 'split()'-ting off the bands or sources. As with the previous feature, all reading modes will now correctly read and write multi-field measurement sets. Each sequence of correlations on a single source will be flagged individually. Thanks to R. van Weeren for providing test sets.
+
+* The RFIGui and aoflagger, when not specified otherwise, will now load an optimized strategy when an observation is opened. ([tickets:#10]) Telescopes for which this is currently supported are LOFAR, MWA, Parkes, JVLA (beta) and WSRT. In other cases, a "generic" strategy is loaded, which is the LOFAR strategy (which is actually not very generic -- I hope to improve that in the next version).
+
+* An initial JVLA strategy was added, that I've optimized for a ~1.1 GHz observation that I've received from R. van Weeren. Together with the other 3 previous features, this allows to simply execute "aoflagger my_jvla_set.ms" on a standard JVLA multi-source/spw file and get good results (if your sets look like the set I got) without any further tweaking. If you have, send me "typical" observations of other frequencies so I can optimize this further.
+
+* The default WSRT strategy has been tweaked.
+
+* The strategy wizard has been improved: a "fast" option was added and the sensitivity can be changed. ([tickets:#12])
+
+* The plotting window in the RFIGui now shows a list of all previous plots, which can be quickly reselected and its style can be changed ([tickets:#9])
+
+* The main window in the rfigui now shows the selected correlation name (e.g. RT0 x RT1). Can also be turned off and/or changed. ([tickets:#8])
+
+* The aoflagger console application will now automatically select the optimal number of threads when not overriden on cmd line ([tickets:#6])
+
+* The indirect reader has been made a lot more efficient. It will "preallocate" the files it will write (if [your filesystem supports it](http://linux.die.net/man/1/fallocate)) and will no longer create a file for every correlation, but rather uses only one for data and one for flags. This overcomes problems with "too many open files" on some environments.
+
+* When properly installed, the RFIGui and aoqplot applications will have a application/taskbar icon and show up in the menu of common desktop environments. ([tickets:#14])
+
+* Toolbar has been cleaned up, the more commonly used buttons are now there & some icons were added. ([tickets:#13])
+
+* Several menu items now got accelerator key, e.g. "F9" is "run strategy".
+
+* Bugfix: G van Diepen send me a patch to fix variable length arrays and class/struct mixing, which caused problems on the Mac.
+
+* Bugfix: Fixed a bug in the SDFITS reader/writer. With some help from J. Delhaize, this version is able to open and flag Parkes SDFITS file both with the RFIGui and the aoflagger console application. ([tickets:#21])
+
+* Bugfix: MWA strategy could silently fail
+
+* Bugfix: aoqplot will ask for filename if none given ([tickets:#22])
+
+* Bugfix: Deadlock when showing error dialog box during execution of strategy
+
+* Bugfix: fixing rare bug in RFIGui when a set contains invalid times
+
+* Refactoring: The main RFIGUI class is huge, major efforts to clean it up and split some things in new classes in a model-view-control way.
+
 Version 2.3.0
 2012-12-16	André Offringa <of...nga@mso.anu.edu.au>
 
