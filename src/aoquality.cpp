@@ -217,11 +217,11 @@ void actionCollect(const std::string &filename, enum CollectingMode mode, Statis
 			delete[] samples[p];
 		}
 		delete[] isRFI;
-		delete[] correlatorFlags;
-		delete[] correlatorFlagsForBadAntenna;
 		
 		reportProgress(row, nrow);
 	}
+	delete[] correlatorFlags;
+	delete[] correlatorFlagsForBadAntenna;
 	
 	for(unsigned b=0;b<bandCount;++b)
 		delete[] frequencies[b];
