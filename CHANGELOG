@@ -1,5 +1,5 @@
 Version 2.4.0
-2013-04-03	André Offrnga <of...nga@gmail.com>
+2013-04-06	André Offrnga <of...nga@gmail.com>
 
 This version took longer than usual, but this is reflected by many large changes, most prominently: improved (full!) E/JVLA compatibility due to multi-SPW and multi-field support, improved Parkes compatibility due to SDFITS fixes, automatic loading of a strategy that matches the telescope and observation properties and switching between plots in the RFIGui.
 
