@@ -463,10 +463,10 @@ void EditStrategyWindow::onSaveClicked()
   dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
   dialog.add_button("Save", Gtk::RESPONSE_OK);
 
-  Gtk::FileFilter filter;
-  filter.set_name("RFI strategies");
-  filter.add_pattern("*.rfis");
-  filter.add_mime_type("text/rfistrategy+xml");
+  Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+  filter->set_name("RFI strategies");
+  filter->add_pattern("*.rfis");
+  filter->add_mime_type("text/rfistrategy+xml");
   dialog.add_filter(filter);
 
   int result = dialog.run();
@@ -488,10 +488,10 @@ void EditStrategyWindow::onOpenClicked()
   dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
   dialog.add_button("Open", Gtk::RESPONSE_OK);
 
-  Gtk::FileFilter filter;
-  filter.set_name("RFI strategies");
-  filter.add_pattern("*.rfis");
-  filter.add_mime_type("text/rfistrategy+xml");
+  Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+  filter->set_name("RFI strategies");
+  filter->add_pattern("*.rfis");
+  filter->add_mime_type("text/rfistrategy+xml");
   dialog.add_filter(filter);
 
   int result = dialog.run();

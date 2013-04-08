@@ -166,7 +166,7 @@ void StrategyWizardWindow::onFinishClicked()
 	hide();
 }
 
-void StrategyWizardWindow::onPageSwitched(GtkNotebookPage* page, guint pageNumber)
+void StrategyWizardWindow::onPageSwitched(Gtk::Widget *page, guint pageNumber)
 {
 	updateSensitivities();
 }

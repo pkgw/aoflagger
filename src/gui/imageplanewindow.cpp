@@ -463,10 +463,10 @@ void ImagePlaneWindow::onSaveFitsButton()
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 	dialog.add_button("Save", Gtk::RESPONSE_OK);
 
-	Gtk::FileFilter fitsFilter;
-	fitsFilter.set_name("Flexible Image Transport System (*.fits)");
-	fitsFilter.add_pattern("*.fits");
-	fitsFilter.add_mime_type("image/fits");
+	Glib::RefPtr<Gtk::FileFilter> fitsFilter = Gtk::FileFilter::create();
+	fitsFilter->set_name("Flexible Image Transport System (*.fits)");
+	fitsFilter->add_pattern("*.fits");
+	fitsFilter->add_mime_type("image/fits");
 	dialog.add_filter(fitsFilter);
 		
 	if(dialog.run() == Gtk::RESPONSE_OK)

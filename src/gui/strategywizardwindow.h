@@ -1,13 +1,16 @@
 #ifndef STRATEGY_WIZARD_WINDOW_H
 #define STRATEGY_WIZARD_WINDOW_H
 
-#include <gtkmm/window.h>
-#include <gtkmm/notebook.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
 #include <gtkmm/buttonbox.h>
-#include <gtkmm/liststore.h>
+#include <gtkmm/checkbutton.h>
 #include <gtkmm/combobox.h>
+#include <gtkmm/liststore.h>
+#include <gtkmm/notebook.h>
+#include <gtkmm/notebook.h>
+#include <gtkmm/radiobutton.h>
+#include <gtkmm/window.h>
 
 class StrategyWizardWindow : public Gtk::Window
 {
@@ -36,7 +39,7 @@ private:
 	void onNextClicked();
 	void onPreviousClicked();
 	void onFinishClicked();
-	void onPageSwitched(GtkNotebookPage *page, guint pageNumber);
+	void onPageSwitched(Gtk::Widget *page, guint pageNumber);
 	void updateSensitivities();
 	void addTelescope(const Glib::ustring &name, int val);
 

@@ -347,7 +347,7 @@ void TwoDimensionalPlotPage::onPlotPropertiesClicked()
 
 void TwoDimensionalPlotPage::updateDataWindow()
 {
-	if(_dataWindow->is_visible())
+	if(_dataWindow->get_visible())
 		_dataWindow->SetData(_plot);
 }
 

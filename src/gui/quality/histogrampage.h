@@ -29,6 +29,7 @@
 #include <gtkmm/expander.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/textview.h>
+#include <gtkmm/radiobutton.h>
 
 #include "../../quality/qualitytablesformatter.h"
 

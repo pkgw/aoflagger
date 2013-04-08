@@ -31,7 +31,7 @@ class PlotWidget : public Gtk::DrawingArea {
 	public:
 		PlotWidget() : _plot(0)
 		{
-			signal_expose_event().connect(sigc::mem_fun(*this, &PlotWidget::onExposeEvent) );
+			signal_draw().connect(sigc::mem_fun(*this, &PlotWidget::onDraw) );
 			set_size_request(400, 300);
 		}
 		
@@ -59,7 +59,7 @@ class PlotWidget : public Gtk::DrawingArea {
 	private:
 		Plotable *_plot;
 
-		bool onExposeEvent(GdkEventExpose *)
+		bool onDraw(const Cairo::RefPtr<Cairo::Context >& cr)
 		{
 			redraw();
 			return true;

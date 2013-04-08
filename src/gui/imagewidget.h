@@ -205,7 +205,7 @@ class ImageWidget : public Gtk::DrawingArea {
 		void redrawWithoutChanges(Cairo::RefPtr<Cairo::Context> cairo, unsigned width, unsigned height);
 		void downsampleImageBuffer(unsigned newWidth, unsigned newHeight);
 		bool toUnits(double mouseX, double mouseY, int &posX, int &posY);
-		bool onExposeEvent(GdkEventExpose* ev);
+		bool onDraw(const Cairo::RefPtr<Cairo::Context>& cr);
 		bool onMotion(GdkEventMotion *event);
 		bool onLeave(GdkEventCrossing *event);
 		bool onButtonReleased(GdkEventButton *event);

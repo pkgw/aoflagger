@@ -23,7 +23,7 @@
 #include <gtkmm/uimanager.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
-#include <gtkmm/inputdialog.h>
+//#include <gtkmm/inputdialog.h>
 #include <gtkmm/toolbar.h>
 
 #include "../msio/baselinematrixloader.h"
@@ -59,7 +59,6 @@
 
 #include "controllers/rfiguicontroller.h"
 
-#include "antennamapwindow.h"
 #include "complexplaneplotwindow.h"
 #include "editstrategywindow.h"
 #include "gotowindow.h"
@@ -86,7 +85,7 @@ RFIGuiWindow::RFIGuiWindow() :
 	_controller(new RFIGuiController(*this)),
 	_imagePlaneWindow(0), _histogramWindow(0), _optionWindow(0), _editStrategyWindow(0),
 	_gotoWindow(0), _progressWindow(0), _highlightWindow(0), _plotComplexPlaneWindow(0),
-	_imagePropertiesWindow(0), _antennaMapWindow(0),
+	_imagePropertiesWindow(0),
 	//_statistics(new RFIStatistics()),
 	_imageSet(0),
 	_imageSetIndex(0),
@@ -146,8 +145,6 @@ RFIGuiWindow::~RFIGuiWindow()
 		delete _highlightWindow;
 	if(_imagePropertiesWindow != 0)
 		delete _imagePropertiesWindow;
-	if(_antennaMapWindow != 0)
-		delete _antennaMapWindow;
 	
 	// The rfistrategy needs the lock to clean up
 	lock.unlock();
@@ -638,7 +635,6 @@ void RFIGuiWindow::createToolbar()
 	_timeGraphButton = Gtk::ToggleAction::create("TimeGraph", "Time graph");
 	_timeGraphButton->set_active(false); 
 	_actionGroup->add(_timeGraphButton, sigc::mem_fun(*this, &RFIGuiWindow::onTimeGraphButtonPressed) );
-	_actionGroup->add( Gtk::Action::create("ShowAntennaMapWindow", "Show antenna map"), sigc::mem_fun(*this, &RFIGuiWindow::onShowAntennaMapWindow) );
 	
 	_actionGroup->add( Gtk::Action::create("PlotDist", "Plot _distribution"),
   sigc::mem_fun(*this, &RFIGuiWindow::onPlotDistPressed) );
@@ -904,7 +900,6 @@ void RFIGuiWindow::createToolbar()
     "    </menu>"
 	  "    <menu action='MenuView'>"
     "      <menuitem action='ImageProperties'/>"
-    "      <menuitem action='ShowAntennaMapWindow'/>"
     "      <menuitem action='TimeGraph'/>"
     "      <separator/>"
     "      <menuitem action='OriginalFlags'/>"
@@ -1526,7 +1521,7 @@ void RFIGuiWindow::onTFWidgetButtonReleased(size_t x, size_t y)
 {
 	if(HasImage())
 	{
-		if(_plotFrame.is_visible())
+		if(_plotFrame.get_visible())
 		{
 			_plotFrame.SetTimeFrequencyData(GetActiveData());
 			_plotFrame.SetSelectedSample(x, y);
@@ -1592,21 +1587,6 @@ void RFIGuiWindow::loadDefaultModel(DefaultModels::Distortion distortion, bool w
 	
 	_timeFrequencyWidget.SetNewData(data, metaData);
 	_timeFrequencyWidget.Update();
-}
-
-void RFIGuiWindow::onShowAntennaMapWindow()
-{
-	if(_antennaMapWindow != 0)
-		delete _antennaMapWindow;
-	AntennaMapWindow *newWindow = new AntennaMapWindow();
-	_antennaMapWindow = newWindow;
-	rfiStrategy::MSImageSet *msImageSet = dynamic_cast<rfiStrategy::MSImageSet*>(_imageSet);
-	if(msImageSet != 0)
-	{
-		MeasurementSet &set = msImageSet->Reader()->Set();
-		newWindow->SetMeasurementSet(set);
-	}
-	newWindow->show();
 }
 
 void RFIGuiWindow::onVertEVD()
