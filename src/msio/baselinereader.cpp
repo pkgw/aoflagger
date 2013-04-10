@@ -38,7 +38,6 @@ BaselineReader::BaselineReader(const std::string &msFile)
 	: _measurementSet(msFile), _table(0), _dataColumnName("DATA"), _subtractModel(false), _readData(true), _readFlags(true),
 	_polarizationCount(0)
 {
-	AOLogger::Debug << "Baselinereader constructed.\n";
 	try {
 		_table = new casa::MeasurementSet(_measurementSet.Path(), casa::MeasurementSet::Update);
 	} catch(std::exception &e)

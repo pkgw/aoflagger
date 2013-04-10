@@ -63,50 +63,56 @@ namespace rfiStrategy {
 			throw BadUsageException("ArtifactSet does not have baseline selection info");
 		BaselineSelector &info = *artifacts.BaselineSelectionInfo();
 		if(info.BaselineCount() == 0)
-			throw BadUsageException("BaselineSelectionAction wrongly used: trying to mark baselines, but baselines have not been prepared previously (you need to add a BaselineSelectionAction within a for each baseline block, that calculates the statistics and prepares selection)");
-
-		AOLogger::Debug << "Searching for bad baselines...\n";
-
-		Strategy::SyncAll(*GetRoot());
-
-		boost::mutex::scoped_lock lock(info.Mutex());
-
-		BaselineSelector &selector = *artifacts.BaselineSelectionInfo();
-		selector.SetAbsThreshold(_absThreshold);
-		selector.SetSmoothingSigma(_smoothingSigma);
-		selector.SetThreshold(_threshold);
-		
-		std::vector<BaselineSelector::SingleBaselineInfo> markedBaselines;
-		selector.Search(markedBaselines);
-		
-		if(markedBaselines.size() > 0)
 		{
-			AOLogger::Info << "Found " << markedBaselines.size() << "/" << (markedBaselines.size()+selector.BaselineCount()) << " bad baselines: ";
+			AOLogger::Warn <<
+			"BaselineSelectionAction wrongly used: trying to mark baselines, but baselines have\n"
+			"not been prepared previously (you need to add a BaselineSelectionAction within a for\n"
+			"each baseline block, that calculates the statistics and prepares selection)\n";
+		} else {
+
+			AOLogger::Debug << "Searching for bad baselines...\n";
+
+			Strategy::SyncAll(*GetRoot());
+
+			boost::mutex::scoped_lock lock(info.Mutex());
+
+			BaselineSelector &selector = *artifacts.BaselineSelectionInfo();
+			selector.SetAbsThreshold(_absThreshold);
+			selector.SetSmoothingSigma(_smoothingSigma);
+			selector.SetThreshold(_threshold);
 			
-			std::vector<BaselineSelector::SingleBaselineInfo>::const_iterator badBaselineIter = markedBaselines.begin();
-			AOLogger::Info << badBaselineIter->antenna1Name << "x" << badBaselineIter->antenna2Name;
-			++badBaselineIter;
-			while(badBaselineIter!=markedBaselines.end())
-			{
-				AOLogger::Info << ", " << badBaselineIter->antenna1Name << "x" << badBaselineIter->antenna2Name;
-				++badBaselineIter;
-			}
-			AOLogger::Info << '\n';
-		} else {
-			AOLogger::Info << "No bad baselines found.\n";
-		}
-		
-		if(_flagBadBaselines)
-		{
-			flagBaselines(artifacts, markedBaselines);
-		} else {
+			std::vector<BaselineSelector::SingleBaselineInfo> markedBaselines;
+			selector.Search(markedBaselines);
+			
 			if(markedBaselines.size() > 0)
-				AOLogger::Info <<
-					"Bad baseline finding is still experimental, please check the results.\n"
-					"These baselines have therefore NOT been flagged yet. Writing flags to\n"
-					"these baselines can be enabled by setting the flag-bad-baselines\n"
-					"property of both BaselineSelectionAction's to '1' in your strategy\n"
-					"file.\n";
+			{
+				AOLogger::Info << "Found " << markedBaselines.size() << "/" << (markedBaselines.size()+selector.BaselineCount()) << " bad baselines: ";
+				
+				std::vector<BaselineSelector::SingleBaselineInfo>::const_iterator badBaselineIter = markedBaselines.begin();
+				AOLogger::Info << badBaselineIter->antenna1Name << "x" << badBaselineIter->antenna2Name;
+				++badBaselineIter;
+				while(badBaselineIter!=markedBaselines.end())
+				{
+					AOLogger::Info << ", " << badBaselineIter->antenna1Name << "x" << badBaselineIter->antenna2Name;
+					++badBaselineIter;
+				}
+				AOLogger::Info << '\n';
+			} else {
+				AOLogger::Info << "No bad baselines found.\n";
+			}
+			
+			if(_flagBadBaselines)
+			{
+				flagBaselines(artifacts, markedBaselines);
+			} else {
+				if(markedBaselines.size() > 0)
+					AOLogger::Info <<
+						"Bad baseline finding is still experimental, please check the results.\n"
+						"These baselines have therefore NOT been flagged yet. Writing flags to\n"
+						"these baselines can be enabled by setting the flag-bad-baselines\n"
+						"property of both BaselineSelectionAction's to '1' in your strategy\n"
+						"file.\n";
+			}
 		}
 	}
 

@@ -79,7 +79,10 @@ class ConsoleProgressHandler : public ProgressListener {
 
 		virtual void OnException(const rfiStrategy::Action &, std::exception &thrownException) 
 		{
-			AOLogger::Error << thrownException.what() << '\n';
+			AOLogger::Error <<
+				"An exception occured during execution of the strategy!\n"
+				"You set might not be fully flagged. Exception was:\n"
+				<< thrownException.what() << '\n';
 		}
 };
 

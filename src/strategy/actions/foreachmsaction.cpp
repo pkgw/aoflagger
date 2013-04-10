@@ -34,6 +34,8 @@
 #include "../../util/aologger.h"
 #include "../../util/progresslistener.h"
 
+#include <memory>
+
 namespace rfiStrategy {
 
 void ForEachMSAction::Initialize()
@@ -66,11 +68,11 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 		
 		if(!skip)
 		{
-			ImageSet *imageSet = ImageSet::Create(filename, _baselineIOMode, _readUVW);
-			bool isMS = dynamic_cast<MSImageSet*>(imageSet) != 0;
+			std::auto_ptr<ImageSet> imageSet(ImageSet::Create(filename, _baselineIOMode, _readUVW));
+			bool isMS = dynamic_cast<MSImageSet*>(&*imageSet) != 0;
 			if(isMS)
 			{ 
-				MSImageSet *msImageSet = static_cast<MSImageSet*>(imageSet);
+				MSImageSet *msImageSet = static_cast<MSImageSet*>(&*imageSet);
 				msImageSet->SetDataColumnName(_dataColumnName);
 				msImageSet->SetSubtractModel(_subtractModel);
 			}
@@ -96,19 +98,19 @@ void ForEachMSAction::Perform(ArtifactSet &artifacts, ProgressListener &progress
 					rfiStrategy::Strategy::SetThreadCount(*this, _threadCount);
 			}
 			
-			ImageSetIndex *index = imageSet->StartIndex();
-			artifacts.SetImageSet(imageSet);
-			artifacts.SetImageSetIndex(index);
+			std::auto_ptr<ImageSetIndex> index(imageSet->StartIndex());
+			artifacts.SetImageSet(&*imageSet);
+			artifacts.SetImageSetIndex(&*index);
 
 			InitializeAll();
 			
 			ActionBlock::Perform(artifacts, progress);
 			
 			FinishAll();
-
+			
 			artifacts.SetNoImageSet();
-			delete index;
-			delete imageSet;
+			index.reset();
+			imageSet.reset();
 
 			if(isMS)
 				writeHistory(*i);

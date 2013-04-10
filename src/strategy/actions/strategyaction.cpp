@@ -50,6 +50,7 @@ namespace rfiStrategy {
 
 	void Strategy::PerformFunc::operator()()
 	{
+		// Perform will catch exceptions
 		_strategy->Perform(*_artifacts, *_progress);
 	}
 
