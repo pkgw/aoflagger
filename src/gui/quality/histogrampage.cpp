@@ -519,6 +519,6 @@ void HistogramPage::addSlopeText(std::stringstream &str, const LogHistogram &his
 
 void HistogramPage::updateDataWindow()
 {
-	if(_dataWindow->is_visible())
+	if(_dataWindow->get_visible())
 		_dataWindow->SetData(_plot);
 }

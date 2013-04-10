@@ -96,7 +96,7 @@ void AOQPlotWindow::onOpenOptionsSelected(std::string filename, bool downsampleT
 	_frequencyPlotPage.SetStatistics(_statCollection, _antennas);
 	_timeFrequencyPlotPage.SetStatistics(_fullStats);
 	_summaryPage.SetStatistics(_statCollection);
-	if(_histogramPage.is_visible())
+	if(_histogramPage.get_visible())
 		_histogramPage.SetStatistics(*_histCollection);
 	show();
 }

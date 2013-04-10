@@ -11,7 +11,7 @@ class SpatialMatrixMetaData
 				_uvw(new class UVW*[antennaCount]), _frequency(0.0), _channelIndex(0), _timeIndex(0)
 		{
 			for(size_t i=0;i<_antennaCount;++i)
-				_uvw[i] = new struct UVW[_antennaCount];
+				_uvw[i] = new class UVW[_antennaCount];
 		}
 		SpatialMatrixMetaData(const SpatialMatrixMetaData &source)
 			: _antennaCount(source._antennaCount),

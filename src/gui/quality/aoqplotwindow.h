@@ -67,7 +67,7 @@ class AOQPlotWindow : public Gtk::Window {
 			Gtk::Main::quit();
 		}
 		void onStatusChange(const std::string &newStatus);
-		void onSwitchPage(GtkNotebookPage *page, guint pageNr)
+		void onSwitchPage(Gtk::Widget *page, guint pageNr)
 		{
 			switch(pageNr)
 			{

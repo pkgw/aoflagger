@@ -73,7 +73,7 @@ ImageWidget::ImageWidget() :
 	signal_motion_notify_event().connect(sigc::mem_fun(*this, &ImageWidget::onMotion));
 	signal_leave_notify_event().connect(sigc::mem_fun(*this, &ImageWidget::onLeave));
 	signal_button_release_event().connect(sigc::mem_fun(*this, &ImageWidget::onButtonReleased));
-	signal_expose_event().connect(sigc::mem_fun(*this, &ImageWidget::onExposeEvent) );
+	signal_draw().connect(sigc::mem_fun(*this, &ImageWidget::onDraw) );
 }
 
 ImageWidget::~ImageWidget()
@@ -111,7 +111,7 @@ void ImageWidget::Clear()
 	}
 }
 
-bool ImageWidget::onExposeEvent(GdkEventExpose *)
+bool ImageWidget::onDraw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
 	if(get_width() == (int) _initializedWidth && get_height() == (int) _initializedHeight)
 		redrawWithoutChanges(get_window()->create_cairo_context(), get_width(), get_height());

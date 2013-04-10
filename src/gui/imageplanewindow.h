@@ -26,6 +26,7 @@
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/radiobutton.h>
+#include <gtkmm/radiomenuitem.h>
 
 #include "../msio/timefrequencydata.h"
 #include "../msio/timefrequencymetadata.h"

@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 project(AOFlagger)
 
 find_package(PkgConfig)
-pkg_check_modules(GTKMM gtkmm-2.4>=2.18)
+pkg_check_modules(GTKMM gtkmm-3.0>=3.0.0)
 pkg_check_modules(SIGCXX sigc++-2.0)
 
 find_library(CASA_MS_LIB casa_ms REQUIRED)

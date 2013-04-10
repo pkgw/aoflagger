@@ -331,7 +331,8 @@ class RFIStatistics {
 		bool WriteImmediately() const { return _writeImmediately; }
 		void SetWriteImmediately(bool value) { _writeImmediately = value; }
 	private:
-		struct FeatureInfo {
+		class FeatureInfo {
+		public:
 			long double amplitudeSum;
 			num_t amplitudeMax;
 			size_t sampleCount;

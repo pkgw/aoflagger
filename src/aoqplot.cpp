@@ -52,13 +52,13 @@ int main(int argc, char *argv[])
 			fileDialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 			fileDialog.add_button("Open", Gtk::RESPONSE_OK);
 			
-			Gtk::FileFilter filter;
-			filter.set_name("Observation sets (*.{vds,gds,ref,MS})");
-			filter.add_pattern("*.vds");
-			filter.add_pattern("*.gds");
-			filter.add_pattern("*.gvds");
-			filter.add_pattern("*.ref");
-			filter.add_pattern("*.MS");
+			Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+			filter->set_name("Observation sets (*.{vds,gds,ref,MS})");
+			filter->add_pattern("*.vds");
+			filter->add_pattern("*.gds");
+			filter->add_pattern("*.gvds");
+			filter->add_pattern("*.ref");
+			filter->add_pattern("*.MS");
 			fileDialog.add_filter(filter);
 			
 			if(fileDialog.run() == Gtk::RESPONSE_OK)

@@ -373,32 +373,32 @@ void ImagePropertiesWindow::onExportClicked()
 		dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 		dialog.add_button("Save", Gtk::RESPONSE_OK);
 
-		Gtk::FileFilter pdfFilter;
+		Glib::RefPtr<Gtk::FileFilter> pdfFilter = Gtk::FileFilter::create();
 		std::string pdfName = "Portable Document Format (*.pdf)";
-		pdfFilter.set_name(pdfName);
-		pdfFilter.add_pattern("*.pdf");
-		pdfFilter.add_mime_type("application/pdf");
+		pdfFilter->set_name(pdfName);
+		pdfFilter->add_pattern("*.pdf");
+		pdfFilter->add_mime_type("application/pdf");
 		dialog.add_filter(pdfFilter);
 
-		Gtk::FileFilter svgFilter;
+		Glib::RefPtr<Gtk::FileFilter> svgFilter = Gtk::FileFilter::create();
 		std::string svgName = "Scalable Vector Graphics (*.svg)";
-		svgFilter.set_name(svgName);
-		svgFilter.add_pattern("*.svg");
-		svgFilter.add_mime_type("image/svg+xml");
+		svgFilter->set_name(svgName);
+		svgFilter->add_pattern("*.svg");
+		svgFilter->add_mime_type("image/svg+xml");
 		dialog.add_filter(svgFilter);
 
-		Gtk::FileFilter pngFilter;
+		Glib::RefPtr<Gtk::FileFilter> pngFilter = Gtk::FileFilter::create();
 		std::string pngName = "Portable Network Graphics (*.png)";
-		pngFilter.set_name(pngName);
-		pngFilter.add_pattern("*.png");
-		pngFilter.add_mime_type("image/png");
+		pngFilter->set_name(pngName);
+		pngFilter->add_pattern("*.png");
+		pngFilter->add_mime_type("image/png");
 		dialog.add_filter(pngFilter);
 
 		int result = dialog.run();
 
 		if(result == Gtk::RESPONSE_OK)
 		{
-			const Gtk::FileFilter *filter = dialog.get_filter();
+			Glib::RefPtr<const Gtk::FileFilter> filter = dialog.get_filter();
 			if(filter->get_name() == pdfName)
 				_imageWidget.SavePdf(dialog.get_filename());
 			else if(filter->get_name() == svgName)

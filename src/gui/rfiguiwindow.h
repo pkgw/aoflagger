@@ -236,7 +236,6 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		void onSimulateOffAxisSource() { loadDefaultModel(DefaultModels::ConstantDistortion, false, true); }
 		void onSimulateOnAxisSource() { loadDefaultModel(DefaultModels::OnAxisSource, false, true); }
 		
-		void onShowAntennaMapWindow();
 		void openTestSet(unsigned index);
 		
 		void onControllerStateChange();
@@ -265,8 +264,7 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 			*_optionWindow, *_editStrategyWindow,
 			*_gotoWindow,
 			*_progressWindow, *_highlightWindow,
-			*_plotComplexPlaneWindow, *_imagePropertiesWindow,
-			*_antennaMapWindow;
+			*_plotComplexPlaneWindow, *_imagePropertiesWindow;
 
 		rfiStrategy::ImageSet *_imageSet;
 		rfiStrategy::ImageSetIndex *_imageSetIndex;
