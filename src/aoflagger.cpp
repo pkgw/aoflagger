@@ -34,7 +34,6 @@
 #include "strategy/plots/timeflagcountplot.h"
 
 #include "strategy/control/artifactset.h"
-//#include "strategy/control/defaultstrategy.h"
 #include "strategy/control/strategyreader.h"
 
 #include "util/aologger.h"
@@ -81,7 +80,7 @@ class ConsoleProgressHandler : public ProgressListener {
 		{
 			AOLogger::Error <<
 				"An exception occured during execution of the strategy!\n"
-				"You set might not be fully flagged. Exception was:\n"
+				"Your set might not be fully flagged. Exception was:\n"
 				<< thrownException.what() << '\n';
 		}
 };
@@ -109,9 +108,10 @@ int main(int argc, char **argv)
 		"  -v will produce verbose output\n"
 		"  -j overrides the number of threads specified in the strategy\n"
 		"  -strategy specifies a possible customized strategy\n"
-		"  -indirect-read will reorder the measurement set before starting, which is normally faster\n"
-		"  -memory-read will read the entire measurement set in memory. This is the fastest, but requires large memory.\n"
 		"  -direct-read will perform the slowest IO but will always work.\n"
+		"  -indirect-read will reorder the measurement set before starting, which is normally faster but requires\n"
+		"   free disk space to reorder the data to.\n"
+		"  -memory-read will read the entire measurement set in memory. This is the fastest, but requires large memory.\n"
 		"  -auto-read-mode will select either memory or direct mode based on available memory (default).\n"
 		"  -skip-flagged will skip an ms if it has already been processed by RFI console according\n"
 		"   to its HISTORY table.\n"
