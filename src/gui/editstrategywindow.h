@@ -109,6 +109,7 @@ class EditStrategyWindow : public Gtk::Window
 		Gtk::TreeView _view;
 		Glib::RefPtr<Gtk::TreeStore> _store;
 		Gtk::Menu *_addMenu;
+		bool _disableUpdates;
 
 		Gtk::Frame *_rightFrame;
 		Gtk::Window *_wizardWindow;

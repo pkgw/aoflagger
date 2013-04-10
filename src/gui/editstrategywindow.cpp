@@ -71,6 +71,7 @@ EditStrategyWindow::EditStrategyWindow(StrategyController &strategyController)
 	_wizardButton("Wizard..."),
 	_loadFullButton("Full"),
 	_saveButton(Gtk::Stock::SAVE), _openButton(Gtk::Stock::OPEN),
+	_disableUpdates(false),
 	_rightFrame(0), _wizardWindow(0)
 {
 	_strategyController.SignalOnStrategyChanged().connect(sigc::mem_fun(*this, &EditStrategyWindow::onStrategyChanged));
@@ -162,8 +163,11 @@ void EditStrategyWindow::onStrategyChanged()
 {
 	_strategy = &_strategyController.Strategy();
 	clearRightFrame();
+	_disableUpdates = true;
 	_store->clear();
 	fillStore();
+	_disableUpdates = false;
+	onSelectionChanged();
 }
 
 void EditStrategyWindow::fillStore()
@@ -199,6 +203,7 @@ void EditStrategyWindow::fillStore(Gtk::TreeModel::Row &row, Action &action, siz
 
 void EditStrategyWindow::onRemoveActionClicked()
 {
+	_disableUpdates = true;
 	clearRightFrame();
 	Action *action = GetSelectedAction();
 	if(action != 0 && action->Parent() != 0)
@@ -208,6 +213,8 @@ void EditStrategyWindow::onRemoveActionClicked()
 		fillStore();
 		_view.get_selection()->unselect_all();
 	}
+	_disableUpdates = false;
+	onSelectionChanged();
 }
 
 void EditStrategyWindow::onMoveUpClicked()
@@ -240,107 +247,110 @@ void EditStrategyWindow::onMoveDownClicked()
 
 void EditStrategyWindow::onSelectionChanged()
 {
-	Action *selectedAction = GetSelectedAction();
-	if(selectedAction != 0)
+	if(!_disableUpdates)
 	{
-		clearRightFrame();
-		
-		_moveDownButton.set_sensitive(true);
-		_moveUpButton.set_sensitive(true);
-		_removeActionButton.set_sensitive(true);
-		ActionContainer *container = dynamic_cast<rfiStrategy::ActionContainer*>(selectedAction);
-		if(container != 0)
+		Action *selectedAction = GetSelectedAction();
+		if(selectedAction != 0)
 		{
-			_addActionButton.set_sensitive(true);
+			clearRightFrame();
+			
+			_moveDownButton.set_sensitive(true);
+			_moveUpButton.set_sensitive(true);
+			_removeActionButton.set_sensitive(true);
+			ActionContainer *container = dynamic_cast<rfiStrategy::ActionContainer*>(selectedAction);
+			if(container != 0)
+			{
+				_addActionButton.set_sensitive(true);
+			} else {
+				_addActionButton.set_sensitive(false);
+			}
+
+			switch(selectedAction->Type())
+			{
+				case AbsThresholdActionType:
+					showRight(new AbsThresholdFrame(*static_cast<rfiStrategy::AbsThresholdAction*>(selectedAction), *this));
+					break;
+				case BaselineSelectionActionType:
+					showRight(new BaselineSelectionFrame(*static_cast<rfiStrategy::BaselineSelectionAction*>(selectedAction), *this));
+					break;
+				case ChangeResolutionActionType:
+					showRight(new ChangeResolutionFrame(*static_cast<rfiStrategy::ChangeResolutionAction*>(selectedAction), *this));
+					break;
+				case CutAreaActionType:
+					showRight(new CutAreaFrame(*static_cast<rfiStrategy::CutAreaAction*>(selectedAction), *this));
+					break;
+				case DirectionProfileActionType:
+					showRight(new DirectionProfileFrame(*static_cast<rfiStrategy::DirectionProfileAction*>(selectedAction), *this));
+					break;
+				case FringeStopActionType:
+					showRight(new FringeStoppingFrame(*static_cast<rfiStrategy::FringeStopAction*>(selectedAction), *this));
+					break;
+				case IterationBlockType:
+					showRight(new IterationFrame(*static_cast<rfiStrategy::IterationBlock*>(selectedAction), *this));
+					break;
+				case SlidingWindowFitActionType:
+					showRight(new SlidingWindowFitFrame(*static_cast<rfiStrategy::SlidingWindowFitAction*>(selectedAction), *this));
+					break;
+				case SVDActionType:
+					showRight(new SVDFrame(*static_cast<rfiStrategy::SVDAction*>(selectedAction), *this));
+					break;
+				case ForEachBaselineActionType:
+					showRight(new ForEachBaselineFrame(*static_cast<rfiStrategy::ForEachBaselineAction*>(selectedAction), *this));
+					break;
+				case ForEachComplexComponentActionType:
+					showRight(new ForEachComplexComponentFrame(*static_cast<rfiStrategy::ForEachComplexComponentAction*>(selectedAction), *this));
+					break;
+				case ForEachMSActionType:
+					showRight(new ForEachMSFrame(*static_cast<rfiStrategy::ForEachMSAction*>(selectedAction), *this));
+					break;
+				case ForEachPolarisationBlockType:
+					showRight(new ForEachPolarisationFrame(*static_cast<rfiStrategy::ForEachPolarisationBlock*>(selectedAction), *this));
+					break;
+				case FrequencyConvolutionActionType:
+					showRight(new FrequencyConvolutionFrame(*static_cast<rfiStrategy::FrequencyConvolutionAction*>(selectedAction), *this));
+					break;
+				case HighPassFilterActionType:
+					showRight(new HighPassFilterFrame(*static_cast<rfiStrategy::HighPassFilterAction*>(selectedAction), *this));
+					break;
+				case PlotActionType:
+					showRight(new StrategyPlotFrame(*static_cast<rfiStrategy::PlotAction*>(selectedAction), *this));
+					break;
+				case ResamplingActionType:
+					showRight(new ResamplingFrame(*static_cast<rfiStrategy::ResamplingAction*>(selectedAction), *this));
+					break;
+				case SetImageActionType:
+					showRight(new SetImageFrame(*static_cast<rfiStrategy::SetImageAction*>(selectedAction), *this));
+					break;
+				case SetFlaggingActionType:
+					showRight(new SetFlaggingFrame(*static_cast<rfiStrategy::SetFlaggingAction*>(selectedAction), *this));
+					break;
+				case SpatialCompositionActionType:
+					showRight(new SpatialCompositionFrame(*static_cast<rfiStrategy::SpatialCompositionAction*>(selectedAction), *this));
+					break;
+				case StatisticalFlagActionType:
+					showRight(new StatisticalFlaggingFrame(*static_cast<rfiStrategy::StatisticalFlagAction*>(selectedAction), *this));
+					break;
+				case SumThresholdActionType:
+					showRight(new SumThresholdFrame(*static_cast<rfiStrategy::SumThresholdAction*>(selectedAction), *this));
+					break;
+				case TimeConvolutionActionType:
+					showRight(new TimeConvolutionFrame(*static_cast<rfiStrategy::TimeConvolutionAction*>(selectedAction), *this));
+					break;
+				case TimeSelectionActionType:
+					showRight(new TimeSelectionFrame(*static_cast<rfiStrategy::TimeSelectionAction*>(selectedAction), *this));
+					break;
+				case UVProjectActionType:
+					showRight(new UVProjectFrame(*static_cast<rfiStrategy::UVProjectAction*>(selectedAction), *this));
+					break;
+				default:
+					break;
+			}
 		} else {
 			_addActionButton.set_sensitive(false);
+			_moveDownButton.set_sensitive(false);
+			_moveUpButton.set_sensitive(false);
+			_removeActionButton.set_sensitive(false);
 		}
-
-		switch(selectedAction->Type())
-		{
-			case AbsThresholdActionType:
-				showRight(new AbsThresholdFrame(*static_cast<rfiStrategy::AbsThresholdAction*>(selectedAction), *this));
-				break;
-			case BaselineSelectionActionType:
-				showRight(new BaselineSelectionFrame(*static_cast<rfiStrategy::BaselineSelectionAction*>(selectedAction), *this));
-				break;
-			case ChangeResolutionActionType:
-				showRight(new ChangeResolutionFrame(*static_cast<rfiStrategy::ChangeResolutionAction*>(selectedAction), *this));
-				break;
-			case CutAreaActionType:
-				showRight(new CutAreaFrame(*static_cast<rfiStrategy::CutAreaAction*>(selectedAction), *this));
-				break;
-			case DirectionProfileActionType:
-				showRight(new DirectionProfileFrame(*static_cast<rfiStrategy::DirectionProfileAction*>(selectedAction), *this));
-				break;
-			case FringeStopActionType:
-				showRight(new FringeStoppingFrame(*static_cast<rfiStrategy::FringeStopAction*>(selectedAction), *this));
-				break;
-			case IterationBlockType:
-				showRight(new IterationFrame(*static_cast<rfiStrategy::IterationBlock*>(selectedAction), *this));
-				break;
-			case SlidingWindowFitActionType:
-				showRight(new SlidingWindowFitFrame(*static_cast<rfiStrategy::SlidingWindowFitAction*>(selectedAction), *this));
-				break;
-			case SVDActionType:
-				showRight(new SVDFrame(*static_cast<rfiStrategy::SVDAction*>(selectedAction), *this));
-				break;
-			case ForEachBaselineActionType:
-				showRight(new ForEachBaselineFrame(*static_cast<rfiStrategy::ForEachBaselineAction*>(selectedAction), *this));
-				break;
-			case ForEachComplexComponentActionType:
-				showRight(new ForEachComplexComponentFrame(*static_cast<rfiStrategy::ForEachComplexComponentAction*>(selectedAction), *this));
-				break;
-			case ForEachMSActionType:
-				showRight(new ForEachMSFrame(*static_cast<rfiStrategy::ForEachMSAction*>(selectedAction), *this));
-				break;
-			case ForEachPolarisationBlockType:
-				showRight(new ForEachPolarisationFrame(*static_cast<rfiStrategy::ForEachPolarisationBlock*>(selectedAction), *this));
-				break;
-			case FrequencyConvolutionActionType:
-				showRight(new FrequencyConvolutionFrame(*static_cast<rfiStrategy::FrequencyConvolutionAction*>(selectedAction), *this));
-				break;
-			case HighPassFilterActionType:
-				showRight(new HighPassFilterFrame(*static_cast<rfiStrategy::HighPassFilterAction*>(selectedAction), *this));
-				break;
-			case PlotActionType:
-				showRight(new StrategyPlotFrame(*static_cast<rfiStrategy::PlotAction*>(selectedAction), *this));
-				break;
-			case ResamplingActionType:
-				showRight(new ResamplingFrame(*static_cast<rfiStrategy::ResamplingAction*>(selectedAction), *this));
-				break;
-			case SetImageActionType:
-				showRight(new SetImageFrame(*static_cast<rfiStrategy::SetImageAction*>(selectedAction), *this));
-				break;
-			case SetFlaggingActionType:
-				showRight(new SetFlaggingFrame(*static_cast<rfiStrategy::SetFlaggingAction*>(selectedAction), *this));
-				break;
-			case SpatialCompositionActionType:
-				showRight(new SpatialCompositionFrame(*static_cast<rfiStrategy::SpatialCompositionAction*>(selectedAction), *this));
-				break;
-			case StatisticalFlagActionType:
-				showRight(new StatisticalFlaggingFrame(*static_cast<rfiStrategy::StatisticalFlagAction*>(selectedAction), *this));
-				break;
-			case SumThresholdActionType:
-				showRight(new SumThresholdFrame(*static_cast<rfiStrategy::SumThresholdAction*>(selectedAction), *this));
-				break;
-			case TimeConvolutionActionType:
-				showRight(new TimeConvolutionFrame(*static_cast<rfiStrategy::TimeConvolutionAction*>(selectedAction), *this));
-				break;
-			case TimeSelectionActionType:
-				showRight(new TimeSelectionFrame(*static_cast<rfiStrategy::TimeSelectionAction*>(selectedAction), *this));
-				break;
-			case UVProjectActionType:
-				showRight(new UVProjectFrame(*static_cast<rfiStrategy::UVProjectAction*>(selectedAction), *this));
-				break;
-			default:
-				break;
-		}
-	} else {
-		_addActionButton.set_sensitive(false);
-		_moveDownButton.set_sensitive(false);
-		_moveUpButton.set_sensitive(false);
-		_removeActionButton.set_sensitive(false);
 	}
 }
 
