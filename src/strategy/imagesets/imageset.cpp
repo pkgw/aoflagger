@@ -31,6 +31,8 @@
 #include "rspimageset.h"
 #include "timefrequencystatimageset.h"
 
+#include <boost/algorithm/string.hpp>
+
 namespace rfiStrategy {
 	ImageSet *ImageSet::Create(const std::string &file, BaselineIOMode ioMode, bool readUVW)
 	{
@@ -61,12 +63,15 @@ namespace rfiStrategy {
 	
 	bool ImageSet::IsFitsFile(const std::string &file)
 	{
+		const std::string uppFile(boost::to_upper_copy(file));
 		return
-		(file.size() > 4 && file.substr(file.size()- 4) == ".UVF")
+		(uppFile.size() > 4 && uppFile.substr(file.size()- 4) == ".UVF")
 		||
-		(file.size() > 5 && file.substr(file.size() - 5) == ".fits" )
+		(uppFile.size() > 5 && uppFile.substr(file.size() - 5) == ".FITS" )
 		||
-		(file.size() > 7 && file.substr(file.size() - 7) == ".sdfits" ); // Parkes raw files are named like this
+		(uppFile.size() > 5 && uppFile.substr(file.size() - 7) == ".UVFITS" )
+		||
+		(uppFile.size() > 7 && uppFile.substr(file.size() - 7) == ".SDFITS" ); // Parkes raw files are named like this
 	}
 	
 	bool ImageSet::IsRCPRawFile(const std::string &file)
