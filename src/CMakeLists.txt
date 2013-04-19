@@ -280,13 +280,13 @@ add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
 add_custom_target(check COMMAND aotest DEPENDS aotest)
 
-install (TARGETS rficonsole aoflagger-bin aoremoteclient DESTINATION bin)
+install (TARGETS rficonsole aoflagger-bin DESTINATION bin)
 if(GTKMM_FOUND)
 	install (TARGETS rfigui aoqplot DESTINATION bin)
 endif(GTKMM_FOUND)
 
 if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
-	install (TARGETS aoquality DESTINATION bin)
+	install (TARGETS aoquality aoremoteclient DESTINATION bin)
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 install (TARGETS aoflagger DESTINATION lib) 
