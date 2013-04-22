@@ -27,6 +27,7 @@
 #include <iostream>
 
 #include <xmmintrin.h>
+#include <string.h>
 
 Image2D::Image2D(size_t width, size_t height) :
 	_width(width),

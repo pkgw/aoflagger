@@ -231,7 +231,7 @@ else()
 endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
 
 add_library(aoflagger ${IMAGING_FILES} ${INTERFACE_FILES} ${MSIO_FILES} ${QUALITY_FILES} ${STRATEGY_FILES} ${UTIL_FILES})
-target_link_libraries(aoflagger png ${LIBXML2_LIBRARIES})
+target_link_libraries(aoflagger ${PNG_LIBRARIES} ${LIBXML2_LIBRARIES})
 link_libraries(aoflagger)
 
 if(GTKMM_FOUND)
