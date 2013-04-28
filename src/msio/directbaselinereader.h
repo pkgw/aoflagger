@@ -47,26 +47,62 @@ class DirectBaselineReader : public BaselineReader {
 		std::vector<UVW> ReadUVW(unsigned antenna1, unsigned antenna2, unsigned spectralWindow, unsigned sequenceId);
 		void ShowStatistics();
 	private:
-		struct BaselineCacheItem
+		class BaselineCacheIndex
 		{
-			BaselineCacheItem() { }
-			BaselineCacheItem(const BaselineCacheItem &source) :
+		public:
+			BaselineCacheIndex() { }
+			BaselineCacheIndex(const BaselineCacheIndex &source) :
 				antenna1(source.antenna1), antenna2(source.antenna2),
-				spectralWindow(source.spectralWindow), sequenceId(source.sequenceId),
-				rows(source.rows)
+				spectralWindow(source.spectralWindow), sequenceId(source.sequenceId)
 			{
 			}
-			void operator=(const BaselineCacheItem &source)
+			void operator=(const BaselineCacheIndex &source)
 			{
 				antenna1 = source.antenna1;
 				antenna2 = source.antenna2;
 				spectralWindow = source.spectralWindow;
 				sequenceId = source.sequenceId;
-				rows = source.rows;
+			}
+			bool operator==(const BaselineCacheIndex &rhs) const
+			{
+				return
+					antenna1 == rhs.antenna1 &&
+					antenna2 == rhs.antenna2 &&
+					spectralWindow == rhs.spectralWindow &&
+					sequenceId == rhs.sequenceId;
+			}
+			bool operator<(const BaselineCacheIndex &rhs) const
+			{
+				if(antenna1 < rhs.antenna1)
+					return true;
+				else if(antenna1 == rhs.antenna1)
+				{
+					if(antenna2 < rhs.antenna2)
+						return true;
+					else if(antenna2 == rhs.antenna2)
+					{
+						if(spectralWindow < rhs.spectralWindow)
+							return true;
+						else if(spectralWindow == rhs.spectralWindow)
+							return sequenceId < rhs.sequenceId;
+					}
+				}
+				return false;
 			}
 			
 			int antenna1, antenna2, spectralWindow, sequenceId;
+		};
+		class BaselineCacheValue {
+			public:
 			std::vector<size_t> rows;
+			BaselineCacheValue() : rows()
+			{ }
+			BaselineCacheValue(const BaselineCacheValue &source) : rows(source.rows)
+			{ }
+			void operator=(const BaselineCacheValue &source)
+			{
+				rows = source.rows;
+			}
 		};
 		
 		void initBaselineCache();
@@ -80,7 +116,7 @@ class DirectBaselineReader : public BaselineReader {
 		void readTimeFlags(size_t requestIndex, size_t xOffset, int frequencyCount, const casa::Array<bool> flag);
 		void readWeights(size_t requestIndex, size_t xOffset, int frequencyCount, const casa::Array<float> weight);
 
-		std::vector<BaselineCacheItem> _baselineCache;
+		std::map<BaselineCacheIndex, BaselineCacheValue> _baselineCache;
 };
 
 #endif // DIRECTBASELINEREADER_H

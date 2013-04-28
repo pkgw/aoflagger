@@ -77,46 +77,51 @@ void DirectBaselineReader::initBaselineCache()
 
 void DirectBaselineReader::addRowToBaselineCache(int antenna1, int antenna2, int spectralWindow, int sequenceId, size_t row)
 {
-	for(std::vector<BaselineCacheItem>::iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
+	BaselineCacheIndex searchItem;
+	searchItem.antenna1 = antenna1;
+	searchItem.antenna2 = antenna2;
+	searchItem.spectralWindow = spectralWindow;
+	searchItem.sequenceId = sequenceId;
+	std::map<BaselineCacheIndex,BaselineCacheValue>::iterator cacheItemIter = _baselineCache.find(searchItem);
+	if(cacheItemIter == _baselineCache.end())
 	{
-		if(i->antenna1 == antenna1 && i->antenna2 == antenna2 && i->spectralWindow == spectralWindow && i->sequenceId == sequenceId)
-		{
-			i->rows.push_back(row);
-			return;
-		}
+		BaselineCacheValue cacheValue;
+		cacheValue.rows.push_back(row);
+		_baselineCache.insert(std::make_pair(searchItem, cacheValue));
+	} else {
+		cacheItemIter->second.rows.push_back(row);
 	}
-	BaselineCacheItem newItem;
-	newItem.antenna1 = antenna1;
-	newItem.antenna2 = antenna2;
-	newItem.spectralWindow = spectralWindow;
-	newItem.sequenceId = sequenceId;
-	newItem.rows.push_back(row);
-	_baselineCache.push_back(newItem);
 }
 
 void DirectBaselineReader::addRequestRows(ReadRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows)
 {
-	for(std::vector<BaselineCacheItem>::const_iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
+	BaselineCacheIndex searchItem;
+	searchItem.antenna1 = request.antenna1;
+	searchItem.antenna2 = request.antenna2;
+	searchItem.spectralWindow = request.spectralWindow;
+	searchItem.sequenceId = request.sequenceId;
+	std::map<BaselineCacheIndex,BaselineCacheValue>::iterator cacheItemIter = _baselineCache.find(searchItem);
+	if(cacheItemIter != _baselineCache.end())
 	{
-		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow && i->sequenceId == (int) request.sequenceId)
-		{
-			for(std::vector<size_t>::const_iterator j=i->rows.begin();j!=i->rows.end();++j)
-				rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
-			break;
-		}
+		const std::vector<size_t> &cacheRows = cacheItemIter->second.rows;
+		for(std::vector<size_t>::const_iterator j=cacheRows.begin(); j!=cacheRows.end(); ++j)
+			rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
 	}
 }
 
 void DirectBaselineReader::addRequestRows(FlagWriteRequest request, size_t requestIndex, std::vector<std::pair<size_t, size_t> > &rows)
 {
-	for(std::vector<BaselineCacheItem>::const_iterator i=_baselineCache.begin();i!=_baselineCache.end();++i)
+	BaselineCacheIndex searchItem;
+	searchItem.antenna1 = request.antenna1;
+	searchItem.antenna2 = request.antenna2;
+	searchItem.spectralWindow = request.spectralWindow;
+	searchItem.sequenceId = request.sequenceId;
+	std::map<BaselineCacheIndex,BaselineCacheValue>::iterator cacheItemIter = _baselineCache.find(searchItem);
+	if(cacheItemIter != _baselineCache.end())
 	{
-		if(i->antenna1 == request.antenna1 && i->antenna2 == request.antenna2 && i->spectralWindow == request.spectralWindow && i->sequenceId == (int) request.sequenceId)
-		{
-			for(std::vector<size_t>::const_iterator j=i->rows.begin();j!=i->rows.end();++j)
-				rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
-			break;
-		}
+		const std::vector<size_t> &cacheRows = cacheItemIter->second.rows;
+		for(std::vector<size_t>::const_iterator j=cacheRows.begin();j!=cacheRows.end();++j)
+			rows.push_back(std::pair<size_t, size_t>(*j, requestIndex));
 	}
 }
 
