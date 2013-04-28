@@ -19,12 +19,12 @@
  ***************************************************************************/
 #include "rfiguiwindow.h"
 
-#include <gtkmm/stock.h>
-#include <gtkmm/uimanager.h>
+#include <gtkmm/aboutdialog.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
-//#include <gtkmm/inputdialog.h>
+#include <gtkmm/stock.h>
 #include <gtkmm/toolbar.h>
+#include <gtkmm/uimanager.h>
 
 #include "../msio/baselinematrixloader.h"
 #include "../msio/image2d.h"
@@ -78,6 +78,8 @@
 #include "../imaging/observatorium.h"
 
 #include "../quality/histogramcollection.h"
+
+#include "../version.h"
 
 #include <iostream>
 
@@ -543,6 +545,7 @@ void RFIGuiWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("MenuPlotFlagComparison", "_Compare flags") );
 	_actionGroup->add( Gtk::Action::create("MenuActions", "_Actions") );
 	_actionGroup->add( Gtk::Action::create("MenuData", "_Data") );
+	_actionGroup->add( Gtk::Action::create("MenuHelp", "_Help") );
 	
 	_actionGroup->add( Gtk::Action::create("OpenFile", Gtk::Stock::OPEN, "Open _file"),
 		Gtk::AccelKey("<control>O"),
@@ -846,6 +849,9 @@ void RFIGuiWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("ReapplyVertProfile", "Reapply vert profile"),
   sigc::mem_fun(*this, &RFIGuiWindow::onReapplyVertProfile) );
 
+	_actionGroup->add( Gtk::Action::create("About", "_About"),
+  sigc::mem_fun(*this, &RFIGuiWindow::onHelpAbout) );
+
 	Glib::RefPtr<Gtk::UIManager> uiManager =
 		Gtk::UIManager::create();
 	uiManager->insert_action_group(_actionGroup);
@@ -1000,6 +1006,9 @@ void RFIGuiWindow::createToolbar()
     "      <menuitem action='RestoreVertProfile'/>"
     "      <menuitem action='ReapplyTimeProfile'/>"
     "      <menuitem action='ReapplyVertProfile'/>"
+	  "    </menu>"
+	  "    <menu action='MenuHelp'>"
+    "      <menuitem action='About'/>"
 	  "    </menu>"
     "  </menubar>"
     "  <toolbar  name='ToolBar'>"
@@ -1804,4 +1813,22 @@ void RFIGuiWindow::onControllerStateChange()
 	_timeFrequencyWidget.SetShowAlternativeMask(_controller->AreAlternativeFlagsShown());
 	
 	_timeFrequencyWidget.Update();
+}
+
+void RFIGuiWindow::onHelpAbout()
+{
+	Gtk::AboutDialog aboutDialog;
+	
+	std::vector<Glib::ustring> authors;
+	authors.push_back("André Offringa <offringa@gmail.com>");
+	aboutDialog.set_authors(authors);
+	
+	aboutDialog.set_copyright("Copyright 2008 - 2013 A. R. Offringa");
+	aboutDialog.set_license_type(Gtk::LICENSE_GPL_3_0);
+	aboutDialog.set_logo_default();
+	aboutDialog.set_program_name("AOFlagger's RFI Gui");
+	aboutDialog.set_version("AOFlagger " AOFLAGGER_VERSION_STR " (" AOFLAGGER_VERSION_DATE_STR ") ");
+	aboutDialog.set_website("http://aoflagger.sourceforge.net/");
+	
+	aboutDialog.run();
 }
