@@ -99,17 +99,17 @@ namespace aoflagger {
 			/** @brief Make the strategy less sensitive to RFI than the default
 			 * telescope settings.
 			 * 
-			 * This creates also more false positives, but might be useful if the
-			 * default setting seems to leave too much RFI in. Opposite of
-			 * @ref UNSENSITIVE.
+			 * Can be used if the flagger seems to destroy too much data. In this
+			 * case, you might consider also using @ref ROBUST instead.
 			 */
 			static const unsigned UNSENSITIVE;
 			
 			/** @brief Make the strategy more sensitive to RFI than the default
 			 * telescope settings. 
 			 * 
-			 * Can be used if the flagger seems to destroy too much data. In this
-			 * case, you might consider using @ref ROBUST instead.
+			 * This creates also more false positives, but might be useful if the
+			 * default setting seems to leave too much RFI in. Opposite of
+			 * @ref SENSITIVE.
 			 */
 			static const unsigned SENSITIVE;
 			
