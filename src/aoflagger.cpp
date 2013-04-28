@@ -41,6 +41,8 @@
 #include "util/progresslistener.h"
 #include "util/stopwatch.h"
 
+#include "version.h"
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 class ConsoleProgressHandler : public ProgressListener {
@@ -94,9 +96,18 @@ void checkRelease()
 {
 #ifndef NDEBUG
 		AOLogger::Warn
-			<< "This version of RFI console has been compiled as DEBUG version! (NDEBUG was not defined)\n"
+			<< "This version of the AOFlagger has been compiled as DEBUG version! (NDEBUG was not defined)\n"
 			<< "For better performance, recompile it as a RELEASE.\n\n";
 #endif
+}
+void generalInfo()
+{
+	AOLogger::Info << 
+		"AOFlagger " << AOFLAGGER_VERSION_STR << " (" << AOFLAGGER_VERSION_DATE_STR <<
+		") command line application\n"
+		"This program will execute an RFI strategy as can be created with the RFI gui\n"
+		"and executes it on one or several observations.\n\n"
+		"Author: André Offringa (offringa@gmail.com)\n\n";
 }
 
 int main(int argc, char **argv)
@@ -104,19 +115,24 @@ int main(int argc, char **argv)
 	if(argc == 1)
 	{
 		AOLogger::Init(basename(argv[0]));
-		AOLogger::Error << "Usage: " << argv[0] << " [options] <ms1> [<ms2> [..]]\n"
+		generalInfo();
+		AOLogger::Error << "Usage: " << argv[0] << " [options] <obs1> [<obs2> [..]]\n"
 		"  -v will produce verbose output\n"
 		"  -j overrides the number of threads specified in the strategy\n"
+		"     (default: one thread for each CPU core)\n"
 		"  -strategy specifies a possible customized strategy\n"
 		"  -direct-read will perform the slowest IO but will always work.\n"
-		"  -indirect-read will reorder the measurement set before starting, which is normally faster but requires\n"
-		"   free disk space to reorder the data to.\n"
-		"  -memory-read will read the entire measurement set in memory. This is the fastest, but requires large memory.\n"
+		"  -indirect-read will reorder the measurement set before starting, which is normally\n"
+		"     faster but requires free disk space to reorder the data to.\n"
+		"  -memory-read will read the entire measurement set in memory. This is the fastest, but\n"
+		"     requires much memory.\n"
 		"  -auto-read-mode will select either memory or direct mode based on available memory (default).\n"
-		"  -skip-flagged will skip an ms if it has already been processed by RFI console according\n"
-		"   to its HISTORY table.\n"
-		"  -uvw reads uvw values (some strategies require them)\n"
-		"  -column <NAME> specify column to flag\n";
+		"  -skip-flagged will skip an ms if it has already been processed by AOFlagger according\n"
+		"     to its HISTORY table.\n"
+		"  -uvw reads uvw values (some exotic strategies require these)\n"
+		"  -column <NAME> specify column to flag\n\n"
+		"This tool supports at least the Casa measurement set format and the SDFITS format. See\n"
+		"documentation for support of other file types.\n";
 		
 		checkRelease();
 		
@@ -139,6 +155,11 @@ int main(int argc, char **argv)
 	while(parameterIndex < (size_t) argc && argv[parameterIndex][0]=='-')
 	{
 		std::string flag(argv[parameterIndex]+1);
+		
+		// If "--" was used, strip another dash
+		if(!flag.empty() && flag[0] == '-')
+			flag = flag.substr(1);
+		
 		if(flag=="j" && parameterIndex < (size_t) (argc-1))
 		{
 			threadCount = atoi(argv[parameterIndex+1]);
@@ -148,6 +169,12 @@ int main(int argc, char **argv)
 		{
 			logVerbose = true;
 			++parameterIndex;
+		}
+		else if(flag == "version")
+		{
+			AOLogger::Init(basename(argv[0]));
+			AOLogger::Info << "AOFlagger " << AOFLAGGER_VERSION_STR << " (" << AOFLAGGER_VERSION_DATE_STR << ")\n";
+			return 0;
 		}
 		else if(flag=="direct-read")
 		{
@@ -200,12 +227,7 @@ int main(int argc, char **argv)
 
 	try {
 		AOLogger::Init(basename(argv[0]), false, logVerbose.Value(false));
-		AOLogger::Info << 
-			"RFI strategy console runner\n"
-			"This program will execute an RFI strategy as can be created with the RFI gui\n"
-			"or a console program called rfistrategy, and executes it on one or several .MS\n"
-			"directories.\n\n"
-			"Author: André Offringa (offringa@astro.rug.nl)\n\n";
+		generalInfo();
 			
 		checkRelease();
 
