@@ -1602,14 +1602,19 @@ void RFIGuiWindow::onVertEVD()
 {
 	if(HasImage())
 	{
-		TimeFrequencyData data = GetActiveData();
-		TimeFrequencyData old(data);
-		VertEVD::Perform(data, true);
-		TimeFrequencyData *diff = TimeFrequencyData::CreateTFDataFromDiff(old, data);
-		_timeFrequencyWidget.SetNewData(data, _timeFrequencyWidget.GetMetaData());
-		_timeFrequencyWidget.SetRevisedData(*diff);
-		delete diff;
-		_timeFrequencyWidget.Update();
+		try {
+			TimeFrequencyData data = GetActiveData();
+			TimeFrequencyData old(data);
+			VertEVD::Perform(data, true);
+			TimeFrequencyData *diff = TimeFrequencyData::CreateTFDataFromDiff(old, data);
+			_timeFrequencyWidget.SetNewData(data, _timeFrequencyWidget.GetMetaData());
+			_timeFrequencyWidget.SetRevisedData(*diff);
+			delete diff;
+			_timeFrequencyWidget.Update();
+		} catch(std::exception &e)
+		{
+			showError(e.what());
+		}
 	}
 }
 
