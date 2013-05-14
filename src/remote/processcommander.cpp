@@ -84,7 +84,7 @@ void ProcessCommander::Run(bool finishConnections)
 			for(std::vector<std::string>::const_iterator i=list.begin();i!=list.end();++i)
 			{
 				RemoteProcess *process = new RemoteProcess(*i, thisHostName);
-				process->SignalFinished().connect(sigc::mem_fun(*this, &ProcessCommander::onProcessFinished));
+				process->SignalFinished() = boost::bind(&ProcessCommander::onProcessFinished, this, _1, _2, _3);
 				process->Start();
 				_processes.push_back(process);
 			}

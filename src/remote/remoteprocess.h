@@ -30,7 +30,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <sigc++/signal.h>
+#include <boost/function.hpp>
 
 #include <boost/thread/thread.hpp>
 
@@ -68,7 +68,7 @@ class RemoteProcess
 			_thread = new boost::thread(ThreadFunctor(*this));
 		}
 		
-		sigc::signal<void, RemoteProcess &/*process*/, bool /*error*/, int /*status*/> &SignalFinished()
+		boost::function<void(RemoteProcess &/*process*/, bool /*error*/, int /*status*/)> &SignalFinished()
 		{
 			return _onFinished;
 		}
@@ -124,7 +124,7 @@ class RemoteProcess
 		boost::thread *_thread;
 		bool _running;
 		
-		sigc::signal<void, RemoteProcess &/*process*/, bool /*error*/, int /*status*/> _onFinished;
+		boost::function<void(RemoteProcess &/*process*/, bool /*error*/, int /*status*/)> _onFinished;
 };
 
 }
