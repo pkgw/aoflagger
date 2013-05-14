@@ -3,6 +3,8 @@ if [[ "$1" == "" ]] ; then
     echo Usage: ${0} \<version\>
 else
     VERSION="$1"
+    echo Check if these values inside src/version.h are right:
+    cat ../src/version.h
     curdir=`pwd`
     cd ${curdir%/scripts}
 # To use current work tree attributes: "--worktree-attributes"

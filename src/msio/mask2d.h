@@ -180,6 +180,16 @@ class Mask2D {
 			return &_values[y][x];
 		}
 		
+		inline bool *Data()
+		{
+			return _valuesConsecutive;
+		}
+		
+		inline const bool *Data() const
+		{
+			return _valuesConsecutive;
+		}
+		
 		/**
 		 * This value specifies the intrinsic width of one row. It is
 		 * normally the first number that is >= Width() and divisable by

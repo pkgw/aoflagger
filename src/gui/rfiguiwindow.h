@@ -236,6 +236,8 @@ class RFIGuiWindow : public Gtk::Window, private StrategyController {
 		void onSimulateOffAxisSource() { loadDefaultModel(DefaultModels::ConstantDistortion, false, true); }
 		void onSimulateOnAxisSource() { loadDefaultModel(DefaultModels::OnAxisSource, false, true); }
 		
+		void onHelpAbout();
+		
 		void openTestSet(unsigned index);
 		
 		void onControllerStateChange();
