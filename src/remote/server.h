@@ -26,7 +26,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-#include <sigc++/signal.h>
+#include <boost/signal.hpp>
 
 #include "serverconnection.h"
 
@@ -61,7 +61,7 @@ class Server
 		
 		static unsigned PORT() { return 1892; }
 		
-		sigc::signal<void, ServerConnectionPtr, bool&> &SignalConnectionCreated()
+		boost::signal<void(ServerConnectionPtr, bool&)> &SignalConnectionCreated()
 		{
 			return _onConnectionCreated;
 		}
@@ -71,7 +71,7 @@ class Server
 		
 		boost::asio::io_service _ioService;
 		boost::asio::ip::tcp::acceptor _acceptor;
-		sigc::signal<void, ServerConnectionPtr, bool&> _onConnectionCreated;
+		boost::signal<void(ServerConnectionPtr, bool&)> _onConnectionCreated;
 };
 	
 }

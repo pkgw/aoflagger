@@ -21,6 +21,7 @@
 #include "processcommander.h"
 
 #include <unistd.h> //gethostname
+#include <boost/mem_fn.hpp>
 
 #include "observationtimerange.h"
 #include "serverconnection.h"
@@ -34,7 +35,7 @@ namespace aoRemote {
 ProcessCommander::ProcessCommander(const ClusteredObservation &observation)
 : _server(), _observation(observation)
 {
-	_server.SignalConnectionCreated().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionCreated));
+	_server.SignalConnectionCreated().connect(boost::bind(&ProcessCommander::onConnectionCreated, this, _1, _2));
 }
 
 ProcessCommander::~ProcessCommander()
@@ -202,12 +203,12 @@ std::string ProcessCommander::GetHostName()
 
 void ProcessCommander::onConnectionCreated(ServerConnectionPtr serverConnection, bool &acceptConnection)
 {
-	serverConnection->SignalAwaitingCommand().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionAwaitingCommand));
-	serverConnection->SignalFinishReadQualityTables().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionFinishReadQualityTables));
-	serverConnection->SignalFinishReadAntennaTables().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionFinishReadAntennaTables));
-	serverConnection->SignalFinishReadBandTable().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionFinishReadBandTable));
-	serverConnection->SignalFinishReadDataRows().connect(sigc::mem_fun(*this, &ProcessCommander::onConnectionFinishReadDataRows));
-	serverConnection->SignalError().connect(sigc::mem_fun(*this, &ProcessCommander::onError));
+	serverConnection->SignalAwaitingCommand().connect(boost::bind(&ProcessCommander::onConnectionAwaitingCommand, this, _1));
+	serverConnection->SignalFinishReadQualityTables().connect(boost::bind(&ProcessCommander::onConnectionFinishReadQualityTables, this, _1, _2, _3));
+	serverConnection->SignalFinishReadAntennaTables().connect(boost::bind(&ProcessCommander::onConnectionFinishReadAntennaTables, this, _1, _2, _3));
+	serverConnection->SignalFinishReadBandTable().connect(boost::bind(&ProcessCommander::onConnectionFinishReadBandTable, this, _1, _2));
+	serverConnection->SignalFinishReadDataRows().connect(boost::bind(&ProcessCommander::onConnectionFinishReadDataRows, this, _1, _2, _3));
+	serverConnection->SignalError().connect(boost::bind(&ProcessCommander::onError, this, _1, _2));
 	acceptConnection = true;
 }
 

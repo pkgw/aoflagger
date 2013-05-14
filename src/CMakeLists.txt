@@ -1,4 +1,4 @@
-link_libraries(${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
+link_libraries(${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_SIGNALS_LIBRARY})
 link_libraries(${FFTW3_LIB})
 link_libraries(${CASA_LIBS} ${CASA_MEASURES_LIB})
 link_libraries(${LAPACK_lapack_LIBRARY})

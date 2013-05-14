@@ -27,7 +27,7 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <sigc++/signal.h>
+#include <boost/signal.hpp>
 
 #include "format.h"
 
@@ -61,12 +61,12 @@ class ServerConnection : public boost::enable_shared_from_this<ServerConnection>
 		
 		boost::asio::ip::tcp::socket &Socket() { return _socket; }
 		
-		sigc::signal<void, ServerConnectionPtr> &SignalAwaitingCommand() { return _onAwaitingCommand; }
-		sigc::signal<void, ServerConnectionPtr, StatisticsCollection&, HistogramCollection&> &SignalFinishReadQualityTables() { return _onFinishReadQualityTables; }
-		sigc::signal<void, ServerConnectionPtr, boost::shared_ptr<std::vector<AntennaInfo> >, size_t > &SignalFinishReadAntennaTables() { return _onFinishReadAntennaTables; }
-		sigc::signal<void, ServerConnectionPtr, BandInfo&> &SignalFinishReadBandTable() { return _onFinishReadBandTable; }
-		sigc::signal<void, ServerConnectionPtr, MSRowDataExt*, size_t> &SignalFinishReadDataRows() { return _onFinishReadDataRows; }
-		sigc::signal<void, ServerConnectionPtr, const std::string&> &SignalError() { return _onError; }
+		boost::signal<void(ServerConnectionPtr)> &SignalAwaitingCommand() { return _onAwaitingCommand; }
+		boost::signal<void(ServerConnectionPtr, StatisticsCollection&, HistogramCollection&)> &SignalFinishReadQualityTables() { return _onFinishReadQualityTables; }
+		boost::signal<void(ServerConnectionPtr, boost::shared_ptr<std::vector<AntennaInfo> >, size_t)> &SignalFinishReadAntennaTables() { return _onFinishReadAntennaTables; }
+		boost::signal<void(ServerConnectionPtr, BandInfo&)> &SignalFinishReadBandTable() { return _onFinishReadBandTable; }
+		boost::signal<void(ServerConnectionPtr, MSRowDataExt*, size_t)> &SignalFinishReadDataRows() { return _onFinishReadDataRows; }
+		boost::signal<void(ServerConnectionPtr, const std::string&)> &SignalError() { return _onError; }
 		
 		const std::string &Hostname() const { return _hostname; }
 	private:
@@ -74,12 +74,12 @@ class ServerConnection : public boost::enable_shared_from_this<ServerConnection>
 		boost::asio::ip::tcp::socket _socket;
 		std::string _hostname;
 		
-		sigc::signal<void, ServerConnectionPtr> _onAwaitingCommand;
-		sigc::signal<void, ServerConnectionPtr, StatisticsCollection&, HistogramCollection&> _onFinishReadQualityTables;
-		sigc::signal<void, ServerConnectionPtr, boost::shared_ptr<std::vector<AntennaInfo> >, size_t > _onFinishReadAntennaTables;
-		sigc::signal<void, ServerConnectionPtr, BandInfo&> _onFinishReadBandTable;
-		sigc::signal<void, ServerConnectionPtr, MSRowDataExt*, size_t> _onFinishReadDataRows;
-		sigc::signal<void, ServerConnectionPtr, const std::string&> _onError;
+		boost::signal<void(ServerConnectionPtr)> _onAwaitingCommand;
+		boost::signal<void(ServerConnectionPtr, StatisticsCollection&, HistogramCollection&)> _onFinishReadQualityTables;
+		boost::signal<void(ServerConnectionPtr, boost::shared_ptr<std::vector<AntennaInfo> >, size_t)> _onFinishReadAntennaTables;
+		boost::signal<void(ServerConnectionPtr, BandInfo&)> _onFinishReadBandTable;
+		boost::signal<void(ServerConnectionPtr, MSRowDataExt*, size_t)> _onFinishReadDataRows;
+		boost::signal<void(ServerConnectionPtr, const std::string&)> _onError;
 		
 		char *_buffer;
 		
