@@ -198,6 +198,12 @@ namespace aoflagger {
 			 * will return the value at position x,y.
 			 */
 			size_t HorizontalStride() const;
+			
+			/** @brief Set all samples to the specified value.
+			 * @param newValue The new value for all values of all images in the set.
+			 * @since 2.5.0
+			 */
+			void Set(float newValue);
 
 			/** @brief Resize the image without reallocating new memory.
 			 * 

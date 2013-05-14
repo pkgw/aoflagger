@@ -141,6 +141,14 @@ namespace aoflagger {
 		return _data->images[0]->Stride();
 	}
 	
+	void ImageSet::Set(float newValue)
+	{
+		for(std::vector<Image2DPtr>::iterator imgPtr = _data->images.begin(); imgPtr != _data->images.end(); ++imgPtr)
+		{
+			(*imgPtr)->SetAll(newValue);
+		}
+	}
+	
 	void ImageSet::ResizeWithoutReallocation(size_t newWidth) const
 	{
 		for(std::vector<Image2DPtr>::iterator imgPtr = _data->images.begin(); imgPtr != _data->images.end(); ++imgPtr)
