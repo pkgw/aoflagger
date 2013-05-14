@@ -198,11 +198,28 @@ namespace aoflagger {
 			 * will return the value at position x,y.
 			 */
 			size_t HorizontalStride() const;
+
+			/** @brief Resize the image without reallocating new memory.
+			 * 
+			 * This function allows to quickly change the dimension of the images in the
+			 * imageset. The new width has to fit in the image capacity as specified
+			 * during creation. When flagging many images of "almost" the same size, using
+			 * this method to change the size of images is drastically faster compared
+			 * to freeing and then allocating new images. It was added after rather
+			 * severe memory fragmentation problems in the Cotter MWA pipeline.
+			 * @param newWidth The new width of the images. Should satisfy newWidth <= HorizontalStride().
+			 * @since 2.5.0
+			 */
+			void ResizeWithoutReallocation(size_t newWidth) const;
 			
 		private:
 			ImageSet(size_t width, size_t height, size_t count);
 			
 			ImageSet(size_t width, size_t height, size_t count, float initialValue);
+			
+			ImageSet(size_t width, size_t height, size_t count, size_t widthCapacity);
+			
+			ImageSet(size_t width, size_t height, size_t count, float initialValue, size_t widthCapacity);
 			
 			static void assertValidCount(size_t count);
 			
@@ -445,6 +462,22 @@ namespace aoflagger {
 				return ImageSet(width, height, count);
 			}
 			
+			/** @brief Create a new uninitialized @ref ImageSet with specified specs.
+			 * 
+			 * The float values will not be initialized.
+			 * @param width Number of time steps in images
+			 * @param height Number of frequency channels in images
+			 * @param count Number of images in set (see class description
+			 * of @ref ImageSet for image order).
+			 * @param widthCapacity Allow for enlarging image to this size, @sa ImageSet::ResizeWithoutReallocation()
+			 * @return A new ImageSet.
+			 * @since 2.6.0
+			 */
+			ImageSet MakeImageSet(size_t width, size_t height, size_t count, size_t widthCapacity)
+			{
+				return ImageSet(width, height, count, widthCapacity);
+			}
+			
 			/** @brief Create a new initialized @ref ImageSet with specified specs.
 			 * @param width Number of time steps in images
 			 * @param height Number of frequency channels in images
@@ -456,6 +489,21 @@ namespace aoflagger {
 			ImageSet MakeImageSet(size_t width, size_t height, size_t count, float initialValue)
 			{
 				return ImageSet(width, height, count, initialValue);
+			}
+			
+			/** @brief Create a new initialized @ref ImageSet with specified specs.
+			 * @param width Number of time steps in images
+			 * @param height Number of frequency channels in images
+			 * @param count Number of images in set (see class description
+			 * of @ref ImageSet for image order).
+			 * @param initialValue Initialize all pixels with this value.
+			 * @param widthCapacity Allow for enlarging image to this size, @sa ImageSet::ResizeWithoutReallocation()
+			 * @return A new ImageSet.
+			 * @since 2.6.0
+			 */
+			ImageSet MakeImageSet(size_t width, size_t height, size_t count, float initialValue, size_t widthCapacity)
+			{
+				return ImageSet(width, height, count, initialValue, widthCapacity);
 			}
 			
 			/** @brief Create a new uninitialized @ref FlagMask with specified dimensions.

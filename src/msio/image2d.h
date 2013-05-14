@@ -55,7 +55,20 @@ class Image2D {
 		}
 		
 		/**
-		 * As CreateUnsetImage(), but returns a smart pointer instead.
+		 * Creates an image containing unset values.
+		 * @param width Width of the new image.
+		 * @param height Height of the new image.
+		 * @param widthCapacity Minimum capacity to which the image can be horizontally
+		 * resized without reallocation
+		 * @return The new image. Should be deleted by the caller.
+		 */
+		static Image2D *CreateUnsetImage(size_t width, size_t height, size_t widthCapacity)
+		{
+			return new Image2D(width, height, widthCapacity);
+		}
+		
+		/**
+		 * As CreateUnsetImage(size_t,size_t), but returns a smart pointer instead.
 		 * @param width Width of the new image.
 		 * @param height Height of the new image.
 		 * @return A (unique) smart pointer to the new image.
@@ -65,12 +78,31 @@ class Image2D {
 			return Image2DPtr(CreateUnsetImage(width, height));
 		}
 		
+		/**
+		 * As CreateUnsetImage(size_t,size_t,size_t), but returns a smart pointer instead.
+		 * @param width Width of the new image.
+		 * @param height Height of the new image.
+		 * @param widthCapacity Minimum capacity to which the image can be horizontally
+		 * resized without reallocation
+		 * @return A (unique) smart pointer to the new image.
+		 */
+		static Image2DPtr CreateUnsetImagePtr(size_t width, size_t height, size_t widthCapacity)
+		{
+			return Image2DPtr(CreateUnsetImage(width, height));
+		}
+		
 		static Image2D *CreateSetImage(size_t width, size_t height, num_t initialValue);
 		
+		static Image2D *CreateSetImage(size_t width, size_t height, num_t initialValue, size_t widthCapacity);
 		
 		static Image2DPtr CreateSetImagePtr(size_t width, size_t height, num_t initialValue)
 		{
 			return Image2DPtr(CreateSetImage(width, height, initialValue));
+		}
+
+		static Image2DPtr CreateSetImagePtr(size_t width, size_t height, num_t initialValue, size_t widthCapacity)
+		{
+			return Image2DPtr(CreateSetImage(width, height, initialValue, widthCapacity));
 		}
 
 		/**
@@ -464,8 +496,24 @@ class Image2D {
 			return _stride;
 		}
 		
+		/**
+		 * This call will set the width of the image to a new value. It won't
+		 * reallocate the memory: this call is meant to be fast and avoid
+		 * memory fragmentation. A new width should therefore be smaller or
+		 * equal than the current available allocated space. The currently
+		 * allocated space in horizontal direction is equal to Stride().
+		 * On constructing an image, a larger capacity can be requested so
+		 * that the image can be quickly resized later to a larger dimension.
+		 * If the image is enlarged, the new space will be uninitialized.
+		 * 
+		 * @param newWidth The new width of the image. Should satisfy newWidth <= Stride().
+		 */
+		void ResizeWithoutReallocation(size_t newWidth);
+		
 	private:
 		Image2D(size_t width, size_t height);
+		Image2D(size_t width, size_t height, size_t widthCapacity);
+		
 		size_t _width, _height;
 		size_t _stride;
 		num_t **_dataPtr, *_dataConsecutive;

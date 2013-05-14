@@ -73,6 +73,22 @@ namespace aoflagger {
 			_data->images[i] = Image2D::CreateSetImagePtr(width, height, initialValue);
 	}
 	
+	ImageSet::ImageSet(size_t width, size_t height, size_t count, size_t widthCapacity) :
+		_data(new ImageSetData(count))
+	{
+		assertValidCount(count);
+		for(size_t i=0; i!=count; ++i)
+			_data->images[i] = Image2D::CreateUnsetImagePtr(width, height, widthCapacity);
+	}
+	
+	ImageSet::ImageSet(size_t width, size_t height, size_t count, float initialValue, size_t widthCapacity) :
+		_data(new ImageSetData(count))
+	{
+		assertValidCount(count);
+		for(size_t i=0; i!=count; ++i)
+			_data->images[i] = Image2D::CreateSetImagePtr(width, height, initialValue, widthCapacity);
+	}
+	
 	ImageSet::ImageSet(const ImageSet& sourceImageSet) :
 		_data(new ImageSetData(*sourceImageSet._data))
 	{
@@ -125,6 +141,13 @@ namespace aoflagger {
 		return _data->images[0]->Stride();
 	}
 	
+	void ImageSet::ResizeWithoutReallocation(size_t newWidth) const
+	{
+		for(std::vector<Image2DPtr>::iterator imgPtr = _data->images.begin(); imgPtr != _data->images.end(); ++imgPtr)
+		{
+			(*imgPtr)->ResizeWithoutReallocation(newWidth);
+		}
+	}
 	
 	class FlagMaskData {
 		public:

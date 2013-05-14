@@ -38,12 +38,50 @@ Image2D::Image2D(size_t width, size_t height) :
 	unsigned allocHeight = ((((height-1)/4)+1)*4);
 	if(height == 0) allocHeight = 0;
 #ifdef __APPLE__
-        // OS-X has no posix_memalign, but malloc always uses 16-byte alignment.
-        _dataConsecutive = (num_t*)malloc(_stride * allocHeight * sizeof(num_t));
+		// OS-X has no posix_memalign, but malloc always uses 16-byte alignment.
+		_dataConsecutive = (num_t*)malloc(_stride * allocHeight * sizeof(num_t));
 #else
-	if(posix_memalign((void **) &_dataConsecutive, 16, _stride * allocHeight * sizeof(num_t)) != 0)
-		throw std::bad_alloc();
-#endif	
+		if(posix_memalign((void **) &_dataConsecutive, 16, _stride * allocHeight * sizeof(num_t)) != 0)
+			throw std::bad_alloc();
+#endif
+	_dataPtr = new num_t*[allocHeight];
+	for(size_t y=0;y<height;++y)
+	{
+		_dataPtr[y] = &_dataConsecutive[_stride * y];
+		// Even though the values after the requested width are never relevant, we will
+		// initialize them to zero to prevent valgrind to report unset values when they
+		// are used in SSE instructions.
+		for(size_t x=_width;x<_stride;++x)
+		{
+			_dataPtr[y][x] = 0.0;
+		}
+	}
+	for(size_t y=height;y<allocHeight;++y)
+	{
+		_dataPtr[y] = &_dataConsecutive[_stride * y];
+		// (see remark above about initializing to zero)
+		for(size_t x=0;x<_stride;++x)
+		{
+			_dataPtr[y][x] = 0.0;
+		}
+	}
+}
+
+Image2D::Image2D(size_t width, size_t height, size_t widthCapacity) :
+	_width(width),
+	_height(height),
+	_stride((((widthCapacity-1)/4)+1)*4)
+{
+	if(widthCapacity == 0) _stride=0;
+	unsigned allocHeight = ((((height-1)/4)+1)*4);
+	if(height == 0) allocHeight = 0;
+#ifdef __APPLE__
+		// OS-X has no posix_memalign, but malloc always uses 16-byte alignment.
+		_dataConsecutive = (num_t*)malloc(_stride * allocHeight * sizeof(num_t));
+#else
+		if(posix_memalign((void **) &_dataConsecutive, 16, _stride * allocHeight * sizeof(num_t)) != 0)
+			throw std::bad_alloc();
+#endif
 	_dataPtr = new num_t*[allocHeight];
 	for(size_t y=0;y<height;++y)
 	{
@@ -76,6 +114,13 @@ Image2D::~Image2D()
 Image2D *Image2D::CreateSetImage(size_t width, size_t height, num_t initialValue) 
 {
 	Image2D *image = new Image2D(width, height);
+	image->SetAll(initialValue);
+	return image;
+}
+
+Image2D *Image2D::CreateSetImage(size_t width, size_t height, num_t initialValue, size_t widthCapacity) 
+{
+	Image2D *image = new Image2D(width, height, widthCapacity);
 	image->SetAll(initialValue);
 	return image;
 }
@@ -589,3 +634,9 @@ num_t Image2D::GetMinimum(size_t xOffset, size_t yOffset, size_t width, size_t h
 	return min;
 }
 
+void Image2D::ResizeWithoutReallocation(size_t newWidth)
+{
+	if(newWidth > _stride)
+		throw IOException("Bug: ResizeWithoutReallocation called with newWidth > Stride !");
+	_width = newWidth;
+}
