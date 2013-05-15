@@ -274,7 +274,7 @@ if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 
 	add_executable(aoremoteclient aoremoteclient.cpp)
   target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES})
-endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
@@ -285,9 +285,9 @@ if(GTKMM_FOUND)
 	install (TARGETS rfigui aoqplot DESTINATION bin)
 endif(GTKMM_FOUND)
 
-if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 	install (TARGETS aoquality aoremoteclient DESTINATION bin)
-endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 
 install (TARGETS aoflagger DESTINATION lib) 
 install (FILES interface/aoflagger.h DESTINATION include)
