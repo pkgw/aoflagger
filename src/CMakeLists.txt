@@ -268,7 +268,7 @@ add_executable(msinfo msinfo.cpp)
 add_executable(colormapper colormapper.cpp)
 # add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
 
-if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
   add_executable(aoquality aoquality.cpp)
   target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES})
 
