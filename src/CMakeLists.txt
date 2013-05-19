@@ -1,4 +1,4 @@
-link_libraries(${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY})
+link_libraries(${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_SIGNALS_LIBRARY})
 link_libraries(${FFTW3_LIB})
 link_libraries(${CASA_LIBS} ${CASA_MEASURES_LIB})
 link_libraries(${LAPACK_lapack_LIBRARY})
@@ -269,13 +269,13 @@ add_executable(msinfo msinfo.cpp)
 add_executable(colormapper colormapper.cpp)
 # add_executable(imgzenith imgzenith.cpp imaging/zenithimager.cpp)
 
-if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
   add_executable(aoquality aoquality.cpp)
   target_link_libraries(aoquality aoflaggerremote ${SIGCXX_LIBRARIES})
 
 	add_executable(aoremoteclient aoremoteclient.cpp)
   target_link_libraries(aoremoteclient aoflaggerremote ${SIGCXX_LIBRARIES})
-endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 
 add_executable(aotest EXCLUDE_FROM_ALL aotest.cpp)
 add_test(aotest aotest)
@@ -286,9 +286,9 @@ if(GTKMM_FOUND)
 	install (TARGETS rfigui aoqplot DESTINATION bin)
 endif(GTKMM_FOUND)
 
-if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+if(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 	install (TARGETS aoquality aoremoteclient DESTINATION bin)
-endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND)
+endif(BOOST_ASIO_H_FOUND AND SIGCXX_FOUND AND GTKMM_FOUND)
 
 install (TARGETS aoflagger DESTINATION lib) 
 install (FILES interface/aoflagger.h DESTINATION include)

@@ -18,7 +18,7 @@ find_path(FITSIO_INCLUDE_DIR NAMES fitsio.h)
 
 find_package(LibXml2 REQUIRED)
 find_package(PNG REQUIRED)
-find_package(Boost REQUIRED COMPONENTS date_time thread filesystem system)
+find_package(Boost REQUIRED COMPONENTS date_time thread filesystem signals system)
 find_library(FFTW3_LIB fftw3 REQUIRED)
 find_library(FITSIO_LIB cfitsio REQUIRED)
 enable_language(Fortran OPTIONAL)
