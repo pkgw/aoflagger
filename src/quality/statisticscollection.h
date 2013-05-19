@@ -22,6 +22,9 @@
 
 #include <stdint.h>
 
+#include "../msio/image2d.h"
+#include "../msio/mask2d.h"
+
 #include "../util/serializable.h"
 
 #include "baselinestatisticsmap.h"
@@ -71,48 +74,19 @@ class StatisticsCollection : public Serializable
 			_centralFrequencies.insert(std::pair<unsigned, double>(band, centralFrequency));
 		}
 		
-		void Add(unsigned antenna1, unsigned antenna2, double time, unsigned band, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool* origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags)
-		{
-			if(nsamples == 0) return;
-			
-			const double centralFrequency = _centralFrequencies.find(band)->second;
-			
-			addTimeAndBaseline<false>(antenna1, antenna2, time, centralFrequency, polarization, reals, imags, isRFI, origFlags, nsamples, step, stepRFI, stepFlags);
-			if(antenna1 != antenna2)
-			  addFrequency<false>(band, polarization, reals, imags, isRFI, origFlags, nsamples, step, stepRFI, stepFlags, false);
-			
-			// Allocate vector with length nsamples, so there is
-			// a diff element, even if nsamples=1.
-			std::vector<float> diffReals(nsamples);
-			std::vector<float> diffImags(nsamples);
-			bool *diffRFIFlags  = new bool[nsamples];
-			bool *diffOrigFlags = new bool[nsamples];
-			for (unsigned i=0;i<nsamples-1;++i)
-			{
-				diffReals[i] = (reals[(i+1)*step] - reals[i*step]) * M_SQRT1_2;
-				diffImags[i] = (imags[(i+1)*step] - imags[i*step]) * M_SQRT1_2;
-				diffRFIFlags[i] = isRFI[i*stepRFI] | isRFI[(i+1)*stepRFI];
-				diffOrigFlags[i] = origFlags[i*stepFlags] | origFlags[(i+1)*stepFlags];
-			}
-			addTimeAndBaseline<true>(antenna1, antenna2, time, centralFrequency, polarization, &(diffReals[0]), &(diffImags[0]), diffRFIFlags, diffOrigFlags, nsamples-1, 1, 1, 1);
-			if(antenna1 != antenna2)
-			{
-			  addFrequency<true>(band, polarization, &(diffReals[0]), &(diffImags[0]), diffRFIFlags, diffOrigFlags, nsamples-1, 1, 1, 1, false);
-			  addFrequency<true>(band, polarization, &(diffReals[0]), &(diffImags[0]), diffRFIFlags, diffOrigFlags, nsamples-1, 1, 1, 1, true);
-			}
-			delete[] diffRFIFlags;
-			delete[] diffOrigFlags;
-		}
+		void Add(unsigned antenna1, unsigned antenna2, double time, unsigned band, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool* origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags);
 		
 		void Add(unsigned antenna1, unsigned antenna2, double time, unsigned band, int polarization, const std::vector<std::complex<float> > &samples, const bool *isRFI)
 		{
-			const float *dataPtr =
-				reinterpret_cast<const float*>(&(samples[0]));
+			const float *dataPtr = reinterpret_cast<const float*>(&(samples[0]));
+			
 			bool origFlag = false;
 			Add(antenna1, antenna2, time, band, polarization,
-					 dataPtr, dataPtr+1,   // real and imag parts
-			    isRFI, &origFlag, samples.size(), 2, 1, 0);
+					dataPtr, dataPtr+1,   // real and imag parts
+					isRFI, &origFlag, samples.size(), 2, 1, 0);
 		}
+		
+		void AddImage(unsigned antenna1, unsigned antenna2, const double *times, unsigned band, int polarization, const Image2DCPtr &realImage, const Image2DCPtr &imagImage, const Mask2DCPtr &rfiMask, const Mask2DCPtr &correlatorMask);
 		
 		void Save(QualityTablesFormatter &qualityData) const
 		{
@@ -348,42 +322,7 @@ class StatisticsCollection : public Serializable
 		}
 
 		template<bool IsDiff>
-		void addTimeAndBaseline(unsigned antenna1, unsigned antenna2, double time, double centralFrequency, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool* origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags)
-		{
-			unsigned long rfiCount = 0;
-			unsigned long count = 0;
-			long double sum_R = 0.0, sum_I = 0.0;
-			long double sumP2_R = 0.0, sumP2_I = 0.0;
-			for(unsigned j=0;j<nsamples;++j)
-			{
-				if (!origFlags[j*stepFlags]) {
-					unsigned i = j*step;
-					if(std::isfinite(reals[i]) && std::isfinite(imags[i]))
-					{
-						if(isRFI[j*stepRFI])
-						{
-							++rfiCount;
-						} else {
-							const long double rVal = reals[i];
-							const long double iVal = imags[i];
-							++count;
-							sum_R += rVal;
-							sum_I += iVal;
-							sumP2_R += rVal*rVal;
-							sumP2_I += iVal*iVal;
-						}
-					}
-				}
-			}
-			
-			if(antenna1 != antenna2)
-			{
-				DefaultStatistics &timeStat = getTimeStatistic(time, centralFrequency);
-				addToStatistic<IsDiff>(timeStat, polarization, count, sum_R, sum_I, sumP2_R, sumP2_I, rfiCount);
-			}
-			DefaultStatistics &baselineStat = getBaselineStatistic(antenna1, antenna2, centralFrequency);
-			addToStatistic<IsDiff>(baselineStat, polarization, count, sum_R, sum_I, sumP2_R, sumP2_I, rfiCount);
-		}
+		void addTimeAndBaseline(unsigned antenna1, unsigned antenna2, double time, double centralFrequency, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool* origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags);
 		
 		template<bool IsDiff>
 		void addToStatistic(DefaultStatistics &statistic, unsigned polarization, unsigned long count, long double sum_R, long double sum_I, long double sumP2_R, long double sumP2_I, unsigned long rfiCount)
@@ -400,31 +339,23 @@ class StatisticsCollection : public Serializable
 				statistic.rfiCount[polarization] += rfiCount;
 			}
 		}
-		
 		template<bool IsDiff>
-		void addFrequency(unsigned band, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool *origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags, bool shiftOneUp)
+		void addSingleNonRFISampleToStatistic(DefaultStatistics &statistic, unsigned polarization, long double sum_R, long double sum_I, long double sumP2_R, long double sumP2_I)
 		{
-			std::vector<DefaultStatistics *> &bandStats = _bands.find(band)->second;
-			const unsigned fAdd = shiftOneUp ? 1 : 0;
-			for(unsigned j=0;j<nsamples;++j)
+			if(IsDiff)
 			{
-				if (!origFlags[j*stepFlags])
-				{
-					unsigned f = j*step;
-					if(std::isfinite(reals[f]) && std::isfinite(imags[f]))
-					{
-						DefaultStatistics &freqStat = *bandStats[j + fAdd];
-						if(isRFI[j*stepRFI])
-						{
-							addToStatistic<IsDiff>(freqStat, polarization, 0, 0.0, 0.0, 0.0, 0.0, 1);
-						} else {
-							const long double r = reals[f], i = imags[f];
-							addToStatistic<IsDiff>(freqStat, polarization, 1, r, i, r*r, i*i, 0);
-						}
-					}
-				}
+				++statistic.dCount[polarization];
+				statistic.dSum[polarization] += std::complex<long double>(sum_R, sum_I);
+				statistic.dSumP2[polarization] += std::complex<long double>(sumP2_R, sumP2_I);
+			} else {
+				++statistic.count[polarization];
+				statistic.sum[polarization] += std::complex<long double>(sum_R, sum_I);
+				statistic.sumP2[polarization] += std::complex<long double>(sumP2_R, sumP2_I);
 			}
 		}
+		
+		template<bool IsDiff>
+		void addFrequency(unsigned band, int polarization, const float *reals, const float *imags, const bool *isRFI, const bool *origFlags, unsigned nsamples, unsigned step, unsigned stepRFI, unsigned stepFlags, bool shiftOneUp);
 		
 		void initializeEmptyStatistics(QualityTablesFormatter &qualityData, QualityTablesFormatter::StatisticDimension dimension) const
 		{

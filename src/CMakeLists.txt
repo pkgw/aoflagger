@@ -126,8 +126,9 @@ set(MSIO_FILES
 set(QUALITY_FILES
   quality/histogramcollection.cpp
   quality/histogramtablesformatter.cpp
+  quality/qualitytablesformatter.cpp
 	quality/rayleighfitter.cpp
-  quality/qualitytablesformatter.cpp)
+	quality/statisticscollection.cpp)
 
 set(REMOTEAO_FILES
   remote/server.cpp)

@@ -171,6 +171,38 @@ void StatisticsCollectionTest::TestStatisticsCollecting::operator()()
 
 void StatisticsCollectionTest::TestStatisticsCollectingSpeed::operator()()
 {
+	size_t nFreq = 500, nTimes = 2000;
+	
+	StatisticsCollection collectionA(1), collectionB(1);
+	std::vector<double> frequencies(nFreq), times(nTimes);
+	for(size_t i=0; i!=nFreq; ++i)
+		frequencies[i] = i+1;
+	for(size_t i=0; i!=nTimes; ++i)
+		times[i] = i+1;
+	collectionA.InitializeBand(0, &frequencies[0], nFreq);
+	collectionB.InitializeBand(0, &frequencies[0], nFreq);
+
+	Image2DPtr image = Image2D::CreateZeroImagePtr(nTimes, nFreq);
+	Mask2DPtr mask = Mask2D::CreateSetMaskPtr<false>(nTimes, nFreq);
+	
+	Stopwatch watchA(true);
+	for(size_t a=0; a!=10; ++a)
+	{
+		for(size_t t=0; t<image->Width(); ++t) 
+		{
+			collectionA.Add(0, a, times[t], 0, 0,
+					image->Data()+t, image->Data()+t,
+					mask->Data()+t, mask->Data()+t,
+					nFreq, image->Stride(),
+					mask->Stride(), mask->Stride());
+		}
+	}
+	std::cout << "10 x nTimes x Add() took " << watchA.ToString() << '\n';
+
+	Stopwatch watchB(true);
+	for(size_t a=0; a!=10; ++a)
+		collectionB.AddImage(0, a, &times[0], 0, 0, image, image, mask, mask);
+	std::cout << "10 x AddImage() took " << watchB.ToString() << '\n';
 }
 
 #endif
