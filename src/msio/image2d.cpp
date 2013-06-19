@@ -22,9 +22,9 @@
 #include "fitsfile.h"
 
 #include <algorithm>
-#include <limits>
-
+#include <cstring>
 #include <iostream>
+#include <limits>
 
 #include <xmmintrin.h>
 #include <string.h>
