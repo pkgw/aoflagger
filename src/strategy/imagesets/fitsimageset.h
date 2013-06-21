@@ -23,6 +23,7 @@
 #include <vector>
 #include <set>
 #include <stack>
+#include <map>
 
 #include "imageset.h"
 
@@ -133,7 +134,8 @@ namespace rfiStrategy {
 			std::vector<std::pair<size_t,size_t> > _baselines;
 			size_t _bandCount;
 			std::vector<AntennaInfo> _antennaInfos;
-			std::vector<BandInfo> _bandInfos;
+			std::map<int, BandInfo> _bandInfos;
+			std::vector<int> _bandIndexToNumber;
 			size_t _currentBaselineIndex, _currentBandIndex;
 			double _frequencyOffset;
 			
