@@ -54,6 +54,7 @@ namespace rfiStrategy {
 		{
 			default:
 			case GENERIC_TELESCOPE: return "Generic";
+			case ARECIBO_TELESCOPE: return "Arecibo";
 			case JVLA_TELESCOPE: return "JVLA";
 			case LOFAR_TELESCOPE: return "LOFAR";
 			case MWA_TELESCOPE: return "MWA";
@@ -65,14 +66,16 @@ namespace rfiStrategy {
 	DefaultStrategy::TelescopeId DefaultStrategy::TelescopeIdFromName(const std::string &name)
 	{
 		const std::string nameUpper = boost::algorithm::to_upper_copy(name);
-		if(nameUpper == "LOFAR")
+		if(nameUpper == "ARECIBO" || nameUpper == "ARECIBO 305M")
+			return ARECIBO_TELESCOPE;
+		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
+			return JVLA_TELESCOPE;
+		else if(nameUpper == "LOFAR")
 			return LOFAR_TELESCOPE;
 		else if(nameUpper == "MWA")
 			return MWA_TELESCOPE;
 		else if(nameUpper == "PKS" || nameUpper == "ATPKSMB")
 			return PARKES_TELESCOPE;
-		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
-			return JVLA_TELESCOPE;
 		else if(nameUpper == "WSRT")
 			return WSRT_TELESCOPE;
 		else
@@ -119,6 +122,8 @@ namespace rfiStrategy {
 		double sumThresholdSensitivity = 1.0;
 		if(telescopeId == PARKES_TELESCOPE || telescopeId == WSRT_TELESCOPE)
 			sumThresholdSensitivity = 1.4;
+		else if(telescopeId == ARECIBO_TELESCOPE)
+			sumThresholdSensitivity = 1.2;
 		if((flags&FLAG_AUTO_CORRELATION) != 0)
 			sumThresholdSensitivity *= 1.4;
 		if((flags&FLAG_SENSITIVE) != 0)
@@ -132,10 +137,12 @@ namespace rfiStrategy {
 		if(telescopeId == JVLA_TELESCOPE)
 			verticalSmoothing = 1.0;
 		
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing);
+		bool hasBaselines = telescopeId!=PARKES_TELESCOPE && telescopeId!=ARECIBO_TELESCOPE;
+		
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing, hasBaselines);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics, double verticalSmoothing)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics, double verticalSmoothing, bool hasBaselines)
 	{
 		ActionBlock *current;
 
@@ -255,7 +262,7 @@ namespace rfiStrategy {
 				block.Add(new TimeSelectionAction());
 		}
 
-		if(assembleStatistics)
+		if(assembleStatistics && hasBaselines)
 		{
 			BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
 			baselineSelection->SetPreparationStep(true);
@@ -279,17 +286,23 @@ namespace rfiStrategy {
 
 		feBaseBlock->Add(new WriteFlagsAction());
 
-		PlotAction *antennaPlotAction = new PlotAction();
-		antennaPlotAction->SetPlotKind(PlotAction::AntennaFlagCountPlot);
-		feBaseBlock->Add(antennaPlotAction);
+		if(telescopeId != ARECIBO_TELESCOPE && telescopeId != PARKES_TELESCOPE)
+		{
+			PlotAction *antennaPlotAction = new PlotAction();
+			antennaPlotAction->SetPlotKind(PlotAction::AntennaFlagCountPlot);
+			feBaseBlock->Add(antennaPlotAction);
+		}
 
 		PlotAction *frequencyPlotAction = new PlotAction();
 		frequencyPlotAction->SetPlotKind(PlotAction::FrequencyFlagCountPlot);
 		feBaseBlock->Add(frequencyPlotAction);
 
-		BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
-		baselineSelection->SetPreparationStep(false);
-		destination.Add(baselineSelection);
+		if(telescopeId != ARECIBO_TELESCOPE && telescopeId != PARKES_TELESCOPE)
+		{
+			BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
+			baselineSelection->SetPreparationStep(false);
+			destination.Add(baselineSelection);
+		}
 	}
 	
 	void DefaultStrategy::warnIfUnknownTelescope(DefaultStrategy::TelescopeId& telescopeId, const string& telescopeName)

@@ -46,7 +46,15 @@ void addFits(Image2D *red, Image2D *green, Image2D *blue, Image2D *mono, const s
 void HLStoRGB(long double hue,long double lum,long double sat,long double &red,long double &green, long double &blue);
 void WLtoRGB(long double wavelength,long double &red,long double &green, long double &blue);
 inline void ScaledWLtoRGB(long double position,long double &red,long double &green, long double &blue)
-{ return WLtoRGB(position*300.0+400.0,red,green,blue); }
+{
+	WLtoRGB(position*300.0+400.0,red,green,blue);
+	if(red < 0.0) red = 0.0;
+	if(red > 1.0) red = 1.0;
+	if(green < 0.0) green = 0.0;
+	if(green > 1.0) green = 1.0;
+	if(blue < 0.0) blue = 0.0;
+	if(blue > 1.0) blue = 1.0;
+}
 void ReportRMS(Image2D *image);
 
 int main(int argc, char *argv[])
@@ -185,7 +193,7 @@ int main(int argc, char *argv[])
 			}
 			sort(variances.begin(), variances.end());
 
-			cout << "The following images are removed because of too many noise: "
+			cout << "The following images are removed because of too much noise: "
 					<< variances.front().index;
 			for(std::vector<ImageInfo>::const_iterator i=variances.begin()+1;i<variances.begin()+removeNoiseImages;++i)
 			{
