@@ -31,29 +31,29 @@
 */
 class ThresholdTools {
 	public:
-		static void MeanAndStdDev(Image2DCPtr image, Mask2DCPtr mask, num_t &mean, num_t &stddev);
-		static numl_t Sum(Image2DCPtr image, Mask2DCPtr mask);
-		static numl_t RMS(Image2DCPtr image, Mask2DCPtr mask);
-		static num_t Mode(Image2DCPtr input, Mask2DCPtr mask);
-		static num_t WinsorizedMode(Image2DCPtr image, Mask2DCPtr mask);
-		static num_t WinsorizedMode(Image2DCPtr image);
+		static void MeanAndStdDev(const Image2DCPtr &image, const Mask2DCPtr &mask, num_t &mean, num_t &stddev);
+		static numl_t Sum(const Image2DCPtr &image, const Mask2DCPtr &mask);
+		static numl_t RMS(const Image2DCPtr &image, const Mask2DCPtr &mask);
+		static num_t Mode(const Image2DCPtr &input, const Mask2DCPtr &mask);
+		static num_t WinsorizedMode(const Image2DCPtr &image, const Mask2DCPtr &mask);
+		static num_t WinsorizedMode(const Image2DCPtr &image);
 		template<typename T>
 		static void TrimmedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev);
 		template<typename T>
 		static void WinsorizedMeanAndStdDev(const std::vector<T> &input, T &mean, T &stddev);
-		static void WinsorizedMeanAndStdDev(Image2DCPtr image, Mask2DCPtr mask, num_t &mean, num_t &variance);
-		static void WinsorizedMeanAndStdDev(Image2DCPtr image, num_t &mean, num_t &variance);
-		static num_t MinValue(Image2DCPtr image, Mask2DCPtr mask);
-		static num_t MaxValue(Image2DCPtr image, Mask2DCPtr mask);
-		static void SetFlaggedValuesToZero(Image2DPtr dest, Mask2DCPtr mask);
-		static void CountMaskLengths(Mask2DCPtr mask, int *lengths, size_t lengthsSize);
+		static void WinsorizedMeanAndStdDev(const Image2DCPtr &image, const Mask2DCPtr &mask, num_t &mean, num_t &variance);
+		static void WinsorizedMeanAndStdDev(const Image2DCPtr &image, num_t &mean, num_t &variance);
+		static num_t MinValue(const Image2DCPtr &image, const Mask2DCPtr &mask);
+		static num_t MaxValue(const Image2DCPtr &image, const Mask2DCPtr &mask);
+		static void SetFlaggedValuesToZero(const Image2DPtr &dest, const Mask2DCPtr &mask);
+		static void CountMaskLengths(const Mask2DCPtr &mask, int *lengths, size_t lengthsSize);
 		
 		static void FilterConnectedSamples(Mask2DPtr mask, size_t minConnectedSampleArea, bool eightConnected=true);
 		static void FilterConnectedSample(Mask2DPtr mask, size_t x, size_t y, size_t minConnectedSampleArea, bool eightConnected=true);
 		static void UnrollPhase(Image2DPtr image);
-		static Image2DPtr ShrinkHorizontally(size_t factor, Image2DCPtr input, Mask2DCPtr mask);
+		static Image2DPtr ShrinkHorizontally(size_t factor, const Image2DCPtr &input, const Mask2DCPtr &mask);
 
-		static Image2DPtr FrequencyRectangularConvolution(Image2DCPtr source, size_t convolutionSize)
+		static Image2DPtr FrequencyRectangularConvolution(const Image2DCPtr &source, size_t convolutionSize)
 		{
 			Image2DPtr image = Image2D::CreateCopy(source);
 			const size_t upperWindowHalf = (convolutionSize+1) / 2;
@@ -83,7 +83,7 @@ class ThresholdTools {
 			return image;
 		}
 		
-		static Mask2DPtr Threshold(Image2DCPtr image, num_t threshold)
+		static Mask2DPtr Threshold(const Image2DCPtr &image, num_t threshold)
 		{
 			Mask2DPtr mask = Mask2D::CreateUnsetMaskPtr(image->Width(), image->Height());
 			for(size_t y=0;y<image->Height();++y)

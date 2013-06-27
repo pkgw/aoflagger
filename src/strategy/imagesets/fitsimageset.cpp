@@ -80,8 +80,8 @@ namespace rfiStrategy {
 			for(size_t g=0;g<groupCount;++g)
 			{
 				_file->ReadGroupParameters(g, parameters);
-				int a1 = ((int) parameters[baselineIndex]) & 255;
-				int a2 = ((int) parameters[baselineIndex] >> 8) & 255;
+				int a1 = (((int) parameters[baselineIndex]) & 255) - 1;
+				int a2 = (((int) parameters[baselineIndex] >> 8) & 255) - 1;
 				baselineSet.insert(std::pair<size_t,size_t>(a1,a2));
 			}
 			delete[] parameters;
@@ -169,7 +169,7 @@ namespace rfiStrategy {
 		//	AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
 
 		std::vector<long double> parameters(_file->GetParameterCount());
-		int baseline = _baselines[baselineIndex].first + (_baselines[baselineIndex].second<<8);
+		int baseline = (_baselines[baselineIndex].first+1) + ((_baselines[baselineIndex].second+1)<<8);
 		int baselineColumn = _file->GetGroupParameterIndex("BASELINE");
 		size_t
 			complexCount = _file->GetCurrentImageSize(2),
