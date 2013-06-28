@@ -75,7 +75,7 @@ namespace rfiStrategy {
 			}
 			virtual std::string Name()
 			{
-			  return "Big horns fits file";
+			  return "Bighorns fits file";
 			}
 			virtual std::string File();
 			size_t ImageCount() { return _timeRanges.size(); }
@@ -106,8 +106,8 @@ namespace rfiStrategy {
 			{
 				throw BadUsageException("Not implemented");
 			}
-			const std::string &GetTelescopeName() const {
-			  return "Big Horns";
+			std::string GetTelescopeName() const {
+			  return "Bighorns";
 			}
 		private:
 			struct TimeRange
@@ -135,6 +135,7 @@ namespace rfiStrategy {
 			BaselineData loadData(const ImageSetIndex &index);
 			void loadImageData(TimeFrequencyData &data, const TimeFrequencyMetaDataPtr &metaData, const BHFitsImageSetIndex &index);
 			std::pair<int, int> getRangeFromString(const std::string &rangeStr);
+			std::string flagFilePath() const;
 
 			boost::shared_ptr<class FitsFile> _file;
 			std::stack<BaselineData> _baselineData;

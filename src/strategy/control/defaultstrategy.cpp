@@ -56,6 +56,7 @@ namespace rfiStrategy {
 			default:
 			case GENERIC_TELESCOPE: return "Generic";
 			case ARECIBO_TELESCOPE: return "Arecibo";
+			case BIGHORNS_TELESCOPE: return "Bighorns";
 			case JVLA_TELESCOPE: return "JVLA";
 			case LOFAR_TELESCOPE: return "LOFAR";
 			case MWA_TELESCOPE: return "MWA";
@@ -69,6 +70,8 @@ namespace rfiStrategy {
 		const std::string nameUpper = boost::algorithm::to_upper_copy(name);
 		if(nameUpper == "ARECIBO" || nameUpper == "ARECIBO 305M")
 			return ARECIBO_TELESCOPE;
+		else if(nameUpper == "BIGHORNS")
+			return BIGHORNS_TELESCOPE;
 		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
 			return JVLA_TELESCOPE;
 		else if(nameUpper == "LOFAR")
@@ -97,6 +100,8 @@ namespace rfiStrategy {
 			(telescopeId==MWA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// JVLA observation I saw (around 1100 MHz) have steep band edges
 			(telescopeId==JVLA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
+			// Bighorns doesn't correct passband
+			(telescopeId==BIGHORNS_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// Other cases with large bandwidth
 			((flags&FLAG_LARGE_BANDWIDTH) != 0);
 		bool keepTransients = (flags&FLAG_TRANSIENTS) != 0;
@@ -120,10 +125,12 @@ namespace rfiStrategy {
 		bool resetContaminated =
 			((flags&FLAG_GUI_FRIENDLY) != 0);
 		int iterationCount = ((flags&FLAG_ROBUST)==0) ? 2 : 4;
+		if(telescopeId == BIGHORNS_TELESCOPE)
+			iterationCount *= 2;
 		double sumThresholdSensitivity = 1.0;
 		if(telescopeId == PARKES_TELESCOPE || telescopeId == WSRT_TELESCOPE)
 			sumThresholdSensitivity = 1.4;
-		else if(telescopeId == ARECIBO_TELESCOPE)
+		else if(telescopeId == ARECIBO_TELESCOPE || telescopeId == BIGHORNS_TELESCOPE)
 			sumThresholdSensitivity = 1.2;
 		if((flags&FLAG_AUTO_CORRELATION) != 0)
 			sumThresholdSensitivity *= 1.4;
@@ -138,7 +145,7 @@ namespace rfiStrategy {
 		if(telescopeId == JVLA_TELESCOPE)
 			verticalSmoothing = 1.0;
 		
-		bool hasBaselines = telescopeId!=PARKES_TELESCOPE && telescopeId!=ARECIBO_TELESCOPE;
+		bool hasBaselines = telescopeId!=PARKES_TELESCOPE && telescopeId!=ARECIBO_TELESCOPE && telescopeId!=BIGHORNS_TELESCOPE;
 		
 		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing, hasBaselines);
 	}

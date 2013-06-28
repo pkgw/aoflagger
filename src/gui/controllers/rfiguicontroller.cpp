@@ -321,7 +321,7 @@ void RFIGuiController::PlotSingularValues()
 
 void RFIGuiController::OpenTestSet(unsigned index, bool gaussianTestSets)
 {
-	unsigned width = 1024, height = 1024;
+	unsigned width = 1024*16, height = 1024;
 	if(IsImageLoaded())
 	{
 		TimeFrequencyData activeData = ActiveData();

@@ -41,9 +41,10 @@ void FrequencySelectionAction::Perform(ArtifactSet &artifacts, class ProgressLis
 		num_t median = channels->MedianWithMissings();
 		num_t stddev = channels->StdDevWithMissings(median);
 		change = false;
+		double effectiveThreshold = _threshold * stddev * artifacts.Sensitivity();
 		for(size_t y=0;y<channels->Size();++y)
 		{
-			if(!channels->ValueIsMissing(y) && (channels->Value(y) - median > stddev * _threshold || (_clipDown && median - channels->Value(y) > stddev * _threshold)))
+			if(!channels->ValueIsMissing(y) && (channels->Value(y) - median > effectiveThreshold || (_clipDown && median - channels->Value(y) > effectiveThreshold)))
 			{
 				mask->SetAllHorizontally<true>(y);
 				channels->SetValueMissing(y);
