@@ -133,6 +133,7 @@ namespace rfiStrategy {
 			}
 			static class ImageSet *Create(const std::string &file, BaselineIOMode ioMode, bool readUVW=false);
 			static bool IsFitsFile(const std::string &file);
+			static bool IsBHFitsFile(const std::string &file);
 			static bool IsRCPRawFile(const std::string &file);
 			static bool IsTKPRawFile(const std::string &file);
 			static bool IsRawDescFile(const std::string &file);

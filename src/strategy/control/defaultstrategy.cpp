@@ -23,6 +23,7 @@
 #include "../actions/writeflagsaction.h"
 
 #include "../imagesets/imageset.h"
+#include "../imagesets/bhfitsimageset.h"
 #include "../imagesets/fitsimageset.h"
 #include "../imagesets/msimageset.h"
 
@@ -374,6 +375,9 @@ namespace rfiStrategy {
 	void DefaultStrategy::DetermineSettings(ImageSet& measurementSet, DefaultStrategy::TelescopeId& telescopeId, unsigned int& flags, double& frequency, double& timeRes, double& frequencyRes)
 	{
 		MSImageSet *msImageSet = dynamic_cast<MSImageSet*>(&measurementSet);
+		FitsImageSet *fitsImageSet = dynamic_cast<FitsImageSet*>(&measurementSet);
+		BHFitsImageSet *bhFitsImageSet = dynamic_cast<BHFitsImageSet*>(&measurementSet);
+
 		if(msImageSet != 0)
 		{
 			DetermineSettings(
@@ -384,28 +388,41 @@ namespace rfiStrategy {
 				timeRes,
 				frequencyRes
 			);
+		}
+		else if(fitsImageSet != 0) {
+		  std::string telescopeName = fitsImageSet->ReadTelescopeName();
+		  telescopeId = TelescopeIdFromName(telescopeName);
+		  warnIfUnknownTelescope(telescopeId, telescopeName);
+		  if(telescopeId != GENERIC_TELESCOPE)
+		    AOLogger::Info <<
+		      "The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
+		      "settings will be left to their defaults, which might not be optimal for all cases.\n";
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;
+		}
+		else if(bhFitsImageSet != 0) {
+		  std::string telescopeName = bhFitsImageSet->GetTelescopeName();
+		  telescopeId = TelescopeIdFromName(telescopeName);
+		  warnIfUnknownTelescope(telescopeId, telescopeName);
+		  if(telescopeId != GENERIC_TELESCOPE)
+		    AOLogger::Info <<
+		      "The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
+		      "settings will be left to their defaults, which might not be optimal for all cases.\n";
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;		  
 		} else {
-			FitsImageSet *fitsImageSet = dynamic_cast<FitsImageSet*>(&measurementSet);
-			if(fitsImageSet != 0)
-			{
-				std::string telescopeName = fitsImageSet->ReadTelescopeName();
-				telescopeId = TelescopeIdFromName(telescopeName);
-				warnIfUnknownTelescope(telescopeId, telescopeName);
-				if(telescopeId != GENERIC_TELESCOPE)
-					AOLogger::Info <<
-						"The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
-						"settings will be left to their defaults, which might not be optimal for all cases.\n";
-			} else {
-				telescopeId = GENERIC_TELESCOPE;
-				AOLogger::Warn <<
-					"** Could not determine telescope name from set, because it has not\n"
-					"** been implemented for this file format. A generic strategy will be used!\n";
-			}
-			flags = 0;
-			frequency = 0.0;
-			timeRes = 0.0;
-			frequencyRes = 0.0;
+		  telescopeId = GENERIC_TELESCOPE;
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;
+		  AOLogger::Warn <<
+		    "** Could not determine telescope name from set, because it has not\n"
+		    "** been implemented for this file format. A generic strategy will be used!\n";
 		}
 	}
-	
 }
