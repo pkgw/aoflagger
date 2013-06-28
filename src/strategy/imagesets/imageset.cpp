@@ -20,6 +20,7 @@
 
 #include "imageset.h"
 
+#include "bhfitsimageset.h"
 #include "fitsimageset.h"
 #include "harishreader.h"
 #include "msimageset.h"
@@ -38,6 +39,8 @@ namespace rfiStrategy {
 	{
 		if(IsFitsFile(file))
 			return new FitsImageSet(file);
+		else if(IsBHFitsFile(file))
+			return new BHFitsImageSet(file);
 		else if(IsRCPRawFile(file))
 			return new RSPImageSet(file);
 		else if(IsTKPRawFile(file))
@@ -59,6 +62,13 @@ namespace rfiStrategy {
 			set->SetReadUVW(readUVW);
 			return set;
 		}
+	}
+	
+	bool ImageSet::IsBHFitsFile(const std::string &file)
+	{
+		const std::string uppFile(boost::to_upper_copy(file));
+		return
+		  (uppFile.size() > 5 && uppFile.substr(file.size() - 7) == ".BHFITS" );
 	}
 	
 	bool ImageSet::IsFitsFile(const std::string &file)
@@ -121,6 +131,6 @@ namespace rfiStrategy {
 	
 	bool ImageSet::IsMSFile(const std::string &file)
 	{
-		return (!IsFitsFile(file)) && (!IsRCPRawFile(file)) && (!IsTKPRawFile(file)) && (!IsRawDescFile(file)) && (!IsParmFile(file)) && (!IsTimeFrequencyStatFile(file)) && (!IsNoiseStatFile(file)) && (!IsPngFile(file));
+	  return (!IsBHFitsFile(file)) && (!IsFitsFile(file)) && (!IsRCPRawFile(file)) && (!IsTKPRawFile(file)) && (!IsRawDescFile(file)) && (!IsParmFile(file)) && (!IsTimeFrequencyStatFile(file)) && (!IsNoiseStatFile(file)) && (!IsPngFile(file));
 	}
 }
