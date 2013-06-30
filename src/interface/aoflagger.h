@@ -24,6 +24,10 @@ namespace aoflagger {
 	enum TelescopeId {
 		/** @brief Most generic strategy. */
 		GENERIC_TELESCOPE,
+		/** @brief Arecibo radio telescope, the 305 m telescope in Puerto Rico. */
+		ARECIBO_TELESCOPE,
+		/** @brief Bighorns, instrument aimed at achieving an averaged all-sky measurement of the Epoch of Reionisation signal. */
+		BIGHORNS_TELESCOPE,
 		/** @brief JVLA, the Jansky Very Large Array in New Mexico. */
 		JVLA_TELESCOPE,
 		/** @brief LOFAR. the Low-Frequency Array in Europe. */

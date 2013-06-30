@@ -23,6 +23,8 @@ StrategyWizardWindow::StrategyWizardWindow(class StrategyController &controller)
 	_telescopeSubBox.pack_start(_telescopeLabel);
 	_telescopeList = Gtk::ListStore::create(_telescopeListColumns);
 	addTelescope("Generic", rfiStrategy::DefaultStrategy::GENERIC_TELESCOPE);
+	addTelescope("Arecibo (305 m single dish, Puerto Rico)", rfiStrategy::DefaultStrategy::ARECIBO_TELESCOPE);
+	addTelescope("Bighorns (low-frequency wide-band EoR instrument, Curtin uni, Australia)", rfiStrategy::DefaultStrategy::BIGHORNS_TELESCOPE);
 	addTelescope("JVLA (Jansky Very Large Array, New Mexico)", rfiStrategy::DefaultStrategy::JVLA_TELESCOPE);
 	addTelescope("LOFAR (Low-Frequency Array, Europe)", rfiStrategy::DefaultStrategy::LOFAR_TELESCOPE);
 	addTelescope("MWA (Murchison Widefield Array, Australia)", rfiStrategy::DefaultStrategy::MWA_TELESCOPE);

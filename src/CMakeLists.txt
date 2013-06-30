@@ -196,11 +196,12 @@ set(STRATEGY_CONTROL_FILES
   strategy/control/strategywriter.cpp)
 
 set(STRATEGY_IMAGESETS_FILES
+  strategy/imagesets/bhfitsimageset.cpp
   strategy/imagesets/fitsimageset.cpp
   strategy/imagesets/imageset.cpp
   strategy/imagesets/msimageset.cpp
   strategy/imagesets/parmimageset.cpp
-	strategy/imagesets/pngreader.cpp)
+  strategy/imagesets/pngreader.cpp)
 
 set(STRATEGY_FILES
   ${STRATEGY_ACTION_FILES}

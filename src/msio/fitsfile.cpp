@@ -238,6 +238,20 @@ void FitsFile::WriteImage(long startPos, double *buffer, long bufferSize, double
 	CheckStatus(status);
 }
 
+void FitsFile::WriteImage(long startPos, float *buffer, long bufferSize, double nullValue)
+{
+	CheckOpen();
+	int status = 0, dimensions = GetCurrentImageDimensionCount();
+	long *firstpixel = new long[dimensions];
+	for(int i=0;i < dimensions;i++) {
+		firstpixel[i] = 1 + startPos%GetCurrentImageSize(i+1);
+		startPos = startPos/GetCurrentImageSize(i+1);
+	}
+	fits_write_pixnull(_fptr, TFLOAT, firstpixel, bufferSize, buffer, &nullValue, &status);
+	delete[] firstpixel;
+	CheckStatus(status);
+}
+
 int FitsFile::GetRowCount()
 {
 	CheckOpen();
@@ -278,6 +292,24 @@ std::string FitsFile::GetKeywordValue(int keywordNumber)
 		boost::trim(val);
 	}
 	return val;
+}
+
+bool FitsFile::GetKeywordValue(const std::string &keywordName, std::string &value)
+{
+	char keyValue[FLEN_VALUE];
+	int status = 0;
+	fits_read_keyword(_fptr, const_cast<char *>(keywordName.c_str()), keyValue, NULL, &status);
+	if(status == 0) {
+	  value = std::string(keyValue);
+	  if(value.length() >= 2 && *value.begin()=='\'' && *value.rbegin()=='\'')
+	    {
+	      value = value.substr(1, value.length()-2);
+	      boost::trim(value);
+	    }
+	  return true;
+	} else {
+	  return false;
+	}
 }
 
 std::string FitsFile::GetKeywordValue(const std::string &keywordName)

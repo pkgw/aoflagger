@@ -22,6 +22,8 @@ namespace rfiStrategy {
 		*/
 		enum TelescopeId {
 			GENERIC_TELESCOPE = aoflagger::GENERIC_TELESCOPE,
+			ARECIBO_TELESCOPE = aoflagger::ARECIBO_TELESCOPE,
+			BIGHORNS_TELESCOPE = aoflagger::BIGHORNS_TELESCOPE,
 			JVLA_TELESCOPE = aoflagger::JVLA_TELESCOPE,
 			LOFAR_TELESCOPE = aoflagger::LOFAR_TELESCOPE,
 			MWA_TELESCOPE = aoflagger::MWA_TELESCOPE,
@@ -56,7 +58,7 @@ namespace rfiStrategy {
 		
 		static void LoadFullStrategy(ActionBlock &destination, enum TelescopeId telescopeId, unsigned flags, double frequency=0.0, double timeRes=0.0, double frequencyRes=0.0);
 		
-		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool includePolStatistics, double verticalSmoothing);
+		static void LoadSingleStrategy(ActionBlock &destination, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool includePolStatistics, double verticalSmoothing, bool hasBaselines);
 
 		static std::string TelescopeName(DefaultStrategy::TelescopeId telescopeId);
 		

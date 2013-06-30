@@ -47,6 +47,7 @@ namespace rfiStrategy {
 		_bandCount(source._bandCount),
 		_antennaInfos(source._antennaInfos),
 		_bandInfos(source._bandInfos),
+		_bandIndexToNumber(source._bandIndexToNumber),
 		_currentBaselineIndex(source._currentBaselineIndex),
 		_currentBandIndex(source._currentBandIndex),
 		_frequencyOffset(source._frequencyOffset),
@@ -80,8 +81,8 @@ namespace rfiStrategy {
 			for(size_t g=0;g<groupCount;++g)
 			{
 				_file->ReadGroupParameters(g, parameters);
-				int a1 = ((int) parameters[baselineIndex]) & 255;
-				int a2 = ((int) parameters[baselineIndex] >> 8) & 255;
+				int a1 = (((int) parameters[baselineIndex]) & 255) - 1;
+				int a2 = (((int) parameters[baselineIndex] >> 8) & 255) - 1;
 				baselineSet.insert(std::pair<size_t,size_t>(a1,a2));
 			}
 			delete[] parameters;
@@ -99,17 +100,26 @@ namespace rfiStrategy {
 			_file->MoveToHDU(2);
 			int ifColumn = _file->GetTableColumnIndex("IF");
 			int rowCount = _file->GetRowCount();
-			int ifIndex = 0;
+			std::set<int> ifSet;
 			for(int i=1;i<=rowCount;++i)
 			{
 				double thisIndex;
 				_file->ReadTableCell(i, ifColumn, &thisIndex, 1);
-				if((int) round(thisIndex) > ifIndex)
-					ifIndex = (int) round(thisIndex);
-				else break;
+				ifSet.insert((int) round(thisIndex));
 			}
-			_bandCount = ifIndex;
-			_bandInfos.resize(_bandCount);
+			_bandCount = ifSet.size();
+			if(_bandCount == 0)
+				throw std::runtime_error("Could not find any IF's in this set");
+			_bandIndexToNumber.clear();
+			AOLogger::Debug << _bandCount << " IF's in set: [" << *ifSet.begin();
+			for(std::set<int>::const_iterator i=ifSet.begin(); i!=ifSet.end(); ++i)
+			{
+				_bandInfos.insert(std::pair<int, BandInfo>(*i, BandInfo()));
+				if(_bandIndexToNumber.size()>0)
+					AOLogger::Debug << ", " << *i;
+				_bandIndexToNumber.push_back(*i);
+			}
+			AOLogger::Debug << "]\n";
 		}
 	}
 
@@ -148,9 +158,9 @@ namespace rfiStrategy {
 		{
 			_currentBaselineIndex = fitsIndex._baselineIndex;
 			_currentBandIndex = fitsIndex._band;
-
-			metaData->SetBand(_bandInfos[fitsIndex._band]);
-			AOLogger::Debug << "Loaded metadata for: " << Date::AipsMJDToString(metaData->ObservationTimes()[0]) << ", band " << fitsIndex._band << " (" << Frequency::ToString(_bandInfos[fitsIndex._band].channels[0].frequencyHz) << " - " << Frequency::ToString(_bandInfos[fitsIndex._band].channels.rbegin()->frequencyHz) << ")\n";
+			int bandNumber = _bandIndexToNumber[fitsIndex._band];
+			metaData->SetBand(_bandInfos[bandNumber]);
+			AOLogger::Debug << "Loaded metadata for: " << Date::AipsMJDToString(metaData->ObservationTimes()[0]) << ", band " << bandNumber << " (" << Frequency::ToString(_bandInfos[bandNumber].channels[0].frequencyHz) << " - " << Frequency::ToString(_bandInfos[bandNumber].channels.rbegin()->frequencyHz) << ")\n";
 
 		}
 		return BaselineData(data, metaData, index);
@@ -169,7 +179,7 @@ namespace rfiStrategy {
 		//	AOLogger::Debug << "Keyword " << i << ": " << _file->GetKeyword(i) << "=" << _file->GetKeywordValue(i) << " ("  << _file->GetKeywordComment(i) << ")\n";
 
 		std::vector<long double> parameters(_file->GetParameterCount());
-		int baseline = _baselines[baselineIndex].first + (_baselines[baselineIndex].second<<8);
+		int baseline = (_baselines[baselineIndex].first+1) + ((_baselines[baselineIndex].second+1)<<8);
 		int baselineColumn = _file->GetGroupParameterIndex("BASELINE");
 		size_t
 			complexCount = _file->GetCurrentImageSize(2),
@@ -288,9 +298,9 @@ namespace rfiStrategy {
 	{
 		AOLogger::Debug << "Found antenna table\n";
 		_frequencyOffset = _file->GetDoubleKeywordValue("FREQ");
-		for(std::vector<BandInfo>::iterator i=_bandInfos.begin();i!=_bandInfos.end();++i)
+		for(std::map<int, BandInfo>::iterator i=_bandInfos.begin();i!=_bandInfos.end();++i)
 		{
-			for(std::vector<ChannelInfo>::iterator j=i->channels.begin();j!=i->channels.end();++j) {
+			for(std::vector<ChannelInfo>::iterator j=i->second.channels.begin();j!=i->second.channels.end();++j) {
 				j->frequencyHz += _frequencyOffset;
 			}
 		}
@@ -347,8 +357,8 @@ namespace rfiStrategy {
 					bandInfo.channels.push_back(channelInfo);
 				}
 
-				bandInfo.windowIndex = 0;
-				_bandInfos.push_back(bandInfo);
+				bandInfo.windowIndex = b;
+				_bandInfos.insert(std::pair<int, BandInfo>(b, bandInfo));
 			}
 		}
 	}
@@ -398,13 +408,14 @@ namespace rfiStrategy {
 		}
 		std::vector<double> observationTimes(rowCount);
 		bool hasBand = false;
+		const int requestedIFNumber = _bandIndexToNumber[ifIndex];
 		size_t timeIndex = 0;
 		for(int row=1;row<=rowCount;++row)
 		{
 			long double time, date, ifNumber;
 			_file->ReadTableCell(row, ifColumn, &ifNumber, 1);
 			
-			if(ifNumber == ifIndex+1)
+			if(ifNumber == requestedIFNumber)
 			{
 				_file->ReadTableCell(row, timeColumn, &time, 1);
 				_file->ReadTableCell(row, dateObsColumn, &date, 1);
@@ -426,7 +437,7 @@ namespace rfiStrategy {
 						AOLogger::Debug << "Frequency info: " <<freqVal << " Hz at index " << freqRefPix << ", delta " << freqDelta << "\n";
 						AOLogger::Debug << "Frequency res: " <<freqRes << " with bandwidth " << freqBandwidth << " Hz\n";
 						BandInfo bandInfo;
-						bandInfo.windowIndex = 0;
+						bandInfo.windowIndex = ifNumber;
 						for(int i=0;i<freqCount;++i)
 						{
 							ChannelInfo c;
@@ -434,7 +445,7 @@ namespace rfiStrategy {
 							c.frequencyHz = ((double) i-freqRefPix)*freqDelta + freqVal;
 							bandInfo.channels.push_back(c);
 						}
-						_bandInfos[0] = bandInfo;
+						_bandInfos[ifNumber] = bandInfo;
 						metaData.SetBand(bandInfo);
 						hasBand = true;
 					}
@@ -454,9 +465,12 @@ namespace rfiStrategy {
 				}
 				++timeIndex;
 			}
-			if(ifNumber > _bandCount) _bandCount = ifNumber;
 		}
 		delete[] flagData;
+		if(timeIndex == 0)
+		{
+			throw std::runtime_error("Couldn't find any rows in the fits image set for the requested IF");
+		}
 		for(int p=0;p<polarizationCount;++p)
 		{
 			images[p]->SetTrim(0, 0, timeIndex, images[p]->Height());
@@ -528,12 +542,13 @@ namespace rfiStrategy {
 				throw std::runtime_error("Frequency count in given mask does not match with the file");
 		}
 		size_t timeIndex = 0;
+		int specifiedIFNumber = _bandIndexToNumber[ifIndex];
 		for(int row=1;row<=rowCount;++row)
 		{
 			long double ifNumber;
 			_file->ReadTableCell(row, ifColumn, &ifNumber, 1);
 			
-			if(ifNumber == ifIndex+1)
+			if(ifNumber == specifiedIFNumber)
 			{
 				AOLogger::Debug << row << "\n";
 				_file->ReadTableCell(row, dataColumn, &cellData[0], totalSize);

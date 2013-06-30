@@ -23,6 +23,7 @@
 #include "../actions/writeflagsaction.h"
 
 #include "../imagesets/imageset.h"
+#include "../imagesets/bhfitsimageset.h"
 #include "../imagesets/fitsimageset.h"
 #include "../imagesets/msimageset.h"
 
@@ -54,6 +55,8 @@ namespace rfiStrategy {
 		{
 			default:
 			case GENERIC_TELESCOPE: return "Generic";
+			case ARECIBO_TELESCOPE: return "Arecibo";
+			case BIGHORNS_TELESCOPE: return "Bighorns";
 			case JVLA_TELESCOPE: return "JVLA";
 			case LOFAR_TELESCOPE: return "LOFAR";
 			case MWA_TELESCOPE: return "MWA";
@@ -65,14 +68,18 @@ namespace rfiStrategy {
 	DefaultStrategy::TelescopeId DefaultStrategy::TelescopeIdFromName(const std::string &name)
 	{
 		const std::string nameUpper = boost::algorithm::to_upper_copy(name);
-		if(nameUpper == "LOFAR")
+		if(nameUpper == "ARECIBO" || nameUpper == "ARECIBO 305M")
+			return ARECIBO_TELESCOPE;
+		else if(nameUpper == "BIGHORNS")
+			return BIGHORNS_TELESCOPE;
+		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
+			return JVLA_TELESCOPE;
+		else if(nameUpper == "LOFAR")
 			return LOFAR_TELESCOPE;
 		else if(nameUpper == "MWA")
 			return MWA_TELESCOPE;
 		else if(nameUpper == "PKS" || nameUpper == "ATPKSMB")
 			return PARKES_TELESCOPE;
-		else if(nameUpper == "EVLA" || nameUpper == "JVLA")
-			return JVLA_TELESCOPE;
 		else if(nameUpper == "WSRT")
 			return WSRT_TELESCOPE;
 		else
@@ -93,6 +100,8 @@ namespace rfiStrategy {
 			(telescopeId==MWA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// JVLA observation I saw (around 1100 MHz) have steep band edges
 			(telescopeId==JVLA_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
+			// Bighorns doesn't correct passband
+			(telescopeId==BIGHORNS_TELESCOPE && ((flags&FLAG_SMALL_BANDWIDTH) == 0)) ||
 			// Other cases with large bandwidth
 			((flags&FLAG_LARGE_BANDWIDTH) != 0);
 		bool keepTransients = (flags&FLAG_TRANSIENTS) != 0;
@@ -116,9 +125,13 @@ namespace rfiStrategy {
 		bool resetContaminated =
 			((flags&FLAG_GUI_FRIENDLY) != 0);
 		int iterationCount = ((flags&FLAG_ROBUST)==0) ? 2 : 4;
+		if(telescopeId == BIGHORNS_TELESCOPE)
+			iterationCount *= 2;
 		double sumThresholdSensitivity = 1.0;
 		if(telescopeId == PARKES_TELESCOPE || telescopeId == WSRT_TELESCOPE)
 			sumThresholdSensitivity = 1.4;
+		else if(telescopeId == ARECIBO_TELESCOPE || telescopeId == BIGHORNS_TELESCOPE)
+			sumThresholdSensitivity = 1.2;
 		if((flags&FLAG_AUTO_CORRELATION) != 0)
 			sumThresholdSensitivity *= 1.4;
 		if((flags&FLAG_SENSITIVE) != 0)
@@ -132,10 +145,12 @@ namespace rfiStrategy {
 		if(telescopeId == JVLA_TELESCOPE)
 			verticalSmoothing = 1.0;
 		
-		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing);
+		bool hasBaselines = telescopeId!=PARKES_TELESCOPE && telescopeId!=ARECIBO_TELESCOPE && telescopeId!=BIGHORNS_TELESCOPE;
+		
+		LoadSingleStrategy(strategy, iterationCount, keepTransients, changeResVertically, calPassband, channelSelection, clearFlags, resetContaminated, sumThresholdSensitivity, onStokesIQ, assembleStatistics, verticalSmoothing, hasBaselines);
 	}
 	
-	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics, double verticalSmoothing)
+	void DefaultStrategy::LoadSingleStrategy(ActionBlock &block, int iterationCount, bool keepTransients, bool changeResVertically, bool calPassband, bool channelSelection, bool clearFlags, bool resetContaminated, double sumThresholdSensitivity, bool onStokesIQ, bool assembleStatistics, double verticalSmoothing, bool hasBaselines)
 	{
 		ActionBlock *current;
 
@@ -255,7 +270,7 @@ namespace rfiStrategy {
 				block.Add(new TimeSelectionAction());
 		}
 
-		if(assembleStatistics)
+		if(assembleStatistics && hasBaselines)
 		{
 			BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
 			baselineSelection->SetPreparationStep(true);
@@ -279,17 +294,23 @@ namespace rfiStrategy {
 
 		feBaseBlock->Add(new WriteFlagsAction());
 
-		PlotAction *antennaPlotAction = new PlotAction();
-		antennaPlotAction->SetPlotKind(PlotAction::AntennaFlagCountPlot);
-		feBaseBlock->Add(antennaPlotAction);
+		if(telescopeId != ARECIBO_TELESCOPE && telescopeId != PARKES_TELESCOPE)
+		{
+			PlotAction *antennaPlotAction = new PlotAction();
+			antennaPlotAction->SetPlotKind(PlotAction::AntennaFlagCountPlot);
+			feBaseBlock->Add(antennaPlotAction);
+		}
 
 		PlotAction *frequencyPlotAction = new PlotAction();
 		frequencyPlotAction->SetPlotKind(PlotAction::FrequencyFlagCountPlot);
 		feBaseBlock->Add(frequencyPlotAction);
 
-		BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
-		baselineSelection->SetPreparationStep(false);
-		destination.Add(baselineSelection);
+		if(telescopeId != ARECIBO_TELESCOPE && telescopeId != PARKES_TELESCOPE)
+		{
+			BaselineSelectionAction *baselineSelection = new BaselineSelectionAction();
+			baselineSelection->SetPreparationStep(false);
+			destination.Add(baselineSelection);
+		}
 	}
 	
 	void DefaultStrategy::warnIfUnknownTelescope(DefaultStrategy::TelescopeId& telescopeId, const string& telescopeName)
@@ -361,6 +382,9 @@ namespace rfiStrategy {
 	void DefaultStrategy::DetermineSettings(ImageSet& measurementSet, DefaultStrategy::TelescopeId& telescopeId, unsigned int& flags, double& frequency, double& timeRes, double& frequencyRes)
 	{
 		MSImageSet *msImageSet = dynamic_cast<MSImageSet*>(&measurementSet);
+		FitsImageSet *fitsImageSet = dynamic_cast<FitsImageSet*>(&measurementSet);
+		BHFitsImageSet *bhFitsImageSet = dynamic_cast<BHFitsImageSet*>(&measurementSet);
+
 		if(msImageSet != 0)
 		{
 			DetermineSettings(
@@ -371,28 +395,41 @@ namespace rfiStrategy {
 				timeRes,
 				frequencyRes
 			);
+		}
+		else if(fitsImageSet != 0) {
+		  std::string telescopeName = fitsImageSet->ReadTelescopeName();
+		  telescopeId = TelescopeIdFromName(telescopeName);
+		  warnIfUnknownTelescope(telescopeId, telescopeName);
+		  if(telescopeId != GENERIC_TELESCOPE)
+		    AOLogger::Info <<
+		      "The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
+		      "settings will be left to their defaults, which might not be optimal for all cases.\n";
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;
+		}
+		else if(bhFitsImageSet != 0) {
+		  std::string telescopeName = bhFitsImageSet->GetTelescopeName();
+		  telescopeId = TelescopeIdFromName(telescopeName);
+		  warnIfUnknownTelescope(telescopeId, telescopeName);
+		  if(telescopeId != GENERIC_TELESCOPE)
+		    AOLogger::Info <<
+		      "The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
+		      "settings will be left to their defaults, which might not be optimal for all cases.\n";
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;		  
 		} else {
-			FitsImageSet *fitsImageSet = dynamic_cast<FitsImageSet*>(&measurementSet);
-			if(fitsImageSet != 0)
-			{
-				std::string telescopeName = fitsImageSet->ReadTelescopeName();
-				telescopeId = TelescopeIdFromName(telescopeName);
-				warnIfUnknownTelescope(telescopeId, telescopeName);
-				if(telescopeId != GENERIC_TELESCOPE)
-					AOLogger::Info <<
-						"The strategy will be optimized for telescope " << TelescopeName(telescopeId) << ". Telescope-specific\n"
-						"settings will be left to their defaults, which might not be optimal for all cases.\n";
-			} else {
-				telescopeId = GENERIC_TELESCOPE;
-				AOLogger::Warn <<
-					"** Could not determine telescope name from set, because it has not\n"
-					"** been implemented for this file format. A generic strategy will be used!\n";
-			}
-			flags = 0;
-			frequency = 0.0;
-			timeRes = 0.0;
-			frequencyRes = 0.0;
+		  telescopeId = GENERIC_TELESCOPE;
+		  flags = 0;
+		  frequency = 0.0;
+		  timeRes = 0.0;
+		  frequencyRes = 0.0;
+		  AOLogger::Warn <<
+		    "** Could not determine telescope name from set, because it has not\n"
+		    "** been implemented for this file format. A generic strategy will be used!\n";
 		}
 	}
-	
 }

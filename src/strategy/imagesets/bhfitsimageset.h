@@ -17,8 +17,8 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef FITSIMAGESET_H
-#define FITSIMAGESET_H
+#ifndef BHFITSIMAGESET_H
+#define BHFITSIMAGESET_H
 
 #include <vector>
 #include <set>
@@ -34,10 +34,10 @@
 
 namespace rfiStrategy {
 	
-	class FitsImageSetIndex : public ImageSetIndex {
-		friend class FitsImageSet;
+	class BHFitsImageSetIndex : public ImageSetIndex {
+		friend class BHFitsImageSet;
 		
-		FitsImageSetIndex(class rfiStrategy::ImageSet &set) : ImageSetIndex(set), _baselineIndex(0), _band(0), _field(0), _isValid(true) { }
+  BHFitsImageSetIndex(class rfiStrategy::ImageSet &set) : ImageSetIndex(set), _imageIndex(0), _isValid(true) { }
 		
 		virtual void Previous();
 		virtual void Next();
@@ -45,44 +45,44 @@ namespace rfiStrategy {
 		virtual void LargeStepNext();
 		virtual std::string Description() const;
 		virtual bool IsValid() const throw() { return _isValid; }
-		virtual FitsImageSetIndex *Copy() const
+		virtual BHFitsImageSetIndex *Copy() const
 		{
-			FitsImageSetIndex *index = new FitsImageSetIndex(imageSet());
-			index->_baselineIndex = _baselineIndex;
-			index->_band = _band;
-			index->_field = _field;
+			BHFitsImageSetIndex *index = new BHFitsImageSetIndex(imageSet());
+			index->_imageIndex = _imageIndex;
 			index->_isValid = _isValid;
 			return index;
 		}
 		private:
-			size_t _baselineIndex, _band, _field;
+			size_t _imageIndex;
 			bool _isValid;
 	};
 
 	/**
 		@author A.R. Offringa <offringa@astro.rug.nl>
 	*/
-	class FitsImageSet : public ImageSet
+	class BHFitsImageSet : public ImageSet
 	{
 		public:
-			FitsImageSet(const std::string &file);
-			~FitsImageSet();
+			BHFitsImageSet(const std::string &file);
+			~BHFitsImageSet();
 			virtual void Initialize();
 
-			virtual FitsImageSet *Copy();
+			virtual BHFitsImageSet *Copy();
 
 			virtual ImageSetIndex *StartIndex()
 			{
-				return new FitsImageSetIndex(*this);
+				return new BHFitsImageSetIndex(*this);
 			}
 			virtual std::string Name()
 			{
-				return "Fits file";
+			  return "Bighorns fits file";
 			}
 			virtual std::string File();
-			const std::vector<std::pair<size_t,size_t> > &Baselines() const throw() { return _baselines; }
-			size_t BandCount() { return _bandCount; }
-			class AntennaInfo GetAntennaInfo(unsigned antennaIndex) { return _antennaInfos[antennaIndex]; }
+			size_t ImageCount() { return _timeRanges.size(); }
+			const std::string &RangeName(size_t rangeIndex) {
+			  return _timeRanges[rangeIndex].name;
+			}
+
 			virtual void WriteFlags(const ImageSetIndex &, TimeFrequencyData &)
 			{
 				throw BadUsageException("Fits format is not supported for writing flags yet");
@@ -106,40 +106,41 @@ namespace rfiStrategy {
 			{
 				throw BadUsageException("Not implemented");
 			}
-			
-			std::string ReadTelescopeName();
-			
+			std::string GetTelescopeName() const {
+			  return "Bighorns";
+			}
 		private:
-			FitsImageSet(const FitsImageSet &source);
+			struct TimeRange
+			{
+			  int start, end;
+			  std::string name;
+
+			  TimeRange() { }
+			TimeRange(const TimeRange &source)
+			: start(source.start),
+			    end(source.end),
+			    name(source.name)
+			  {
+			  }
+
+			  void operator=(const TimeRange &source)
+			  {
+			    start = source.start;
+			    end = source.end;
+			    name = source.name;
+			  }
+			};
+
+			BHFitsImageSet(const BHFitsImageSet &source);
 			BaselineData loadData(const ImageSetIndex &index);
-			
-			size_t getAntenna1(const ImageSetIndex &index) {
-				return _baselines[static_cast<const FitsImageSetIndex&>(index)._baselineIndex].first;
-			}
-			size_t getAntenna2(const ImageSetIndex &index) {
-				return _baselines[static_cast<const FitsImageSetIndex&>(index)._baselineIndex].second;
-			}
-			
-			void ReadPrimarySingleTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData);
-			void ReadTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData, size_t bandIndex);
-			void ReadAntennaTable(TimeFrequencyMetaData &metaData);
-			void ReadFrequencyTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData);
-			void ReadCalibrationTable();
-			void ReadSingleDishTable(TimeFrequencyData &data, TimeFrequencyMetaData &metaData, size_t ifIndex);
-			TimeFrequencyData ReadPrimaryGroupTable(size_t baselineIndex, int band, int stokes, TimeFrequencyMetaData &metaData);
-			
-			void saveSingleDishFlags(std::vector<Mask2DCPtr> &flags, size_t ifIndex);
-			
+			void loadImageData(TimeFrequencyData &data, const TimeFrequencyMetaDataPtr &metaData, const BHFitsImageSetIndex &index);
+			std::pair<int, int> getRangeFromString(const std::string &rangeStr);
+			std::string flagFilePath() const;
+
 			boost::shared_ptr<class FitsFile> _file;
-			std::vector<std::pair<size_t,size_t> > _baselines;
-			size_t _bandCount;
-			std::vector<AntennaInfo> _antennaInfos;
-			std::map<int, BandInfo> _bandInfos;
-			std::vector<int> _bandIndexToNumber;
-			size_t _currentBaselineIndex, _currentBandIndex;
-			double _frequencyOffset;
-			
 			std::stack<BaselineData> _baselineData;
+			std::vector<TimeRange> _timeRanges;
+			int _width, _height;
 	};
 
 }
