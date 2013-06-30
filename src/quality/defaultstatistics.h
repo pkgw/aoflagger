@@ -101,6 +101,28 @@ class DefaultStatistics : public Serializable
 			return *this;
 		}
 		
+		bool operator==(const DefaultStatistics &rhs) const
+		{
+			if(_polarizationCount != rhs._polarizationCount)
+				return false;
+			for(unsigned p=0;p<_polarizationCount;++p)
+			{
+				if(rfiCount[p] != rhs.rfiCount[p]) return false;
+				if(count[p] != rhs.count[p]) return false;
+				if(sum[p] != rhs.sum[p]) return false;
+				if(sumP2[p] != rhs.sumP2[p]) return false;
+				if(dCount[p] != rhs.dCount[p]) return false;
+				if(dSum[p] != rhs.dSum[p]) return false;
+				if(dSumP2[p] != rhs.dSumP2[p]) return false;
+			}
+			return true;
+		}
+		
+		bool operator!=(const DefaultStatistics &rhs) const
+		{
+			return !(*this == rhs);
+		}
+		
 		DefaultStatistics ToSinglePolarization() const
 		{
 			if(_polarizationCount == 1)
