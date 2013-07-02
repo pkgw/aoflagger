@@ -221,7 +221,7 @@ namespace rfiStrategy {
 		} catch(std::exception &) {
 			AOLogger::Debug << "File did not exist yet, creating new.\n";
 			flagFile.Create();
-			flagFile.AppendImageHUD(FitsFile::Float32ImageType, _width, _height);
+			flagFile.AppendImageHUD(FitsFile::Float32ImageType, _height, _width);
 		}
 
 		// This must be outside the try { } block, so that exceptions
