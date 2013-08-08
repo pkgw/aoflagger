@@ -13,6 +13,7 @@ find_library(CASA_MEASURES_LIB casa_measures REQUIRED)
 set(CASA_LIBS ${CASA_MS_LIB} ${CASA_TABLES_LIB} ${CASA_CASA_LIB})
 find_path(CASA_INCLUDE_DIR NAMES ms/MeasurementSets/MeasurementSet.h PATHS /usr/local/include/casacore PATH_SUFFIXES casacore)
 find_path(FITSIO_INCLUDE_DIR NAMES fitsio.h)
+find_path(FFTW3_INCLUDE_DIR NAMES fftw3.h)
 
 #find_package(GSL)
 
@@ -33,6 +34,7 @@ include_directories(${CASA_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${LIBXML2_INCLUDE_DIR})
 include_directories(${FITSIO_INCLUDE_DIR})
+include_directories(${FFTW3_INCLUDE_DIR})
 
 # The following stuff will set the "rpath" correctly, so that
 # LD_LIBRARY_PATH doesn't have to be set.
