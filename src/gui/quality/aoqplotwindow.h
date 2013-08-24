@@ -53,15 +53,25 @@ class AOQPlotWindow : public Gtk::Window {
 			close();
 		}
     
-		void Open(const std::string &filename);
+		void Open(const std::vector<std::string>& files);
+		void Open(const std::string& file)
+		{
+			std::vector<std::string> files(1);
+			files[0] = file;
+			Open(files);
+		}
 		void SetStatus(const std::string &newStatus)
 		{
 			onStatusChange(newStatus);
 		}
 	private:
-		void onOpenOptionsSelected(std::string filename, bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms);
+		void onOpenOptionsSelected(const std::vector<std::string>& files, bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms);
 		void close();
-		void readStatistics(bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms);
+		void readStatistics(const std::vector<std::string>& files, bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms);
+		void readDistributedObservation(const std::string& filename, bool correctHistograms);
+		void readMetaInfoFromMS(const std::string& filename);
+		void readAndCombine(const std::string& filename);
+		
 		void onHide()
 		{
 			Gtk::Main::quit();
@@ -101,11 +111,11 @@ class AOQPlotWindow : public Gtk::Window {
 		OpenOptionsWindow _openOptionsWindow;
 
 		bool _isOpen;
-		std::string _filename;
 		class StatisticsCollection *_statCollection;
 		class HistogramCollection *_histCollection;
 		class StatisticsCollection *_fullStats;
 		std::vector<class AntennaInfo> _antennas;
+		size_t _polarizationCount;
 };
 
 #endif

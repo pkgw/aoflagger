@@ -72,23 +72,30 @@ class OpenOptionsWindow : public Gtk::Window {
     {
 		}
 		
-		void ShowForFile(const std::string &file)
+		void ShowForFile(const std::vector<std::string>&files)
 		{
-			_file = file;
+			_files = files;
 			show();
 		}
 		
-		sigc::signal<void, std::string, bool, bool, size_t, size_t, bool> &SignalOpen() { return _signalOpen; }
+		void ShowForFile(const std::string& filename)
+		{
+			_files.clear();
+			_files.push_back(filename);
+			show();
+		}
+		
+		sigc::signal<void, const std::vector<std::string>&, bool, bool, size_t, size_t, bool> &SignalOpen() { return _signalOpen; }
 	private:
 		void onOpen()
 		{
 			hide();
 			size_t timeRes = atol(_timeDownsampleEntry.get_text().c_str());
 			size_t freqRes = atol(_freqDownsampleEntry.get_text().c_str());
-			_signalOpen.emit(_file, _downsampleTimeButton.get_active(), _downsampleFreqButton.get_active(), timeRes, freqRes,
+			_signalOpen.emit(_files, _downsampleTimeButton.get_active(), _downsampleFreqButton.get_active(), timeRes, freqRes,
 			_correctHistograms.get_active()
 			);
-			_file.clear();
+			_files.clear();
 		}
 		
 		Gtk::VBox _box;
@@ -101,9 +108,9 @@ class OpenOptionsWindow : public Gtk::Window {
 		Gtk::CheckButton _correctHistograms;
 		Gtk::HButtonBox _buttonBox;
 		Gtk::Button _cancelButton, _openButton;
-		sigc::signal<void, std::string, bool, bool, size_t, size_t, bool> _signalOpen;
+		sigc::signal<void, const std::vector<std::string>&, bool, bool, size_t, size_t, bool> _signalOpen;
 		
-		std::string _file;
+		std::vector<std::string> _files;
 };
 
 #endif

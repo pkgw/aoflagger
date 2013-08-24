@@ -45,7 +45,10 @@ int main(int argc, char *argv[])
 	else {
 		if(argc>1)
 		{
-			window.Open(argv[1]);
+			std::vector<std::string> files;
+			for(int i=1; i!=argc; ++i)
+				files.push_back(argv[i]);
+			window.Open(files);
 		} else {
 			Gtk::FileChooserDialog fileDialog(window, "Open observation set");
 			

@@ -80,15 +80,14 @@ AOQPlotWindow::AOQPlotWindow() :
 	signal_hide().connect(sigc::mem_fun(*this, &AOQPlotWindow::onHide));
 }
 
-void AOQPlotWindow::Open(const std::string &filename)
+void AOQPlotWindow::Open(const std::vector<std::string> &files)
 {
-	_openOptionsWindow.ShowForFile(filename);
+	_openOptionsWindow.ShowForFile(files);
 }
 
-void AOQPlotWindow::onOpenOptionsSelected(std::string filename, bool downsampleTime, bool downsampleFreq, size_t timeCount, size_t freqCount, bool correctHistograms)
+void AOQPlotWindow::onOpenOptionsSelected(const std::vector<std::string>& files, bool downsampleTime, bool downsampleFreq, size_t timeCount, size_t freqCount, bool correctHistograms)
 {
-	_filename = filename;
-	readStatistics(downsampleTime, downsampleFreq, timeCount, freqCount, correctHistograms);
+	readStatistics(files, downsampleTime, downsampleFreq, timeCount, freqCount, correctHistograms);
 	_baselinePlotPage.SetStatistics(_statCollection, _antennas);
 	_antennaePlotPage.SetStatistics(_statCollection, _antennas);
 	_bLengthPlotPage.SetStatistics(_statCollection, _antennas);
@@ -120,90 +119,118 @@ void AOQPlotWindow::close()
 	}
 }
 
-void AOQPlotWindow::readStatistics(bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms)
+void AOQPlotWindow::readDistributedObservation(const std::string& filename, bool correctHistograms)
+{
+	aoRemote::ClusteredObservation *observation = aoRemote::ClusteredObservation::Load(filename);
+	_statCollection = new StatisticsCollection();
+	_histCollection = new HistogramCollection();
+	aoRemote::ProcessCommander commander(*observation);
+	commander.PushReadAntennaTablesTask();
+	commander.PushReadQualityTablesTask(_statCollection, _histCollection, correctHistograms);
+	commander.Run();
+	if(!commander.Errors().empty())
+	{
+		std::stringstream s;
+		s << commander.Errors().size() << " error(s) occured while querying the nodes or measurement sets in the given observation. This might be caused by a failing node, an unreadable measurement set, or maybe the quality tables are not available. The errors reported are:\n\n";
+		size_t count = 0;
+		for(std::vector<std::string>::const_iterator i=commander.Errors().begin();i!=commander.Errors().end() && count < 30;++i)
+		{
+			s << "- " << *i << '\n';
+			++count;
+		}
+		if(commander.Errors().size() > 30)
+		{
+			s << "... and " << (commander.Errors().size()-30) << " more.\n";
+		}
+		s << "\nThe program will continue, but this might mean that the statistics are incomplete. If this is the case, fix the issues and reopen the observation.";
+		std::cerr << s.str() << std::endl;
+		Gtk::MessageDialog dialog(*this, s.str(), false, Gtk::MESSAGE_ERROR);
+		dialog.run();
+	}
+	
+	_antennas = commander.Antennas();
+	
+	delete observation;
+}
+
+void AOQPlotWindow::readMetaInfoFromMS(const string& filename)
+{
+	MeasurementSet *ms = new MeasurementSet(filename);
+	_polarizationCount = ms->PolarizationCount();
+	unsigned antennaCount = ms->AntennaCount();
+	_antennas.clear();
+	for(unsigned a=0;a<antennaCount;++a)
+		_antennas.push_back(ms->GetAntennaInfo(a));
+	delete ms;
+}
+
+void AOQPlotWindow::readAndCombine(const string& filename)
+{
+	std::cout << "Adding " << filename << " to statistics...\n";
+	QualityTablesFormatter qualityTables(filename);
+	StatisticsCollection statCollection(_polarizationCount);
+	statCollection.Load(qualityTables);
+	_statCollection->Add(statCollection);
+	
+	HistogramTablesFormatter histogramTables(filename);
+	if(histogramTables.HistogramsExist())
+	{
+		HistogramCollection histCollection(_polarizationCount);
+		histCollection.Load(histogramTables);
+		_histCollection->Add(histCollection);
+	}
+}
+
+void AOQPlotWindow::readStatistics(const std::vector<std::string>& files, bool downsampleTime, bool downsampleFreq, size_t timeSize, size_t freqSize, bool correctHistograms)
 {
 	close();
 	
-	if(aoRemote::ClusteredObservation::IsClusteredFilename(_filename))
+	if(!files.empty())
 	{
-		aoRemote::ClusteredObservation *observation = aoRemote::ClusteredObservation::Load(_filename);
-		_statCollection = new StatisticsCollection();
-		_histCollection = new HistogramCollection();
-		aoRemote::ProcessCommander commander(*observation);
-		commander.PushReadAntennaTablesTask();
-		commander.PushReadQualityTablesTask(_statCollection, _histCollection, correctHistograms);
-		commander.Run();
-		if(!commander.Errors().empty())
+		const std::string& firstFile = *files.begin();
+		if(aoRemote::ClusteredObservation::IsClusteredFilename(firstFile))
 		{
-			std::stringstream s;
-			s << commander.Errors().size() << " error(s) occured while querying the nodes or measurement sets in the given observation. This might be caused by a failing node, an unreadable measurement set, or maybe the quality tables are not available. The errors reported are:\n\n";
-			size_t count = 0;
-			for(std::vector<std::string>::const_iterator i=commander.Errors().begin();i!=commander.Errors().end() && count < 30;++i)
-			{
-				s << "- " << *i << '\n';
-				++count;
-			}
-			if(commander.Errors().size() > 30)
-			{
-				s << "... and " << (commander.Errors().size()-30) << " more.\n";
-			}
-			s << "\nThe program will continue, but this might mean that the statistics are incomplete. If this is the case, fix the issues and reopen the observation.";
-			std::cerr << s.str() << std::endl;
-			Gtk::MessageDialog dialog(*this, s.str(), false, Gtk::MESSAGE_ERROR);
-			dialog.run();
+			if(files.size() != 1)
+				throw std::runtime_error("You are trying to open multiple distributed or clustered sets. Can only open multiple files if they are not distributed.");
+			readDistributedObservation(firstFile, correctHistograms);
 		}
-		
-		_antennas = commander.Antennas();
-		
-		delete observation;
-	}
-	else {
-		MeasurementSet *ms = new MeasurementSet(_filename);
-		const unsigned polarizationCount = ms->PolarizationCount();
-		unsigned antennaCount = ms->AntennaCount();
-		_antennas.clear();
-		for(unsigned a=0;a<antennaCount;++a)
-			_antennas.push_back(ms->GetAntennaInfo(a));
-		delete ms;
-
-		QualityTablesFormatter qualityTables(_filename);
-		_statCollection = new StatisticsCollection(polarizationCount);
-		_statCollection->Load(qualityTables);
-		
-		HistogramTablesFormatter histogramTables(_filename);
-		_histCollection = new HistogramCollection(polarizationCount);
-		if(histogramTables.HistogramsExist())
+		else {
+			readMetaInfoFromMS(firstFile);
+			
+			_statCollection = new StatisticsCollection(_polarizationCount);
+			_histCollection = new HistogramCollection(_polarizationCount);
+			
+			for(std::vector<std::string>::const_iterator i=files.begin(); i!=files.end(); ++i)
+				readAndCombine(*i);
+		}
+		setShowHistograms(!_histCollection->Empty());
+		if(downsampleTime)
 		{
-			_histCollection->Load(histogramTables);
+			std::cout << "Lowering time resolution..." << std::endl;
+			_statCollection->LowerTimeResolution(timeSize);
 		}
-	}
-	setShowHistograms(!_histCollection->Empty());
-	if(downsampleTime)
-	{
-		std::cout << "Lowering time resolution..." << std::endl;
-		_statCollection->LowerTimeResolution(timeSize);
-	}
 
-	if(downsampleFreq)
-	{
-		std::cout << "Lowering frequency resolution..." << std::endl;
-		_statCollection->LowerFrequencyResolution(freqSize);
-	}
+		if(downsampleFreq)
+		{
+			std::cout << "Lowering frequency resolution..." << std::endl;
+			_statCollection->LowerFrequencyResolution(freqSize);
+		}
 
-	std::cout << "Integrating baseline statistics to one channel..." << std::endl;
-	_statCollection->IntegrateBaselinesToOneChannel();
-	
-	std::cout << "Regridding time statistics..." << std::endl;
-	_statCollection->RegridTime();
-	
-	std::cout << "Copying statistics..." << std::endl;
-	_fullStats = new StatisticsCollection(*_statCollection);
-	
-	std::cout << "Integrating time statistics to one channel..." << std::endl;
-	_statCollection->IntegrateTimeToOneChannel();
-	
-	std::cout << "Opening statistics panel..." << std::endl;
-	_isOpen = true;
+		std::cout << "Integrating baseline statistics to one channel..." << std::endl;
+		_statCollection->IntegrateBaselinesToOneChannel();
+		
+		std::cout << "Regridding time statistics..." << std::endl;
+		_statCollection->RegridTime();
+		
+		std::cout << "Copying statistics..." << std::endl;
+		_fullStats = new StatisticsCollection(*_statCollection);
+		
+		std::cout << "Integrating time statistics to one channel..." << std::endl;
+		_statCollection->IntegrateTimeToOneChannel();
+		
+		std::cout << "Opening statistics panel..." << std::endl;
+		_isOpen = true;
+	}
 }
 
 void AOQPlotWindow::onStatusChange(const std::string &newStatus)
