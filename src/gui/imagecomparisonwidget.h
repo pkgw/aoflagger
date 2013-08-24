@@ -44,19 +44,7 @@ class ImageComparisonWidget : public ImageWidget {
 		TimeFrequencyData GetActiveData() const
 		{
 			TimeFrequencyData data(getActiveDataWithOriginalFlags());
-			data.SetNoMask();
-			if(ShowOriginalMask())
-			{
-			  if(ShowAlternativeMask())
-				{
-					data.SetMask(_original);
-					data.JoinMask(_contaminated);
-				} else
-					data.SetMask(_original);
-			} else {
-			      if(ShowAlternativeMask())
-					data.SetMask(_contaminated);
-			}
+			data.SetGlobalMask(GetActiveMask());
 			if(StartHorizontal() != 0.0 || EndHorizontal() != 1.0 || StartVertical() != 0.0 || EndVertical() != 1.0)
 			   data.Trim(round(StartHorizontal() * data.ImageWidth()), round(StartVertical() * data.ImageHeight()),
 									 round(EndHorizontal() * data.ImageWidth()), round(EndVertical() * data.ImageHeight())); 
