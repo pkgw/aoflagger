@@ -77,7 +77,7 @@ namespace rfiStrategy {
 			}
 			virtual std::string Name()
 			{
-				return "Fits file";
+				return File();
 			}
 			virtual std::string File();
 			const std::vector<std::pair<size_t,size_t> > &Baselines() const throw() { return _baselines; }

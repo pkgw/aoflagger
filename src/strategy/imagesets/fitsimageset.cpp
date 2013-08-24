@@ -626,7 +626,7 @@ namespace rfiStrategy {
 		AntennaInfo info1 = set.GetAntennaInfo(a1);
 		AntennaInfo info2 = set.GetAntennaInfo(a2);
 		std::stringstream s;
-		s << "fits correlation " << info1.name << " x " << info2.name << ", band " << _band;
+		s << "Correlation " << info1.name << " x " << info2.name << ", band " << _band;
 		return s.str();
 	}
 
