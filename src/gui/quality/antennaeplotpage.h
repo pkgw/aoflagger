@@ -41,11 +41,20 @@ class AntennaePlotPage : public TwoDimensionalPlotPage {
 			{
 				if(i->first != i->second)
 				{
-					const DefaultStatistics &stats = map.GetStatistics(i->first, i->second);
-					_statistics.insert(std::pair<double, DefaultStatistics>(i->first, stats));
-					_statistics.insert(std::pair<double, DefaultStatistics>(i->second, stats));
+					const DefaultStatistics& stats = map.GetStatistics(i->first, i->second);
+					addStatistic(i->first, stats);
+					addStatistic(i->second, stats);
 				}
 			}
+		}
+		
+		void addStatistic(unsigned antIndex, const DefaultStatistics& stats)
+		{
+			std::map<double, DefaultStatistics>::iterator iter = _statistics.find(antIndex);
+			if(iter == _statistics.end())
+				_statistics.insert(std::pair<double, DefaultStatistics>(antIndex, stats));
+			else
+				iter->second += stats;
 		}
 		
 		virtual const std::map<double, class DefaultStatistics> &GetStatistics() const
