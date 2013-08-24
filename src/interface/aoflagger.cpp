@@ -415,33 +415,22 @@ namespace aoflagger {
 	
 	void AOFlagger::CollectStatistics(QualityStatistics& destination, const ImageSet& imageSet, const FlagMask& rfiFlags, const FlagMask& correlatorFlags, size_t antenna1, size_t antenna2)
 	{
-		const size_t nChannels = imageSet.Height();
-		const size_t imageStride = imageSet.HorizontalStride();
-		const size_t maskStride = rfiFlags.HorizontalStride();
-		
 		StatisticsCollection &stats(destination._data->_implementation->statistics);
 		const std::vector<double> &times(destination._data->_implementation->scanTimes);
 		
 		if(imageSet.ImageCount() == 1)
 		{
-			for(size_t t=0; t<imageSet.Width(); ++t) {
-				stats.Add(antenna1, antenna2, times[t], 0, 0,
-									imageSet.ImageBuffer(0)+t, imageSet.ImageBuffer(0)+t,
-									rfiFlags.Buffer()+t, correlatorFlags.Buffer()+t,
-									nChannels, imageStride, maskStride, maskStride);
-			}
+			stats.AddImage(antenna1, antenna2, &times[0], 0, 0,
+										 imageSet._data->images[0], imageSet._data->images[0],
+										 rfiFlags._data->mask, correlatorFlags._data->mask);
 		}
 		else {
 			const size_t polarizationCount = imageSet.ImageCount()/2;
 			for(size_t polarization=0; polarization!=polarizationCount; ++polarization)
 			{
-				for(size_t t=0; t<imageSet.Width(); ++t) 
-				{
-					stats.Add(antenna1, antenna2, times[t], 0, polarization,
-										imageSet.ImageBuffer(polarization*2)+t, imageSet.ImageBuffer(polarization*2+1)+t,
-										rfiFlags.Buffer()+t, correlatorFlags.Buffer()+t,
-										nChannels, imageStride, maskStride, maskStride);
-				}
+				stats.AddImage(antenna1, antenna2, &times[0], 0, polarization,
+											imageSet._data->images[polarization*2], imageSet._data->images[polarization*2+1],
+											rfiFlags._data->mask, correlatorFlags._data->mask);
 			}
 		}
 	}
