@@ -723,9 +723,11 @@ void RFIGuiWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("EditStrategy", "_Edit strategy"),
 		Gtk::AccelKey("F8"),
   sigc::mem_fun(*this, &RFIGuiWindow::onEditStrategyPressed) );
-	_actionGroup->add( Gtk::Action::create("ExecuteStrategy", "E_xecute strategy"),
-		Gtk::AccelKey("F9"),
-		sigc::mem_fun(*this, &RFIGuiWindow::onExecuteStrategyPressed) );
+	Glib::RefPtr <Gtk::Action> executeAction =
+		Gtk::Action::create("ExecuteStrategy", "E_xecute strategy");
+	executeAction->set_icon_name("system-run");
+	_actionGroup->add(executeAction, Gtk::AccelKey("F9"),
+			sigc::mem_fun(*this, &RFIGuiWindow::onExecuteStrategyPressed));
 	_actionGroup->add( Gtk::Action::create("ShowStats", "Show _stats"),
 		Gtk::AccelKey("F2"),
 		sigc::mem_fun(*this, &RFIGuiWindow::onShowStats) );
@@ -1017,6 +1019,7 @@ void RFIGuiWindow::createToolbar()
     "    <toolitem action='Previous'/>"
     "    <toolitem action='Next'/>"
     "    <separator/>"
+    "    <toolitem action='ExecuteStrategy'/>"
     "    <toolitem action='OriginalFlags'/>"
     "    <toolitem action='AlternativeFlags'/>"
     "    <separator/>"
