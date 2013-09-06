@@ -136,10 +136,10 @@ namespace rfiStrategy {
 	
 			virtual ImageSetIndex *StartIndex() { return new MSImageSetIndex(*this); }
 
-			MSImageSetIndex *Index(size_t a1, size_t a2, size_t b, size_t s)
+			MSImageSetIndex *Index(size_t antenna1, size_t antenna2, size_t bandIndex, size_t sequenceId)
 			{
 				MSImageSetIndex *index = new MSImageSetIndex(*this);
-				index->_sequenceIndex = FindBaselineIndex(a1, a2, b, s);
+				index->_sequenceIndex = FindBaselineIndex(antenna1, antenna2, bandIndex, sequenceId);
 				return index;
 			}
 			

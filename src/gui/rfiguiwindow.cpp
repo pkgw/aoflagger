@@ -744,6 +744,11 @@ void RFIGuiWindow::createToolbar()
 	_actionGroup->add( Gtk::Action::create("GoTo", "_Go to..."),
 		Gtk::AccelKey("<control>G"),
   sigc::mem_fun(*this, &RFIGuiWindow::onGoToPressed) );
+	_actionGroup->add( Gtk::Action::create("LoadLongestBaseline", "Longest baseline"),
+		sigc::mem_fun(*this, &RFIGuiWindow::onLoadLongestBaselinePressed) );
+	_actionGroup->add( Gtk::Action::create("LoadShortestBaseline", "Shortest baseline"),
+		sigc::mem_fun(*this, &RFIGuiWindow::onLoadShortestBaselinePressed) );
+	
   _originalFlagsButton = Gtk::ToggleAction::create("OriginalFlags", "Or flags");
 	_originalFlagsButton->set_active(true);
 	_originalFlagsButton->set_icon_name("showoriginalflags");
@@ -946,6 +951,9 @@ void RFIGuiWindow::createToolbar()
     "      <menuitem action='LargeStepNext'/>"
     "      <separator/>"
     "      <menuitem action='GoTo'/>"
+    "      <separator/>"
+    "      <menuitem action='LoadLongestBaseline'/>"
+    "      <menuitem action='LoadShortestBaseline'/>"
     "    </menu>"
 	  "    <menu action='MenuSimulate'>"
     "      <menuitem action='NCPSet'/>"
@@ -1386,8 +1394,76 @@ void RFIGuiWindow::onGoToPressed()
 				delete _gotoWindow;
 			_gotoWindow = new GoToWindow(*this);
 			_gotoWindow->show();
-			} else {
+		} else {
 			showError("Can not goto in this image set; format does not support goto");
+		}
+	}
+}
+
+void RFIGuiWindow::onLoadLongestBaselinePressed()
+{
+	if(HasImageSet())
+	{
+		rfiStrategy::MSImageSet *msSet = dynamic_cast<rfiStrategy::MSImageSet*>(_imageSet);
+		if(msSet != 0)
+		{
+			double longestSq = 0.0;
+			size_t longestA1=0, longestA2=0;
+			size_t antCount = msSet->AntennaCount();
+			std::vector<AntennaInfo> antennas(antCount);
+			for(size_t a=0; a!=antCount; a++)
+				antennas[a] = msSet->GetAntennaInfo(a);
+			
+			for(size_t a1=0; a1!=antCount; a1++)
+			{
+				for(size_t a2=a1+1; a2!=antCount; ++a2)
+				{
+					const AntennaInfo &ant1 = antennas[a1], &ant2 = antennas[a2];
+					double distSq = ant1.position.DistanceSquared(ant2.position);
+					if(distSq > longestSq)
+					{
+						longestSq = distSq;
+						longestA1 = a1;
+						longestA2 = a2;
+					}
+				}
+			}
+			rfiStrategy::MSImageSetIndex *index = msSet->Index(longestA1, longestA2, msSet->GetBand(*_imageSetIndex), msSet->GetSequenceId(*_imageSetIndex));
+			SetImageSetIndex(index);
+		}
+	}
+}
+
+void RFIGuiWindow::onLoadShortestBaselinePressed()
+{
+	if(HasImageSet())
+	{
+		rfiStrategy::MSImageSet *msSet = dynamic_cast<rfiStrategy::MSImageSet*>(_imageSet);
+		if(msSet != 0)
+		{
+			double shortestSq = 1e20;
+			size_t shortestA1=0, shortestA2=0;
+			size_t antCount = msSet->AntennaCount();
+			std::vector<AntennaInfo> antennas(antCount);
+			for(size_t a=0; a!=antCount; a++)
+				antennas[a] = msSet->GetAntennaInfo(a);
+			
+			for(size_t a1=0; a1!=antCount; a1++)
+			{
+				for(size_t a2=a1+1; a2!=antCount; ++a2)
+				{
+					const AntennaInfo &ant1 = antennas[a1], &ant2 = antennas[a2];
+					double distSq = ant1.position.DistanceSquared(ant2.position);
+					if(distSq < shortestSq)
+					{
+						shortestSq = distSq;
+						shortestA1 = a1;
+						shortestA2 = a2;
+					}
+				}
+			}
+			rfiStrategy::MSImageSetIndex *index = msSet->Index(shortestA1, shortestA2, msSet->GetBand(*_imageSetIndex), msSet->GetSequenceId(*_imageSetIndex));
+			SetImageSetIndex(index);
 		}
 	}
 }

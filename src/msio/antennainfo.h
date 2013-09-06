@@ -92,6 +92,17 @@ public:
 		y = Serializable::UnserializeDouble(stream);
 		z = Serializable::UnserializeDouble(stream);
 	}
+	
+	double Distance(const EarthPosition& other) const
+	{
+		return sqrt(DistanceSquared(other));
+	}
+	
+	double DistanceSquared(const EarthPosition& other) const
+	{
+		double dx = x-other.x, dy = y-other.y, dz = z-other.z;
+		return dx*dx + dy*dy + dz*dz;
+	}
 };
 
 class UVW {
