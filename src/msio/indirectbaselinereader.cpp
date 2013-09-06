@@ -359,15 +359,14 @@ void IndirectBaselineReader::PerformDataWriteTask(std::vector<Image2DCPtr> _real
 	const size_t width = _realImages[0]->Width();
 	const size_t bufferSize = Set().FrequencyCount(spectralWindow) * PolarizationCount();
 	
-	std::ofstream dataFile(DataFilename(), std::ofstream::binary);
+	std::ofstream dataFile(DataFilename(), std::ofstream::binary | std::ios_base::in | std::ios_base::out);
 	size_t index = _seqIndexTable->Value(antenna1, antenna2, spectralWindow, sequenceId);
 	size_t filePos = _filePositions[index];
 	dataFile.seekp(filePos*(sizeof(float)*2), std::ios_base::beg);
 	
+	std::vector<float> dataBuffer(bufferSize*2);
 	for(size_t x=0;x<width;++x)
 	{
-		std::vector<float> dataBuffer(bufferSize*2);
-		
 		size_t dataBufferPtr = 0;
 		for(size_t f=0;f<Set().FrequencyCount(spectralWindow);++f) {
 			for(size_t p=0;p<PolarizationCount();++p)
