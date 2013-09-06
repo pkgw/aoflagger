@@ -538,7 +538,7 @@ void RFIGuiWindow::createToolbar()
 {
 	_actionGroup = Gtk::ActionGroup::create();
 	_actionGroup->add( Gtk::Action::create("MenuFile", "_File") );
-	_actionGroup->add( Gtk::Action::create("MenuGo", "_Go") );
+	_actionGroup->add( Gtk::Action::create("MenuBrowse", "_Browse") );
 	_actionGroup->add( Gtk::Action::create("MenuView", "_View") );
 	_actionGroup->add( Gtk::Action::create("MenuPlot", "_Plot") );
 	_actionGroup->add( Gtk::Action::create("MenuSimulate", "_Simulate") );
@@ -939,7 +939,7 @@ void RFIGuiWindow::createToolbar()
     "      <menuitem action='PlotTimeScatter'/>"
     "      <menuitem action='PlotSingularValues'/>"
 	  "    </menu>"
-    "    <menu action='MenuGo'>"
+    "    <menu action='MenuBrowse'>"
     "      <menuitem action='LargeStepPrevious'/>"
     "      <menuitem action='Previous'/>"
     "      <menuitem action='Next'/>"
