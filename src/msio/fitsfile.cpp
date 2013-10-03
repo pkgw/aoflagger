@@ -238,7 +238,7 @@ void FitsFile::WriteImage(long startPos, double *buffer, long bufferSize, double
 	CheckStatus(status);
 }
 
-void FitsFile::WriteImage(long startPos, float *buffer, long bufferSize, double nullValue)
+void FitsFile::WriteImage(long startPos, float *buffer, long bufferSize, float nullValue)
 {
 	CheckOpen();
 	int status = 0, dimensions = GetCurrentImageDimensionCount();

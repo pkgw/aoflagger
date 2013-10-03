@@ -238,7 +238,7 @@ class FitsFile {
 		 * @throws FitsIOException in case writing failed due to an IO error.
 		 */
 		void WriteImage(long startPos, double *buffer, long bufferSize, double nullValue = nan("Unset value"));
-		void WriteImage(long startPos, float *buffer, long bufferSize, double nullValue = nan("Unset value"));
+		void WriteImage(long startPos, float *buffer, long bufferSize, float nullValue = nan("Unset value"));
 		
 		int GetKeywordCount();
 		bool HasKeyword(const std::string &keywordName);

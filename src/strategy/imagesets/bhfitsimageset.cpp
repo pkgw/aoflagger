@@ -31,7 +31,15 @@ namespace rfiStrategy {
 		ImageSet(),
 		_file(new FitsFile(file))
 	{
-		_file->Open(FitsFile::ReadWriteMode);
+		AOLogger::Debug << "Opening bhfits file: '" << file << "'\n";
+		try {
+			_file->Open(FitsFile::ReadWriteMode);
+		} catch(FitsIOException& exception)
+		{
+			AOLogger::Error << "CFitsio failed to open file in RW mode with the following error:\n" << exception.what()
+			<< "\nTrying reopening in read-only mode. Writing to file won't be possible.\n\n";
+			_file->Open(FitsFile::ReadOnlyMode);
+		}
 	}
 	
 	BHFitsImageSet::BHFitsImageSet(const BHFitsImageSet& source) :
@@ -55,54 +63,54 @@ namespace rfiStrategy {
 
 	void BHFitsImageSet::Initialize()
 	{
-	  _file->MoveToHDU(1);
-	  /*for(int i=1;i<=_file->GetKeywordCount();++i)
-	    {
-	      AOLogger::Debug << _file->GetKeyword(i) << " = " << _file->GetKeywordValue(i) << '\n';
-	    }*/
-	  if(_file->GetCurrentHDUType() != FitsFile::ImageHDUType)
-	    throw std::runtime_error("Error in Bighorns fits files: first HDU was not an image HDU");
-	  if(_file->GetCurrentImageDimensionCount() != 2)
-	    throw std::runtime_error("Fits image was not two dimensional");
-	  _width =_file->GetCurrentImageSize(2), _height = _file->GetCurrentImageSize(1);
-	  AOLogger::Debug << "Image of " << _width << " x " << _height << '\n';
+		_file->MoveToHDU(1);
+		/*for(int i=1;i<=_file->GetKeywordCount();++i)
+			{
+				AOLogger::Debug << _file->GetKeyword(i) << " = " << _file->GetKeywordValue(i) << '\n';
+			}*/
+		if(_file->GetCurrentHDUType() != FitsFile::ImageHDUType)
+			throw std::runtime_error("Error in Bighorns fits files: first HDU was not an image HDU");
+		if(_file->GetCurrentImageDimensionCount() != 2)
+			throw std::runtime_error("Fits image was not two dimensional");
+		_width =_file->GetCurrentImageSize(2), _height = _file->GetCurrentImageSize(1);
+		AOLogger::Debug << "Image of " << _width << " x " << _height << '\n';
 
-	  _timeRanges.clear();
-	  size_t keyIndex = 0;
-	  bool searchOn;
-	  do {
-	    searchOn = false;
-	    std::ostringstream antKey, termKey;
-	    antKey << "ANT";
-	    termKey << "TERM";
-	    if(keyIndex < 10) {
-	      antKey << '0';
-	      termKey << '0';
-	    }
-	    antKey << keyIndex;
-	    termKey << keyIndex;
-	    std::string antRangeStr, termRangeStr;
-	    if(_file->GetKeywordValue(antKey.str(), antRangeStr)) {
-	      std::pair<int, int> range = getRangeFromString(antRangeStr);
-	      TimeRange timeRange;
-	      timeRange.start = range.first;
-	      timeRange.end = range.second;
-	      timeRange.name = antKey.str();
-	      _timeRanges.push_back(timeRange);
-	      searchOn = true;
-	    }
-	    if(_file->GetKeywordValue(termKey.str(), termRangeStr)) {
-	      std::pair<int, int> range = getRangeFromString(termRangeStr);
-	      TimeRange timeRange;
-	      timeRange.start = range.first;
-	      timeRange.end = range.second;
-	      timeRange.name = termKey.str();
-	      _timeRanges.push_back(timeRange);
-	      searchOn = true;
-	    }
-	    ++keyIndex;
-	  } while(searchOn);
-	  AOLogger::Debug << "This file has " << _timeRanges.size() << " time ranges.\n";
+		_timeRanges.clear();
+		size_t keyIndex = 0;
+		bool searchOn;
+		do {
+			searchOn = false;
+			std::ostringstream antKey, termKey;
+			antKey << "ANT";
+			termKey << "TERM";
+			if(keyIndex < 10) {
+				antKey << '0';
+				termKey << '0';
+			}
+			antKey << keyIndex;
+			termKey << keyIndex;
+			std::string antRangeStr, termRangeStr;
+			if(_file->GetKeywordValue(antKey.str(), antRangeStr)) {
+				std::pair<int, int> range = getRangeFromString(antRangeStr);
+				TimeRange timeRange;
+				timeRange.start = range.first;
+				timeRange.end = range.second;
+				timeRange.name = antKey.str();
+				_timeRanges.push_back(timeRange);
+				searchOn = true;
+			}
+			if(_file->GetKeywordValue(termKey.str(), termRangeStr)) {
+				std::pair<int, int> range = getRangeFromString(termRangeStr);
+				TimeRange timeRange;
+				timeRange.start = range.first;
+				timeRange.end = range.second;
+				timeRange.name = termKey.str();
+				_timeRanges.push_back(timeRange);
+				searchOn = true;
+			}
+			++keyIndex;
+		} while(searchOn);
+		AOLogger::Debug << "This file has " << _timeRanges.size() << " time ranges.\n";
 	}
 
 	BaselineData BHFitsImageSet::loadData(const ImageSetIndex &index)
@@ -146,7 +154,13 @@ namespace rfiStrategy {
 			{
 				for(int y=0; y!=_height; ++y)
 				{
-					mask->SetValue(x-rangeStart, y, *bufferPtr == 1.0);
+					bool flag = false;
+					if(*bufferPtr == 0.0)
+						flag = false;
+					else if(*bufferPtr == 1.0)
+						flag = true;
+					else std::runtime_error("Expecting a flag file with only ones and zeros, but this file contained other values.");
+					mask->SetValue(x-rangeStart, y, flag);
 					++bufferPtr;
 				}
 			}
@@ -186,23 +200,23 @@ namespace rfiStrategy {
 
   std::pair<int, int> BHFitsImageSet::getRangeFromString(const std::string &rangeStr)
   {
-    std::pair<int, int> value;
-    size_t partA = rangeStr.find(' ');
-    value.first = atoi(rangeStr.substr(0, partA).c_str());
-    size_t partB = rangeStr.find('-');
-    if(rangeStr[partB+1] == ' ')
-      ++partB;
-    value.second = atoi(rangeStr.substr(partB+1).c_str());
-    return value;
+		std::pair<int, int> value;
+		size_t partA = rangeStr.find(' ');
+		value.first = atoi(rangeStr.substr(0, partA).c_str());
+		size_t partB = rangeStr.find('-');
+		if(rangeStr[partB+1] == ' ')
+			++partB;
+		value.second = atoi(rangeStr.substr(partB+1).c_str());
+		return value;
   }
   
 	std::string BHFitsImageSet::flagFilePath() const
 	{
-    std::string flagFilePath = _file->Filename();
-    if(flagFilePath.size() > 7) {
-      flagFilePath = flagFilePath.substr(0, flagFilePath.size()-7);
-    }
-    flagFilePath += "_flag.fits";
+		std::string flagFilePath = _file->Filename();
+		if(flagFilePath.size() > 7) {
+			flagFilePath = flagFilePath.substr(0, flagFilePath.size()-7);
+		}
+		flagFilePath += "_flag.fits";
 		return flagFilePath;
 	}
 
@@ -244,7 +258,7 @@ namespace rfiStrategy {
 			}
 		}
 
-		flagFile.WriteImage(0, &buffer[0], _width * _height);
+		flagFile.WriteImage(0, &buffer[0], _width * _height, -1.0);
 	}
 
 	void BHFitsImageSet::PerformWriteFlagsTask()
