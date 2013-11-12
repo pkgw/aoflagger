@@ -68,7 +68,7 @@ namespace rfiStrategy {
 	{
 		const std::string uppFile(boost::to_upper_copy(file));
 		return
-		  (uppFile.size() > 5 && uppFile.substr(file.size() - 7) == ".BHFITS" );
+		  (uppFile.size() > 7 && uppFile.substr(file.size() - 7) == ".BHFITS" );
 	}
 	
 	bool ImageSet::IsFitsFile(const std::string &file)
@@ -79,7 +79,7 @@ namespace rfiStrategy {
 		||
 		(uppFile.size() > 5 && uppFile.substr(file.size() - 5) == ".FITS" )
 		||
-		(uppFile.size() > 5 && uppFile.substr(file.size() - 7) == ".UVFITS" )
+		(uppFile.size() > 7 && uppFile.substr(file.size() - 7) == ".UVFITS" )
 		||
 		(uppFile.size() > 7 && uppFile.substr(file.size() - 7) == ".SDFITS" ); // Parkes raw files are named like this
 	}
