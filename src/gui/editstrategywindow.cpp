@@ -44,6 +44,7 @@
 #include "strategyframes/foreachpolarisationframe.h"
 #include "strategyframes/foreachcomplexcomponentframe.h"
 #include "strategyframes/frequencyconvolutionframe.h"
+#include "strategyframes/frequencyselectionframe.h"
 #include "strategyframes/fringestoppingframe.h"
 #include "strategyframes/highpassfilterframe.h"
 #include "strategyframes/iterationframe.h"
@@ -308,6 +309,9 @@ void EditStrategyWindow::onSelectionChanged()
 					break;
 				case FrequencyConvolutionActionType:
 					showRight(new FrequencyConvolutionFrame(*static_cast<rfiStrategy::FrequencyConvolutionAction*>(selectedAction), *this));
+					break;
+				case FrequencySelectionActionType:
+					showRight(new FrequencySelectionFrame(*static_cast<rfiStrategy::FrequencySelectionAction*>(selectedAction), *this));
 					break;
 				case HighPassFilterActionType:
 					showRight(new HighPassFilterFrame(*static_cast<rfiStrategy::HighPassFilterAction*>(selectedAction), *this));

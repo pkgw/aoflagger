@@ -46,6 +46,9 @@ namespace rfiStrategy {
 
 			num_t Threshold() const { return _threshold; }
 			void SetThreshold(num_t threshold) { _threshold = threshold; }
+
+			bool ClipDown() const { return _clipDown; }
+			void SetClipDown(bool clipDown) { _clipDown = clipDown; }
 		private:
 			double _threshold;
 			bool _clipDown;
