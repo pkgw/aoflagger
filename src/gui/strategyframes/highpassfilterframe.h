@@ -42,8 +42,8 @@ class HighPassFilterFrame : public Gtk::Frame {
 		_vWindowSizeLabel("Vertical sliding window size:", Gtk::ALIGN_START),
 		_hKernelSigmaLabel("Horizontal kernel sigma:", Gtk::ALIGN_START),
 		_vKernelSigmaLabel("Vertical kernel sigma:", Gtk::ALIGN_START),
-		_modeContaminatedButton("Store in contaminated"),
-		_modeRevisedButton("Store in revised"),
+		_modeContaminatedButton("Store result (i.e. high-pass filtered) in contaminated"),
+		_modeRevisedButton("Store residual (i.e. low-pass filtered) in revised"),
 		_applyButton(Gtk::Stock::APPLY)
 		{
 			initScales();

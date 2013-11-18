@@ -27,6 +27,9 @@ void HighPassFilterAction::Perform(ArtifactSet &artifacts, ProgressListener &pro
 		break;
 		
 	case StoreRevised:
+		// Here we're storing the *residual* of the operation as the
+		// revised data. The residual of a high-pass filter is just a
+		// low-pass filter, so just compute that directly.
 		TimeFrequencyData revisedData = data;
 		for(size_t i=0;i<imageCount;++i)
 		{
