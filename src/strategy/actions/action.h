@@ -41,6 +41,7 @@ namespace rfiStrategy {
 		CutAreaActionType,
 		DirectionProfileActionType,
 		DirectionalCleanActionType,
+		DumpImagesActionType,
 		EigenValueVerticalActionType,
 		ForEachBaselineActionType,
 		ForEachComplexComponentActionType,

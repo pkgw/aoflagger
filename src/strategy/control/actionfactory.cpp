@@ -31,6 +31,7 @@
 #include "../actions/cutareaaction.h"
 #include "../actions/directionalcleanaction.h"
 #include "../actions/directionprofileaction.h"
+#include "../actions/dumpimagesaction.h"
 #include "../actions/eigenvalueverticalaction.h"
 #include "../actions/foreachbaselineaction.h"
 #include "../actions/foreachcomplexcomponentaction.h"
@@ -77,6 +78,7 @@ const std::vector<std::string> ActionFactory::GetActionList()
 	list.push_back("Cut area");
 	list.push_back("Directional CLEAN");
 	list.push_back("Direction profile");
+	list.push_back("Dump current images");
 	list.push_back("Eigen value decompisition (vertical)");
 	list.push_back("For each baseline");
 	list.push_back("For each complex component");
@@ -133,6 +135,8 @@ Action *ActionFactory::CreateAction(const std::string &action)
 		return new DirectionalCleanAction();
 	else if(action == "Direction profile")
 		return new DirectionProfileAction();
+	else if(action == "Dump current images")
+		return new DumpImagesAction();
 	else if(action == "Eigen value decompisition (vertical)")
 		return new EigenValueVerticalAction();
 	else if(action == "For each baseline")

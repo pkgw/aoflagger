@@ -33,6 +33,7 @@
 #include "../actions/cutareaaction.h"
 #include "../actions/directionalcleanaction.h"
 #include "../actions/directionprofileaction.h"
+#include "../actions/dumpimagesaction.h"
 #include "../actions/eigenvalueverticalaction.h"
 #include "../actions/foreachbaselineaction.h"
 #include "../actions/foreachcomplexcomponentaction.h"
@@ -263,8 +264,10 @@ Action *StrategyReader::parseAction(xmlNode *node)
 		newAction = parseDirectionalCleanAction(node);
 	else if(typeStr == "DirectionProfileAction")
 		newAction = parseDirectionProfileAction(node);
+	else if(typeStr == "DumpImagesAction")
+		newAction = parseDumpImagesAction(node);
 	else if(typeStr == "EigenValueVerticalAction")
-	  newAction = parseEigenValueVerticalAction(node);
+		newAction = parseEigenValueVerticalAction(node);
 	else if(typeStr == "ForEachBaselineAction")
 		newAction = parseForEachBaselineAction(node);
 	else if(typeStr == "ForEachComplexComponentAction")
@@ -431,10 +434,17 @@ Action *StrategyReader::parseDirectionProfileAction(xmlNode *node)
 	return newAction;
 }
 
+Action *StrategyReader::parseDumpImagesAction(xmlNode *node)
+{
+	DumpImagesAction *newAction = new DumpImagesAction();
+	newAction->SetIdent(getInt(node, "ident"));
+	return newAction;
+}
+
 Action *StrategyReader::parseEigenValueVerticalAction(xmlNode *)
 {
-  EigenValueVerticalAction *newAction = new EigenValueVerticalAction();
-  return newAction;
+	EigenValueVerticalAction *newAction = new EigenValueVerticalAction();
+	return newAction;
 }
 
 Action *StrategyReader::parseForEachBaselineAction(xmlNode *node)

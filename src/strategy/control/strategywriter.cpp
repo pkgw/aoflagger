@@ -30,6 +30,7 @@
 #include "../actions/cutareaaction.h"
 #include "../actions/directionalcleanaction.h"
 #include "../actions/directionprofileaction.h"
+#include "../actions/dumpimagesaction.h"
 #include "../actions/eigenvalueverticalaction.h"
 #include "../actions/foreachbaselineaction.h"
 #include "../actions/foreachcomplexcomponentaction.h"
@@ -134,7 +135,10 @@ namespace rfiStrategy {
 			case DirectionProfileActionType:
 				writeDirectionProfileAction(static_cast<const DirectionProfileAction&>(action));
 				break;
-				case EigenValueVerticalActionType:
+			case DumpImagesActionType:
+				writeDumpImagesAction(static_cast<const DumpImagesAction&>(action));
+				break;
+			case EigenValueVerticalActionType:
 				writeEigenValueVerticalAction(static_cast<const EigenValueVerticalAction&>(action));
 				break;
 			case ForEachBaselineActionType:
@@ -328,10 +332,16 @@ namespace rfiStrategy {
 		Write<int>("profile-action", (int) action.ProfileAction());
 	}
 
-  void StrategyWriter::writeEigenValueVerticalAction(const EigenValueVerticalAction &)
-  {
-    Attribute("type", "EigenValueVerticalAction");
-  }
+	void StrategyWriter::writeDumpImagesAction(const DumpImagesAction &action)
+	{
+		Attribute("type", "DumpImagesAction");
+		Write<int>("ident", (int) action.Ident());
+	}
+
+	void StrategyWriter::writeEigenValueVerticalAction(const EigenValueVerticalAction &)
+	{
+		Attribute("type", "EigenValueVerticalAction");
+	}
 
 	void StrategyWriter::writeForEachBaselineAction(const ForEachBaselineAction &action)
 	{

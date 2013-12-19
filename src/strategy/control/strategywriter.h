@@ -82,6 +82,7 @@ namespace rfiStrategy {
 			void writeCutAreaAction(const class CutAreaAction &action);
 			void writeDirectionalCleanAction(const class DirectionalCleanAction &action);
 			void writeDirectionProfileAction(const class DirectionProfileAction &action);
+			void writeDumpImagesAction(const class DumpImagesAction &action);
 			void writeEigenValueVerticalAction(const class EigenValueVerticalAction &action);
 			void writeForEachBaselineAction(const class ForEachBaselineAction &action);
 			void writeForEachComplexComponentAction(const class ForEachComplexComponentAction &action);

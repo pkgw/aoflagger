@@ -67,6 +67,7 @@ class StrategyReader {
 		class Action *parseCutAreaAction(xmlNode *node);
 		class Action *parseDirectionalCleanAction(xmlNode *node);
 		class Action *parseDirectionProfileAction(xmlNode *node);
+		class Action *parseDumpImagesAction(xmlNode *node);
 		class Action *parseEigenValueVerticalAction(xmlNode *node);
 		class Action *parseForEachBaselineAction(xmlNode *node);
 		class Action *parseForEachComplexComponentAction(xmlNode *node);
